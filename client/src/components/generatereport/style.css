@@ -1,0 +1,186 @@
+@font-face {
+  font-family: "Geo";
+  src: url("../../assets/fonts/Geo-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Gandhi Sans Bold";
+  src: url("../../assets/fonts/GandhiSans-Bold.otf") format("truetype");
+}
+
+@font-face {
+  font-family: "Gandhi Sans Regular";
+  src: url("../../assets/fonts/GandhiSans-Regular.otf") format("truetype");
+}
+
+.detailed-species-round-div {
+  position: absolute;
+  height: 180px;
+  width: 180px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  /* margin-left: 30px; */
+  background-color: #dab830;
+}
+.detailed-species-ractangular-div {
+  background-color: #f3ede8;
+  display: flex;
+  justify-content: center;
+  margin-left: 140px;
+  min-width: 33vh;
+  font-family: "Gandhi Sans Regular";
+  /* width: 60%; */
+}
+.inner-ractangular-div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 20px;
+  padding-top: 20px;
+  /* width: 100%; */
+}
+
+.detailed-species-discriptions {
+  display: flex;
+  justify-content: center;
+  padding-left: 15%;
+  padding-right: 15%;
+  text-align: center;
+  font-size: 25px;
+  line-height: 26.4px;
+  font-family: "Gandhi Sans Regular";
+  font-weight: lighter;
+}
+.custom-icon {
+  filter: hue-rotate(150deg) brightness(1) saturate(2);
+}
+
+.avatar-icon {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  font-size: 5em;
+  font-weight: bold;
+  font-family: sans-serif;
+  border: 1px solid #000;
+}
+
+/* @media screen and (max-width: 956px) {
+  .inner-ractangular-div {
+    padding-bottom: 30px;
+    padding-top: 30px;
+  }
+}
+@media screen and (max-width: 768px) {
+  .inner-ractangular-div {
+    padding-bottom: 20px;
+    padding-top: 20px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .inner-ractangular-div {
+    padding-bottom: 10px;
+    padding-top: 10px;
+  }
+} */
+
+.container-styles {
+  height: 6vh;
+  width: 40px;
+  background-color: #fef1f2;
+  position: relative;
+}
+.pdf-container-styles {
+  height: 6vh;
+  width: 60px;
+  background-color: #fef1f2;
+  position: relative;
+}
+
+.filler-styles {
+  width: 100%;
+  background-color: #dab830;
+  position: absolute;
+  bottom: 0;
+  transition: ease-in-out;
+}
+
+.pdf-filler-styles {
+  width: 100%;
+  padding: 0 22px;
+  background-color: #dab830;
+  position: absolute;
+  bottom: 0;
+}
+
+.geography-button:hover {
+  background-color: #bbf7d0;
+}
+
+.geography-button {
+  color: black;
+}
+
+.download-div {
+  background-color: #fff;
+  border-radius: 4px;
+  position: absolute;
+  bottom: 30px;
+  right: 10px;
+  z-index: 999;
+  border: 2px solid grey;
+}
+
+.main-heading {
+  /* margin-top: 3%; */
+  display: flex;
+  justify-content: center;
+  color: #fff;
+  text-shadow: 0px 50px 50px 0px rgba(0, 0, 0, 0.25);
+  font-size: 40px;
+  font-family: "Gandhi Sans Bold";
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.myna-text {
+  color: #fff;
+  font-size: 3em;
+  margin-left: 10%;
+  font-family: "Geo", sans-serif;
+  /* font-style: normal; */
+  /* font-variant: normal; */
+  line-height: 26.4px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.report-skeleton-container {
+  margin-top: 4%;
+}
+.report-skleton-header-div {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+.report-skleton-header-text {
+  font-size: 50px;
+  width: 20%;
+}
+
+/* {font-family: Geo; font-size: 24px; font-style: normal; font-variant: normal; font-weight: 700; line-height: 26.4px;} */
+.gandhi-family {
+  font-family: "Gandhi Sans Regular";
+  font-weight: lighter;
+}
+.gandhi-family-bold {
+  font-family: "Gandhi Sans Bold";
+  font-weight: 700;
+}
