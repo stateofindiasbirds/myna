@@ -1,0 +1,260 @@
+<html><head><meta charset="utf-8"/><title>Test Report</title><style type="text/css">html,
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 1rem;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+body {
+  padding: 2rem 1rem;
+  font-size: 0.85rem;
+}
+.jesthtml-content {
+  margin: 0 auto;
+  max-width: 70rem;
+}
+header {
+  display: flex;
+  align-items: center;
+}
+#title {
+  margin: 0;
+  flex-grow: 1;
+}
+#logo {
+  height: 4rem;
+}
+#timestamp {
+  color: #777;
+  margin-top: 0.5rem;
+}
+
+/** SUMMARY */
+#summary {
+  color: #333;
+  margin: 2rem 0;
+  display: flex;
+  font-family: monospace;
+  font-size: 1rem;
+}
+#summary > div {
+  margin-right: 2rem;
+  background: #eee;
+  padding: 1rem;
+  min-width: 15rem;
+}
+#summary > div:last-child {
+  margin-right: 0;
+}
+@media only screen and (max-width: 720px) {
+  #summary {
+    flex-direction: column;
+  }
+  #summary > div {
+    margin-right: 0;
+    margin-top: 2rem;
+  }
+  #summary > div:first-child {
+    margin-top: 0;
+  }
+}
+
+.summary-total {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+.summary-passed {
+  color: #4f8a10;
+  border-left: 0.4rem solid #4f8a10;
+  padding-left: 0.5rem;
+}
+.summary-failed,
+.summary-obsolete-snapshots {
+  color: #d8000c;
+  border-left: 0.4rem solid #d8000c;
+  padding-left: 0.5rem;
+}
+.summary-pending {
+  color: #9f6000;
+  border-left: 0.4rem solid #9f6000;
+  padding-left: 0.5rem;
+}
+.summary-empty {
+  color: #999;
+  border-left: 0.4rem solid #999;
+}
+
+.test-result {
+  padding: 1rem;
+  margin-bottom: 0.25rem;
+}
+.test-result:last-child {
+  border: 0;
+}
+.test-result.passed {
+  background-color: #dff2bf;
+  color: #4f8a10;
+}
+.test-result.failed {
+  background-color: #ffbaba;
+  color: #d8000c;
+}
+.test-result.pending {
+  background-color: #ffdf61;
+  color: #9f6000;
+}
+
+.test-info {
+  display: flex;
+  justify-content: space-between;
+}
+.test-suitename {
+  width: 20%;
+  text-align: left;
+  font-weight: bold;
+  word-break: break-word;
+}
+.test-title {
+  width: 40%;
+  text-align: left;
+  font-style: italic;
+}
+.test-status {
+  width: 20%;
+  text-align: right;
+}
+.test-duration {
+  width: 10%;
+  text-align: right;
+  font-size: 0.75rem;
+}
+
+.failureMessages {
+  padding: 0 1rem;
+  margin-top: 1rem;
+  border-top: 1px dashed #d8000c;
+}
+.failureMessages.suiteFailure {
+  border-top: none;
+}
+.failureMsg {
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+
+.suite-container {
+  margin-bottom: 2rem;
+}
+.suite-container > input[type="checkbox"] {
+  position: absolute;
+  left: -100vw;
+}
+.suite-container label {
+  display: block;
+}
+.suite-container .suite-tests {
+  overflow-y: hidden;
+  height: 0;
+}
+.suite-container > input[type="checkbox"]:checked ~ .suite-tests {
+  height: auto;
+  overflow: visible;
+}
+.suite-info {
+  padding: 1rem;
+  background-color: #eee;
+  color: #777;
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+.suite-info:hover {
+  background-color: #ddd;
+  cursor: pointer;
+}
+.suite-info .suite-path {
+  word-break: break-all;
+  flex-grow: 1;
+  font-family: monospace;
+  font-size: 1rem;
+}
+.suite-info .suite-time {
+  margin-left: 0.5rem;
+  padding: 0.2rem 0.3rem;
+  font-size: 0.75rem;
+}
+.suite-info .suite-time.warn {
+  background-color: #d8000c;
+  color: #fff;
+}
+.suite-info:before {
+  content: "\2303";
+  display: inline-block;
+  margin-right: 0.5rem;
+  transform: rotate(0deg);
+}
+.suite-container > input[type="checkbox"]:checked ~ label .suite-info:before {
+  transform: rotate(180deg);
+}
+
+/* CONSOLE LOGS */
+.suite-consolelog {
+  margin-bottom: 0.25rem;
+  padding: 1rem;
+  background-color: #efefef;
+}
+.suite-consolelog-header {
+  font-weight: bold;
+}
+.suite-consolelog-item {
+  padding: 0.5rem;
+}
+.suite-consolelog-item pre {
+  margin: 0.5rem 0;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+.suite-consolelog-item-origin {
+  color: #777;
+  font-weight: bold;
+}
+.suite-consolelog-item-message {
+  color: #000;
+  font-size: 1rem;
+  padding: 0 0.5rem;
+}
+
+/* OBSOLETE SNAPSHOTS */
+.suite-obsolete-snapshots {
+  margin-bottom: 0.25rem;
+  padding: 1rem;
+  background-color: #ffbaba;
+  color: #d8000c;
+}
+.suite-obsolete-snapshots-header {
+  font-weight: bold;
+}
+.suite-obsolete-snapshots-item {
+  padding: 0.5rem;
+}
+.suite-obsolete-snapshots-item pre {
+  margin: 0.5rem 0;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+.suite-obsolete-snapshots-item-message {
+  color: #000;
+  font-size: 1rem;
+  padding: 0 0.5rem;
+}
+</style></head><body><div class="jesthtml-content"><header><h1 id="title">Test Report</h1></header><div id="metadata-container"><div id="timestamp">Started: 2024-06-28 14:25:57</div><div id="summary"><div id="suite-summary"><div class="summary-total">Suites (6)</div><div class="summary-passed ">6 passed</div><div class="summary-failed  summary-empty">0 failed</div><div class="summary-pending  summary-empty">0 pending</div></div><div id="test-summary"><div class="summary-total">Tests (52)</div><div class="summary-passed ">52 passed</div><div class="summary-failed  summary-empty">0 failed</div><div class="summary-pending  summary-empty">0 pending</div></div></div></div><div id="suite-1" class="suite-container"><input id="collapsible-0" type="checkbox" class="toggle" checked="checked"/><label for="collapsible-0"><div class="suite-info"><div class="suite-path">/home/ajay/Documents/NCF-backend/ncf/controllerLocality.test.js</div><div class="suite-time warn">23.412s</div></div></label><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State, County and Locality) Location Name ID-T5018</div><div class="test-title">T5018/location_listing</div><div class="test-status">passed</div><div class="test-duration">9.341s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State, County and Locality) Species Details ID-T5019</div><div class="test-title">T5019/count_by_scientificName</div><div class="test-status">passed</div><div class="test-duration">5.591s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State, County and Locality) IUCN Red List Species ID-T5020</div><div class="test-title">T5020/percentage_iucn_redList_species</div><div class="test-status">passed</div><div class="test-duration">0.667s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State, County and Locality) Endemic Species ID-T5021</div><div class="test-title">T5021/percentage_endemic_species</div><div class="test-status">passed</div><div class="test-duration">0.689s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State, County and Locality) Most Common Species ID-T5022</div><div class="test-title">T5022/pertcentage_most_common_species</div><div class="test-status">passed</div><div class="test-duration">0.943s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State, County and Locality) Seasonal Chart ID-T5023</div><div class="test-title">T5023/seasonal_chart_for_species</div><div class="test-status">passed</div><div class="test-duration">0.672s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State, County and Locality) Hotspots ID-T5024</div><div class="test-title">T5024/hotspot_area</div><div class="test-status">passed</div><div class="test-duration">0.378s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State, County and Locality) Complete List of Species ID-T5025</div><div class="test-title">T5025/complete_List_Of_Species</div><div class="test-status">passed</div><div class="test-duration">0.329s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State, County and Locality) Data Contributions ID-T5027</div><div class="test-title">T5027/effortsDetails</div><div class="test-status">passed</div><div class="test-duration">1.742s</div></div></div></div></div><div id="suite-2" class="suite-container"><input id="collapsible-1" type="checkbox" class="toggle" checked="checked"/><label for="collapsible-1"><div class="suite-info"><div class="suite-path">/home/ajay/Documents/NCF-backend/ncf/controllerLocalityDate.test.js</div><div class="suite-time warn">25.256s</div></div></label><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State, County, Locality and Date) Location Name ID-T5028</div><div class="test-title">T5028/location_listing</div><div class="test-status">passed</div><div class="test-duration">11.758s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State, County, Locality and Date) Species Details ID-T5029</div><div class="test-title">T5029/count_by_scientificName</div><div class="test-status">passed</div><div class="test-duration">4.955s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State, County, Locality and Date) IUCN Red List Species ID-T5030</div><div class="test-title">T5030/percentage_iucn_redList_species</div><div class="test-status">passed</div><div class="test-duration">0.609s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State, County, Locality and Date) Endemic Species ID-T5031</div><div class="test-title">T5031/percentage_endemic_species</div><div class="test-status">passed</div><div class="test-duration">0.656s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State, County, Locality and Date) Most Common Species ID-5032</div><div class="test-title">/pertcentage_most_common_species</div><div class="test-status">passed</div><div class="test-duration">0.91s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State, County, Locality and Date) Seasonal Chart ID-T5033</div><div class="test-title">T5033/seasonal_chart_for_species</div><div class="test-status">passed</div><div class="test-duration">0.78s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State, County, Locality and Date) Hotspots ID-T5034</div><div class="test-title">T5034/hotspot_area</div><div class="test-status">passed</div><div class="test-duration">0.303s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State, County, Locality and Date) Complete List of Species ID-T5035</div><div class="test-title">T5035/complete_List_Of_Species</div><div class="test-status">passed</div><div class="test-duration">0.316s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State, County, Locality and Date) Data Contributions ID-T5037</div><div class="test-title">T5037/effortsDetails</div><div class="test-status">passed</div><div class="test-duration">1.835s</div></div></div></div></div><div id="suite-3" class="suite-container"><input id="collapsible-2" type="checkbox" class="toggle" checked="checked"/><label for="collapsible-2"><div class="suite-info"><div class="suite-path">/home/ajay/Documents/NCF-backend/ncf/controller.test.js</div><div class="suite-time warn">43.981s</div></div></label><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State and County) Location Name ID-T007</div><div class="test-title">T007/location_listing</div><div class="test-status">passed</div><div class="test-duration">9.219s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State and County) Species Details ID-T008</div><div class="test-title">T008/count_by_scientificName</div><div class="test-status">passed</div><div class="test-duration">7.899s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State and County) IUCN Red List Species ID-T009</div><div class="test-title">T009/percentage_iucn_redList_species</div><div class="test-status">passed</div><div class="test-duration">3.215s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State and County) Endemic Species ID-T0010</div><div class="test-title">T0010/percentage_endemic_species</div><div class="test-status">passed</div><div class="test-duration">2.994s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State and County) Most Common Species ID-T011</div><div class="test-title">T011/pertcentage_most_common_species</div><div class="test-status">passed</div><div class="test-duration">6.778s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State and County) Seasonal Chart ID-T012</div><div class="test-title">T012/seasonal_chart_for_species</div><div class="test-status">passed</div><div class="test-duration">2.529s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State and County) Hotspots ID-T013</div><div class="test-title">T013/hotspot_area</div><div class="test-status">passed</div><div class="test-duration">0.804s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State and County) Complete List of Species ID-T014</div><div class="test-title">T014/complete_List_Of_Species</div><div class="test-status">passed</div><div class="test-duration">1.13s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State and County) Water Bird Congregations ID-T015</div><div class="test-title">T015/water_bird_congregation</div><div class="test-status">passed</div><div class="test-duration">0.569s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State and County) Data Contributions ID-T016</div><div class="test-title">T016/effortsDetails</div><div class="test-status">passed</div><div class="test-duration">5.714s</div></div></div></div></div><div id="suite-4" class="suite-container"><input id="collapsible-3" type="checkbox" class="toggle" checked="checked"/><label for="collapsible-3"><div class="suite-info"><div class="suite-path">/home/ajay/Documents/NCF-backend/ncf/controllerDate.test.js</div><div class="suite-time warn">61.552s</div></div></label><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State,County and Date) Location Name ID-T5008</div><div class="test-title">T5008/location_listing</div><div class="test-status">passed</div><div class="test-duration">9.015s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State,County and Date) Species Details ID-T5009</div><div class="test-title">T5009/count_by_scientificName</div><div class="test-status">passed</div><div class="test-duration">7.92s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State,County and Date) IUCN Red List Species ID-T5010</div><div class="test-title">T5010/percentage_iucn_redList_species</div><div class="test-status">passed</div><div class="test-duration">3.379s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State,County and Date) Endemic Species ID-T5011</div><div class="test-title">T5011/percentage_endemic_species</div><div class="test-status">passed</div><div class="test-duration">3.282s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State,County and Date) Most Common Species ID-5012</div><div class="test-title">/pertcentage_most_common_species</div><div class="test-status">passed</div><div class="test-duration">7.831s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State,County and Date) Seasonal Chart ID-T5013</div><div class="test-title">T5013/seasonal_chart_for_species</div><div class="test-status">passed</div><div class="test-duration">6.346s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State,County and Date) Hotspots ID-T5014</div><div class="test-title">T5014/hotspot_area</div><div class="test-status">passed</div><div class="test-duration">0.593s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State,County and Date) Complete List of Species ID-T5015</div><div class="test-title">T5015/complete_List_Of_Species</div><div class="test-status">passed</div><div class="test-duration">1.267s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State,County and Date) Water Bird Congregations ID-T5016</div><div class="test-title">T5016/water_bird_congregation</div><div class="test-status">passed</div><div class="test-duration">0.901s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(State,County and Date) Data Contributions ID-T5017</div><div class="test-title">T5017/effortsDetails</div><div class="test-status">passed</div><div class="test-duration">17.648s</div></div></div></div></div><div id="suite-5" class="suite-container"><input id="collapsible-4" type="checkbox" class="toggle" checked="checked"/><label for="collapsible-4"><div class="suite-info"><div class="suite-path">/home/ajay/Documents/NCF-backend/ncf/apiDate.test.js</div><div class="suite-time warn">103.125s</div></div></label><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">(Polygon and Date) Species Details ID-T5001</div><div class="test-title">T5001/count_by_scientificName</div><div class="test-status">passed</div><div class="test-duration">34.432s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(Polygon and Date) IUCN Red List Speicies ID-T5002</div><div class="test-title">T5002/percentage_iucn_redList_species</div><div class="test-status">passed</div><div class="test-duration">8.36s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(Polygon and Date) Endemic Species ID-T5003</div><div class="test-title">T5003/percentage_endemic_species</div><div class="test-status">passed</div><div class="test-duration">8.709s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(Polygon and Date) Most Common species ID-T5004</div><div class="test-title">T5004/pertcentage_most_common_species</div><div class="test-status">passed</div><div class="test-duration">30.577s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(Polygon and Date) Seasonal Chart ID-T5005</div><div class="test-title">T5005/seasonal_chart_for_species</div><div class="test-status">passed</div><div class="test-duration">14.591s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(Polygon and Date) Hotspots ID-T5006</div><div class="test-title">T5006/hotspot_area</div><div class="test-status">passed</div><div class="test-duration">2.11s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(Polygon and Date) waterBirdCongregations ID-T5007</div><div class="test-title">T5007/water_bird_congregation</div><div class="test-status">passed</div><div class="test-duration">1.259s</div></div></div></div></div><div id="suite-6" class="suite-container"><input id="collapsible-5" type="checkbox" class="toggle" checked="checked"/><label for="collapsible-5"><div class="suite-info"><div class="suite-path">/home/ajay/Documents/NCF-backend/ncf/api.test.js</div><div class="suite-time warn">106.791s</div></div></label><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">(Polygon) Species Details ID-T001</div><div class="test-title">T001/count_by_scientificName</div><div class="test-status">passed</div><div class="test-duration">35.946s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(Polygon) IUCN Red List Speicies ID-T002</div><div class="test-title">T002/percentage_iucn_redList_species</div><div class="test-status">passed</div><div class="test-duration">5.369s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(Polygon) Endemic Species ID-T003</div><div class="test-title">T003/percentage_endemic_species</div><div class="test-status">passed</div><div class="test-duration">6.633s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(Polygon) Most Common species ID-T004</div><div class="test-title">T004/pertcentage_most_common_species</div><div class="test-status">passed</div><div class="test-duration">16.028s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(Polygon) Seasonal Chart ID-T005</div><div class="test-title">T005/seasonal_chart_for_species</div><div class="test-status">passed</div><div class="test-duration">35.668s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(Polygon) Hotspots ID-T006</div><div class="test-title">T006/hotspot_area</div><div class="test-status">passed</div><div class="test-duration">2.943s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">(Polygon) waterBirdCongregations ID-T006</div><div class="test-title">T006/water_bird_congregation</div><div class="test-status">passed</div><div class="test-duration">1.23s</div></div></div></div></div></div></body></html>

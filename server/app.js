@@ -16,6 +16,10 @@ const Kinnaur = require("./models/birdsData");
 const { Op } = require("sequelize");
 const { constants } = require("zlib");
 const { compareSync } = require("bcrypt");
+// const CustomReporter = require('./customReporter');
+
+// new CustomReporter();
+
 
 const app = express();
 app.use(cors());
