@@ -71,6 +71,12 @@
   border: 1px solid #000;
 }
 
+
+
+
+
+
+
 /* @media screen and (max-width: 956px) {
   .inner-ractangular-div {
     padding-bottom: 30px;
@@ -183,4 +189,47 @@
 .gandhi-family-bold {
   font-family: "Gandhi Sans Bold";
   font-weight: 700;
+}
+
+.gmnoprint a, .gmnoprint span, .gm-style-cc {
+  display: none;
+}
+
+.baseClass{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+
+
+@media screen and (max-width: 1130px) {
+  .detailed-species-round-div {
+    position: absolute;
+    height: 130px;
+    width: 130px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform: translateX(50px);
+  }
+  .detailed-species-ractangular-div {
+    min-width: 30vh;
+  }
+  .inner-ractangular-div {
+    padding-bottom: 12px;
+    padding-top: 12px;
+  }
+  .startingText{
+    font-size: 1.3rem;
+  }
+} 
+
+@media screen and (max-width: 945px){
+  .text-3xl{
+    font-size: 1.1rem;
+  }
+  .text-2xl{
+    font-size: 1.2rem;
+  }
 }

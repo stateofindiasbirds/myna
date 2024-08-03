@@ -1,4 +1,5 @@
 import React, { Fragment, useEffect, useState } from "react";
+import { Map, Marker, GoogleApiWrapper, Polygon, InfoWindow } from 'google-maps-react';
 import { useRef } from "react";
 import Table2X2 from "./reportcomponents/Table2X2";
 import Table3XN from "./reportcomponents/Table3XN";
@@ -18,20 +19,14 @@ import CR_Logo from "../../assets/images/CR.png";
 import EN_Logo from "../../assets/images/EN.png";
 import NT_Logo from "../../assets/images/NT.png";
 import TableCard from "./reportcomponents/TableCard";
-import ReactLeafletGoogleLayer from "react-leaflet-google-layer";
-import dayjs from "dayjs";
-import Ziptogeojson from "./Ziptogeojson";
-import { MapContainer, Marker, Tooltip as Tip, useMap } from "react-leaflet";
 import { handleDownloadPdf } from "./helpers/generatePdf";
-import "leaflet/dist/leaflet.css";
+import dayjs from "dayjs";
 import Logo from "../../assets/images/logo.png";
-
 import CompleteListOfSpecies from "./reportcomponents/CompleteListofSpecies";
 import { RESET_ALL_DATA } from "../../redux/action";
 import { connect } from "react-redux";
 import SeasonalChart from "./reportcomponents/SeasonalChart";
 import "./style.css";
-import L from "leaflet";
 import CloseIcon from "@mui/icons-material/Close";
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import ReoprtSkeleton from "./ReoprtSkeleton";
@@ -39,20 +34,13 @@ import TableForEffortVariables from "./reportcomponents/TableForEffortVariables"
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import { calculateCentroid, calculateZoom, createTrackMiddlewareForPdfGenerate } from "./helpers/helperFunctions";
 
-//@neerajminhas c1 by default react-leaflet doesnot provide so deleting default icon and changing it with new
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
-  iconUrl: require("leaflet/dist/images/marker-icon.png"),
-  shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
-  className: "custom-icon",
-});
-//c1 end
-
 function Report(props) {
   const {
+    boundary,
+    setBoundary,
     dataForMap,
     selectedState,
+    
     selectedCounty,
     uploadedgeojson,
     getCountByScientificName,
@@ -64,6 +52,7 @@ function Report(props) {
     completeListOfSpecies,
     getDataForWaterbirdCongregation,
     getEffortDetails,
+    getSoibConcernStatus,
     RESET_ALL_DATA,
     reportName,
     setUploadedgeojson,
@@ -80,6 +69,12 @@ function Report(props) {
     completeListOfSpeciesFetchSuccessFully,
     mediumForReport,
   } = props;
+
+  // console.log(dataForMap, 'check datamap')
+  // console.log(editedData, 'edited data')
+  // console.log(getHotspotAreas, 'hotspot')
+  // console.log(boundary, 'selecteddistrict')
+
   const isTablet = useMediaQuery({ minWidth: 106, maxWidth: 624 });
   const monthNames = [
     "Jan",
@@ -98,6 +93,8 @@ function Report(props) {
 
   const [pdfDownloadStatus, setPdfDownloadStatus] = useState("Download Pdf");
   const [changeLayoutForReport, setChangeLayoutForReport] = useState(false);
+  const [activeMarker, setActiveMarker] = useState(null);
+  const [showInfoWindow, setShowInfoWindow] = useState(false);
   const downloadPdfProgress = {
     "Download Pdf": "w-[0%]",
     "Creating Layout..": "w-[20%]",
@@ -124,7 +121,7 @@ function Report(props) {
 
   const closeHandler = () => {
     if (!selectedState && editedData) {
-      console.log(editedData, "closebutton")
+      // console.log(editedData, "closebutton")
       const latlngs = [editedData.map((point) => [point.lng, point.lat])];
       const featureCollection = {
         type: "FeatureCollection",
@@ -146,130 +143,53 @@ function Report(props) {
     setSelectedCounty("");
     setSelectedLocality("");
     setSelectedState("");
-    setEditedData(null)
-    setShowreport(false);
+    setEditedData(null);
+    setBoundary(null);
+    setShowreport(null);
   };
 
-  // const LocationMarker = ({ data,editedData }) => {
-  //   console.log(editedData,"hhgggh")
-  //   const map = useMap();
-  //   map.invalidateSize();
-  //   if (data && data.features && data.features.length > 0) {
-  //     const arrayOfCords = data.features[0].geometry.coordinates[0];
-  //     const centroid = calculateCentroid(arrayOfCords);
-  //     const zoom = (calculateZoom(arrayOfCords)-1);
-  //     map.flyTo(centroid, zoom);
-  //   }
+  const convertedData = dataForMap?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }));
+  const boundaryData = boundary?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }));
 
-  const LocationMarker = ({ data, editedData, selectedState }) => {
-    const map = useMap();
-    map.invalidateSize();
-
-    if (!selectedState && editedData) {
-      // Zoom to edited data
-      const latlngs = editedData.map((point) => [point.lng, point.lat]);
-      const centroid = calculateCentroid(latlngs);
-      const zoom = calculateZoom(latlngs) - 1;
-      map.flyTo(centroid, zoom);
-    } else if (data && data.features && data.features.length > 0) {
-      // Zoom to polygon data
-      const arrayOfCords = data.features[0].geometry.coordinates[0];
-      const centroid = calculateCentroid(arrayOfCords);
-      const zoom = calculateZoom(arrayOfCords) - 1;
-      map.flyTo(centroid, zoom);
+  const getPolygonCenter = (polygon) => {
+    if (polygon && polygon.length > 0) {
+      const totalPoints = polygon.length;
+      const latSum = polygon.reduce((sum, point) => sum + point.lat, 0);
+      const lngSum = polygon.reduce((sum, point) => sum + point.lng, 0);
+      const center = {
+        lat: latSum / totalPoints,
+        lng: lngSum / totalPoints,
+      };
+      return center;
     }
+  }
 
-
-
-    // this code defines zoom level and zoom point based on these conditions
-    // 1. finding distance between most distance longitude and latitude and finding  average point X between them (X for zoom point)
-    // 2. Finding out largest value by comparing most distant placed latitute and longitude
-    // 3. Zoom point is defined in this way
-    //    (a). zoom of 14 if only one point is there
-    //    (b). zoom 10 if less than 0.5 degrees
-    //    (c). zoom 9 if between 0.5 and 1
-    //    (d). zoom 8 if between 1 and 2.5
-    //    (e). zoom 7 if greater than 2.5 - Neeraj-dev
-    if (getHotspotAreas.length > 1) {
-      const sortedlatitude = [...getHotspotAreas].sort((a, b) => {
-        if (a.latitude > b.latitude) {
-          return 1;
-        } else {
-          return -1;
-        }
-      });
-      const sortedlongitude = [...getHotspotAreas].sort((a, b) => {
-        if (a.longitude > b.longitude) {
-          return 1;
-        } else {
-          return -1;
-        }
-      });
-      const latitudeAverage =
-        (sortedlatitude[0].latitude +
-          sortedlatitude[sortedlatitude.length - 1].latitude) /
-        2;
-      const longitudeAverage =
-        (sortedlongitude[0].longitude +
-          sortedlongitude[sortedlongitude.length - 1].longitude) /
-        2;
-      const distanceBetweenLatitude =
-        sortedlatitude[0].latitude -
-        sortedlatitude[sortedlatitude.length - 1].latitude;
-      const distanceBetweenLongitude =
-        sortedlongitude[0].longitude -
-        sortedlongitude[sortedlongitude.length - 1].longitude;
-      let largestDistance = 0;
-
-      if (
-        Math.abs(distanceBetweenLatitude) > Math.abs(distanceBetweenLongitude)
-      ) {
-        largestDistance = Math.abs(distanceBetweenLatitude);
-      } else {
-        largestDistance = Math.abs(distanceBetweenLongitude);
-      }
-      if (largestDistance <= 0.5) {
-        map.flyTo([latitudeAverage, longitudeAverage], 10);
-      }
-      if (largestDistance > 0.5 && largestDistance <= 1) {
-        map.flyTo([latitudeAverage, longitudeAverage], 9);
-      }
-      if (largestDistance > 1 && largestDistance <= 3) {
-        map.flyTo([latitudeAverage, longitudeAverage], 8);
-      }
-      if (largestDistance > 3 && largestDistance <= 10) {
-        map.flyTo([latitudeAverage, longitudeAverage], 7);
-      }
-      if (largestDistance > 10) {
-        map.flyTo([latitudeAverage, longitudeAverage], 4);
-      }
-      if (getHotspotAreas.length === 1) {
-        const { latitude, longitude } = getHotspotAreas[0];
-        map.flyTo([latitude, longitude], 14);
-      }
-    }
-    if (getHotspotAreas.length === 1) {
-      const { latitude, longitude } = getHotspotAreas[0];
-      map.flyTo([latitude, longitude], 14);
-    }
-    const sortedlatitude = [...getHotspotAreas].sort((a, b) => {
-      if (a.latitude > b.latitude) {
-        return 1;
-      } else {
-        return -1;
-      }
-    });
-
-    return sortedlatitude.map((item, i) => {
-      return (
-        <>
-          <Marker key={i} position={[item.latitude, item.longitude]}>
-            <Tip>{item?.locality}</Tip>
-          </Marker>
-        </>
-      );
-    });
+  const handleMarkerClick = (marker) => {
+    setActiveMarker(marker);
+    setShowInfoWindow(true);
   };
+
+  const [capturedMarkers, setCapturedMarkers] = useState([]);
+  useEffect(() => {
+    if (changeLayoutForReport) {
+      const mapMarkers = getHotspotAreas.map(marker => ({
+        id: marker.localityId,
+        position: { lat: marker.latitude, lng: marker.longitude },
+        onMouseover: () => handleMarkerClick(marker),
+        onMouseout: () => setShowInfoWindow(false),
+      }));
+      setCapturedMarkers(mapMarkers);
+    } else {
+      setCapturedMarkers(getHotspotAreas.map(marker => ({
+        id: marker.localityId,
+        position: { lat: marker.latitude, lng: marker.longitude },
+        onMouseover: () => handleMarkerClick(marker),
+        onMouseout: () => setShowInfoWindow(false),
+      })));
+    }
+  }, [changeLayoutForReport, getHotspotAreas]);
+
+
   useEffect(() => {
     if (changeLayoutForReport) {
       createTrackMiddlewareForPdfGenerate(mediumForReport)
@@ -327,12 +247,118 @@ function Report(props) {
           ]
           : 0,
         getEffortDetails,
+        getSoibConcernStatus,
         startDate,
         endDate,
         getSeasonalChartData
       );
     }
   }, [changeLayoutForReport]);
+
+
+  const [initialCenter, setInitialCenter] = useState({ lat: 25.21, lng: 79.32 });
+  const [zoom, setZoom] = useState(9);
+  const [gridPolygonsDataForMap, setGridPolygonsDataForMap] = useState([]);
+
+  // const getPolygonCenter = (polygon) => {
+  //   const totalPoints = polygon.length;
+  //   const center = polygon.reduce((sum, point) => ({ lat: sum.lat + point.lat, lng: sum.lng + point.lng }), { lat: 0, lng: 0 });
+  //   return { lat: center.lat / totalPoints, lng: center.lng / totalPoints };
+  // };
+
+  const generateGrid = (boundingBox) => {
+    const grid = [];
+    const gridSize = 0.045;
+
+    for (let lat = boundingBox.minLat; lat <= boundingBox.maxLat; lat += gridSize) {
+      for (let lng = boundingBox.minLng; lng <= boundingBox.maxLng; lng += gridSize) {
+        const cellPolygon = [
+          { lat, lng },
+          { lat: lat + gridSize, lng },
+          { lat: lat + gridSize, lng: lng + gridSize },
+          { lat, lng: lng + gridSize },
+        ];
+
+        grid.push(cellPolygon);
+      }
+    }
+
+    return grid;
+  };
+
+  const getBoundingBox = (coordinates) => {
+    if (!Array.isArray(coordinates)) {
+      console.error("Invalid coordinates:", coordinates);
+      return { minLat: 0, maxLat: 0, minLng: 0, maxLng: 0 };
+    }
+
+    const lats = coordinates.map(point => point[1]);
+    const lngs = coordinates.map(point => point[0]);
+
+    return {
+      minLat: Math.min(...lats),
+      maxLat: Math.max(...lats),
+      minLng: Math.min(...lngs),
+      maxLng: Math.max(...lngs),
+    };
+  };
+
+  const formatEditedData = (editedData) => {
+    if (Array.isArray(editedData) && editedData.length > 0) {
+      if (editedData[0] && editedData[0].lat !== undefined && editedData[0].lng !== undefined) {
+        return {
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              geometry: {
+                type: "Polygon",
+                coordinates: [editedData.map(point => [point.lng, point.lat])]
+              },
+              properties: {
+                stroke: "#ff0000",
+                "stroke-opacity": 1,
+                "fill-opacity": 0
+              }
+            }
+          ]
+        };
+      }
+    }
+    return { type: "FeatureCollection", features: [] };
+  };
+
+  useEffect(() => {
+    if (editedData) {
+      const convertedEditedData = formatEditedData(editedData);
+      const boundingBox = getBoundingBox(convertedEditedData.features[0].geometry.coordinates[0]);
+      const grid = generateGrid(boundingBox);
+      setGridPolygonsDataForMap(grid);
+    }
+  }, [editedData]);
+
+  useEffect(() => {
+    if (boundary) {
+      const boundaryBoundingBox = getBoundingBox(boundary.features[0].geometry.coordinates[0]);
+      const boundaryGrid = generateGrid(boundaryBoundingBox);
+      setGridPolygonsDataForMap(boundaryGrid);
+    }
+  }, [boundary]);
+
+  useEffect(() => {
+    if (dataForMap && dataForMap.features && dataForMap.features.length > 0) {
+      const polygonBoundary = dataForMap.features[0].geometry.coordinates[0].map(point => ({ lat: point[1], lng: point[0] }));
+      const center = polygonBoundary.reduce((sum, point) => ({ lat: sum.lat + point.lat, lng: sum.lng + point.lng }), { lat: 0, lng: 0 });
+      const zoom = 9.5;
+      setInitialCenter({ lat: center.lat / polygonBoundary.length, lng: center.lng / polygonBoundary.length });
+      setZoom(zoom);
+      const coordinates = dataForMap.features[0].geometry.coordinates[0];
+      const boundingBox = getBoundingBox(coordinates);
+      const grid = generateGrid(boundingBox);
+      setGridPolygonsDataForMap(grid);
+    }
+  }, [dataForMap]);
+
 
   return (
     <Fragment>
@@ -579,7 +605,18 @@ function Report(props) {
             <div className="p-1 lg:px-8 mt-8 text-xs lg:text-base ">
               <div className={` mt-20 `}>
                 <div className="">
-                  <Card className="mx-64">
+                  <Card className="mx-40 my-8">
+                    <Table3XN
+                      heading="SOIB HIGH CONSERVATION PRIORITY SPECIES"
+                      tableData={getSoibConcernStatus}
+                      title1={"Species"}
+                      // title2={"IUCN Status"}
+                      title3={"Frequency of Reporting"}
+                      title4={"Year of Latest Report"}
+                      includesScientificName={false}
+                    />
+                  </Card>
+                  <Card className="mx-40">
                     <Table3XN
                       heading="IUCN REDLIST SPECIES"
                       tableData={getDataForIucnRedListTable}
@@ -587,32 +624,39 @@ function Report(props) {
                       title2={"IUCN Status"}
                       // title3={"SoIB Status"}
                       title3={"Frequency of Reporting"}
+                      title4={"Year of Latest Report"}
                       includesScientificName={false}
                     />
                   </Card>
-                  <Card className="mx-64 my-8">
+                 
+                  <Card className="mx-40 my-8">
                     <Table3XN
                       heading="ENDEMIC SPECIES"
                       tableData={getDataForEndemicSpeciesTable}
                       title1={"Species"}
                       title2={"Endemic Region"}
                       title3={"Frequency of Reporting"}
+                      title4={"Year of Latest Report"}
                       includesScientificName={false}
                     />
                   </Card>
-                  <Card className="mx-64">
+                  <Card className="mx-40">
                     <Table3XN
                       heading="WATERBIRD CONGREGATIONS"
                       tableData={getDataForWaterbirdCongregation}
                       title1={"Species"}
                       title2={"Highest Count"}
                       title3={"1% of Biogeographic Population"}
+                      title4={"Year of Report"}
                       includesScientificName={true}
                     />
                   </Card>
                 </div>
               </div>
             </div>
+
+
+
             <div className="p-1  lg:px-8 mt-12 text-xs lg:text-base">
               <div className="" ref={mostCommonSpeciesDiv}>
                 <ProgressChart
@@ -646,39 +690,98 @@ function Report(props) {
               )}
             </div>
 
-            <div>
-              <div className="p-2 grid grid-cols-1 md:grid-cols-3 mt-24 mx-24">
+            <div className="mb-16 py-4" style={{ height: "70vh" }}>
+              <div className="p-2 grid grid-cols-1 md:grid-cols-3  mx-20">
                 <div className="grid col-span-2" ref={otherScreen}>
-                  <MapContainer
-                    style={{ height: "70vh" }}
-                    center={[32.21, 76.32]}
-                    zoom={12}
-                    scrollWheelZoom={false}
-                  // whenCreated={(mapInstance) => {
-                  //   mapInstance.flyTo([
-                  //     getHotspotAreas[0]?.latitude,
-                  //     getHotspotAreas[0]?.longitude,
-                  //     10,
-                  //   ]);
-                  // }}
+                  <Map
+                    className="w-auto"
+                    style={{ height: "70vh", width: '58vw' }}
+                    google={props.google}
+                    mapTypeControl={false}
+                    scaleControl={false}
+                    streetViewControl={false}
+                    panControl={false}
+                    rotateControl={false}
+                    zoom={
+                      editedData ? 9 :
+                        convertedData ? 10.5 :
+                          boundaryData ? 9 : 10.5
+                    }
+                    initialCenter={(convertedData && getPolygonCenter(convertedData)) || (editedData && getPolygonCenter(editedData)) || boundaryData && getPolygonCenter(boundaryData) || { lat: 25.21, lng: 79.32 }}
                   >
-                    {console.log(process.env.REACT_APP_API_KEY)}
-                    <ReactLeafletGoogleLayer
-                      googleMapsLoaderConf={{ region: "IN" }}
-                      apiKey={process.env.REACT_APP_API_KEY}
-        
-
-                    />
-                    {dataForMap === null && editedData === null ? (
-                      ""
-                    ) : !changeLayoutForReport && (
-                      <Ziptogeojson editedData={editedData} data={dataForMap} onReport={true} />
+                    {props.data && props.data.features && props.data.features.length > 0 && (
+                      <Polygon
+                        paths={[props.data.features[0].geometry.coordinates[0]]}
+                        strokeColor="#0000FF"
+                        strokeOpacity={0.8}
+                        strokeWeight={2.5}
+                        fillOpacity={0}
+                      />
                     )}
-                    {/* <HotSpotMarker allHotSpotAreas={allHotSpotAreas} /> */}
-                    <LocationMarker editedData={editedData} data={dataForMap} />
-                  </MapContainer >
+
+                    {editedData && (
+                      <Polygon
+                        paths={editedData}
+                        strokeColor="#0000FF"
+                        strokeOpacity={0.8}
+                        strokeWeight={2.5}
+                        fillOpacity={0}
+                      />
+                    )}
+
+                    {convertedData && (
+                      <Polygon
+                        paths={convertedData}
+                        strokeColor="#0000FF"
+                        strokeOpacity={0.8}
+                        strokeWeight={2.5}
+                        fillOpacity={0}
+                      />
+                    )}
+
+                    {boundaryData && (
+                      <Polygon
+                        paths={boundaryData}
+                        strokeColor="#0000FF"
+                        strokeOpacity={0.8}
+                        strokeWeight={2.5}
+                        fillOpacity={0}
+                      />
+                    )}
+                    {(capturedMarkers?.length > 0 ? capturedMarkers : getHotspotAreas).map((marker) => (
+                      <Marker
+                        key={marker.id}
+                        position={marker.position}
+                        onMouseover={marker.onMouseover}
+                        onMouseout={marker.onMouseout}
+                      />
+                    ))}
+
+                    {getHotspotAreas && getHotspotAreas?.map(marker => (
+                      <Marker
+                        key={marker.localityId}
+                        position={{ lat: marker.latitude, lng: marker.longitude }}
+                        onMouseover={() => handleMarkerClick(marker)}
+                        onMouseout={() => setShowInfoWindow(false)}
+                      />
+                    ))}
+
+                    {getHotspotAreas && getHotspotAreas?.map(marker => (
+                      <InfoWindow
+                        key={marker.localityId}
+                        position={{ lat: marker.latitude, lng: marker.longitude }}
+                        visible={showInfoWindow && activeMarker === marker}
+                        onMouseover={() => setShowInfoWindow(true)}
+                        onMouseout={() => setShowInfoWindow(false)}
+                      >
+                        <div>
+                          <p>{marker.locality}</p>
+                        </div>
+                      </InfoWindow>
+                    ))}
+                  </Map>
                   {area != null ? (
-                    <span className="bg-[#F3EDE8] text-gray-800 p-2 gandhi-family rounded-b-xl">
+                    <span className="bg-[#F3EDE8] text-gray-800 h-[75vh] p-1 gandhi-family rounded-b-xl" style={{ display: 'flex', alignItems: 'end' }}>
                       {" "}
                       {"Area: "}{parseFloat(area).toFixed(2)} sq. km
                     </span>
@@ -686,14 +789,81 @@ function Report(props) {
                     ""
                   )}
                 </div>
-                <div className="ml-2">
+                <div className="ml-2 ">
                   {" "}
                   <TableCard tabledata={getHotspotAreas} />
                 </div>
               </div>
             </div>
+
+
+            {/* <div className=" grid grid-cols-3 px-20 ">
+              <div className="col-span-2">
+                <Card className="h-[70vh] w-[88vw] mt-32">
+                  <Map
+                    className="w-auto"
+                    style={{ height: "70vh", width: '65vw' }}
+                    google={props.google}
+                    zoom={(editedData ? 9 : 9.5)}
+                    initialCenter={(convertedData && getPolygonCenter(convertedData)) || (editedData && getPolygonCenter(editedData)) || boundaryData && getPolygonCenter(boundaryData) || { lat: 25.21, lng: 79.32 }}
+                  >
+                    {props.data && props.data.features && props.data.features.length > 0 && (
+                      <Polygon
+                        paths={[props.data.features[0].geometry.coordinates[0]]}
+                        strokeColor="#0000FF"
+                        strokeOpacity={0.8}
+                        strokeWeight={2.5}
+                        fillOpacity={0}
+                      />
+                    )}
+
+                    {convertedData && (
+                      <Polygon
+                        paths={convertedData}
+                        strokeColor="#0000FF"
+                        strokeOpacity={0.8}
+                        strokeWeight={2.5}
+                        fillOpacity={0}
+                      />
+                    )}
+                    {editedData && (
+                      <Polygon
+                        paths={editedData}
+                        strokeColor="#0000FF"
+                        strokeOpacity={0.8}
+                        strokeWeight={2.5}
+                        fillOpacity={0}
+                      />
+                    )}
+                    {boundaryData && (
+                      <Polygon
+                        paths={boundaryData}
+                        strokeColor="#0000FF"
+                        strokeOpacity={0.8}
+                        strokeWeight={2.5}
+                        fillOpacity={0}
+                      />
+                    )}
+
+                    {gridPolygonsDataForMap.map((gridPolygon, index) => (
+                      <Polygon
+                        key={`gridPolygonDataForMap_${index}`}
+                        paths={gridPolygon}
+                        strokeColor="#FF0000"
+                        strokeOpacity={0.8}
+                        strokeWeight={1}
+                        fillOpacity={0}
+
+                      />
+                    ))}
+                  </Map>
+                </Card>
+              </div>
+            </div> */}
+
+
             <div className="p-1 lg:px-8 mt-8 text-xs lg:text-base ">
-              <Card className="mx-20">
+              <Card className="mx-20 mt-8">
                 <div>
                   <CompleteListOfSpecies
                     completeListOfSpecies={completeListOfSpecies}
@@ -701,16 +871,16 @@ function Report(props) {
                 </div>
               </Card>
             </div>
-              <div className="p-1 lg:px-8 mt-8 text-xs lg:text-base ">
-                <Card className="mx-96">
-                  <div>
-                    <TableForEffortVariables
-                      heading={"DATA CONTRIBUTIONS"}
-                      effortDetails={getEffortDetails}
-                    />
-                  </div>
-                </Card>
-              </div>
+            <div className="p-1 lg:px-8 mt-8 text-xs lg:text-base ">
+              <Card className="mx-96">
+                <div>
+                  <TableForEffortVariables
+                    heading={"DATA CONTRIBUTIONS"}
+                    effortDetails={getEffortDetails}
+                  />
+                </div>
+              </Card>
+            </div>
           </div>
         ) : (
           <ReoprtSkeleton />
@@ -741,7 +911,7 @@ function Report(props) {
           }`}
       >
         <div className="col-span-2 text-right me-4 gandhi-family">
-          Generated from myna.stateofindiasbirds.in v1.0 on {formattedDate}
+          Generated from myna.stateofindiasbirds.in v.1.01 on {formattedDate}
         </div>
         <div
           className={`${changeLayoutForReport && "invisible"
@@ -775,10 +945,17 @@ const mapStateToProps = (state) => {
     getDataForWaterbirdCongregation:
       state?.UserReducer?.getDataForWaterbirdCongregation,
     getEffortDetails: state?.UserReducer?.getEffortDetails,
+    getSoibConcernStatus:state?.UserReducer?.getSoibConcernStatus,
     completeListOfSpeciesFetchSuccessFully: state?.UserReducer?.completeListOfSpeciesFetchSuccess,
   };
 };
 
 export default connect(mapStateToProps, {
   RESET_ALL_DATA,
-})(Report);
+})(GoogleApiWrapper({
+  apiKey: process.env.REACT_APP_API_KEY
+})(Report));
+
+
+
+

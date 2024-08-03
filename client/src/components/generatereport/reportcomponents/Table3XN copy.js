@@ -39,12 +39,8 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-const handleClickRedirect = (value) => {
-  window.open(`https://ebird.org/checklist/${value}`, '_blank');
-}
-
 const Table3XN = (props) => {
-  const { heading, tableData, title1, title2, title3,title4, includesScientificName } =
+  const { heading, tableData, title1, title2, title3, title4, includesScientificName } =
     props;
   return (
     tableData?.length > 0 && (
@@ -79,25 +75,27 @@ const Table3XN = (props) => {
                         >
                           <InformationCircleIcon className="cursor-help ms-1 text-yellow-500 h-7 w-7" />
                         </Tooltip>
-                      )}
+                      )
+                    }
                   </span>
                 </StyledTableCell>
 
                 <StyledTableCell>
                   <span className="d-flex ">
                     <b className="gandhi-family-bold text-2xl">{title4}</b>
-                    {(title4 === "Year of Latest Report" ||
-                      title4 === "Year of Report") && (
+                    {(title4 === "Year of Reporting" ||
+                      title4 === "Year of Reporting") && (
                         <Tooltip
                           title={
-                            title4 === "Year of Latest Report"
-                              ? "Most recent year when the species was reported"
-                              : "Most recent year when the high count was reported"
+                            title4 === "Year of Reporting"
+                              ? "How often a species is reported measured by the percentage of complete checklists reporting this species"
+                              : "Total population of a specific waterbird species found within a particular biogeographic region (here South Asia) is its biogeographic population."
                           }
                         >
                           <InformationCircleIcon className="cursor-help ms-1 text-yellow-500 h-7 w-7" />
                         </Tooltip>
-                      )}
+                      )
+                    }
                   </span>
                 </StyledTableCell>
 
@@ -117,15 +115,15 @@ const Table3XN = (props) => {
                           " (" +
                           item.maxObservationCount +
                           "%)"}
-                          </span>
+                      </span>
                       </StyledTableCell>
                       <StyledTableCell>
                         <span className="gandhi-family">
-                        {item.onePercentBiographicPopulation}
+                          {item.onePercentBiographicPopulation}
                         </span>
                       </StyledTableCell>
                       <StyledTableCell>
-                        <span className="gandhi-family" style={{color:"blue",cursor: "pointer"}} onClick={()=>handleClickRedirect(item.samplingEventIdentifier)}>
+                        <span className="gandhi-family">
                         {item.observationDate ? new Date(
                           item.observationDate.split('-')[2],
                           item.observationDate.split('-')[1] - 1,
@@ -152,14 +150,14 @@ const Table3XN = (props) => {
                         </span>
                       </StyledTableCell>
                       <StyledTableCell>
-                        <span className="gandhi-family" style={{color:"blue",cursor: "pointer"}} onClick={()=>handleClickRedirect(item.samplingEventIdentifier)}>
+                        <span className="gandhi-family">
                           {item.observationDate ? new Date(
                           item.observationDate.split('-')[2],
                           item.observationDate.split('-')[1] - 1,
                           item.observationDate.split('-')[0]
                           ).getFullYear() : ""}
                         </span>
-    </StyledTableCell>
+                      </StyledTableCell>
 
                       {/* <StyledTableCell>{data.p3}</StyledTableCell> */}
                     </StyledTableRow>
@@ -167,7 +165,7 @@ const Table3XN = (props) => {
                 : ""}
             </TableBody>
           </Table>
-        </TableContainer>
+        </TableContainer >
       </>
     )
   );

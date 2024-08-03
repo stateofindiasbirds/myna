@@ -1,10 +1,9 @@
 import React from "react";
-
 function WideCardForReport(props) {
   const { heading, icon, description, dataValue,url } = props;
   return (
-    <div className="mb-10">
-      <div className="relative h-52  flex items-center w-full mb-0 ml-6">
+    <div className="mb-10 baseClass">
+      <div className="relative h-52  flex items-center  mb-0 ml-6">  
         <div className="detailed-species-round-div">
           <img className="bg-transparent" alt="img" src={icon} />
         </div>
@@ -24,7 +23,7 @@ function WideCardForReport(props) {
         </div>
       </div>
       <div className="mt-0">
-        <div className="detailed-species-discriptions"><span>{description} <a className="no-underline" target="_blank" href={url.url}>{url.label}</a></span></div>
+        <div className="detailed-species-discriptions"><span className="startingText">{description} <a className="no-underline" target="_blank" href={url.url}>{url.label}</a></span></div>
       </div>
     </div>
   );

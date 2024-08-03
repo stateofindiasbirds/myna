@@ -1,3 +1,4 @@
+
 const UserController = require('./controllers/controller');
 const request = require('supertest');
 const express = require('express');
@@ -8,33 +9,37 @@ const app = express();
 
 app.use(bodyParser.json());
 
-app.get('/api/users/location_listing', UserController.locationName); 
-app.get('/api/users/count_by_scientificName', UserController.count); 
-app.get('/api/users/percentage_iucn_redList_species', UserController.iucnRedListSpeicies); 
-app.get('/api/users/percentage_endemic_species', UserController.endemincSpecies); 
-app.get('/api/users/pertcentage_most_common_species', UserController.mostCommonSpecies); 
-app.get('/api/users/seasonal_chart_for_species', UserController.seasonalChart); 
-app.get('/api/users/hotspot_area', UserController.hotspotArea); 
-app.get('/api/users/complete_List_Of_Species', UserController.completeListOfSpecies); 
-app.get('/api/users/water_bird_congregation', UserController.waterBirdCongregations); 
-app.get('/api/users/effortsDetails', UserController.effortsDetails); 
-// app.get("/api/users/soibConcernStatus",UserController.soibConcernStatus); 
+app.get('/api/users/location_listing', UserController.locationName); // Time 2m 1.20s
+app.get('/api/users/count_iucn_species', UserController.count1); 
+app.get('/api/users/count_appendix_species', UserController.count2); 
+app.get('/api/users/count_number_species', UserController.count3); 
+app.get('/api/users/percentage_iucn_redList_species', UserController.iucnRedListSpeicies); // Time 6 m 43.08 s
+app.get('/api/users/percentage_endemic_species', UserController.endemincSpecies); // Time 4 m 59.58 s
+app.get('/api/users/pertcentage_most_common_species', UserController.mostCommonSpecies); // Time 6 m 12.54 s
+app.get('/api/users/seasonal_chart_for_species', UserController.seasonalChart); // Time 3 m 27.60 s
+app.get('/api/users/hotspot_area', UserController.hotspotArea); //1 m 43.56 s
+app.get('/api/users/complete_List_Of_Species', UserController.completeListOfSpecies); // Time 1 m 50.10 s
+app.get('/api/users/water_bird_congregation', UserController.waterBirdCongregations); // Time 1 m 57.42 s
+app.get('/api/users/effortsDetails', UserController.effortsDetails); // Time 46 m 4.80 s
+app.get("/api/users/soibConcernStatus",UserController.soibConcernStatus); // 2 m 41.76 s
+
+
 
 
 jest.setTimeout(30000);
 
 
-describe('(State, County, Locality and Date) Location Name ID-T5028', () => {
+describe('(State,County, Locality and Date) Location Name ID-T5036', () => {
 
   //Controller locationName state and county
-  it('T5028/location_listing', async () => {
+  it('T5036/location_listing', async () => {
     const response = await request(app)
       .get('/api/users/location_listing')
       .query({
         state: 'Himachal Pradesh',
         county: 'Kangra',
-        locality:'Nagrota Surian Forest Complex',
-        start: '01-01-2000',
+        locality: 'Nagrota Surian Forest Complex',
+        start:'01-01-2000',
         end: '05-31-2022'
       })
       .expect(200);
@@ -97,17 +102,17 @@ describe('(State, County, Locality and Date) Location Name ID-T5028', () => {
 })
 
 
-describe('(State, County, Locality and Date) Species Details ID-T5029', () => {
+describe('(State,County, Locality and Date) Species Details ID-T5037', () => {
 
-  it('T5029/count_by_scientificName', async () => {
+  it('T5037/count_iucn_species', async () => {
 
     const response = await request(app)
-      .get('/api/users/count_by_scientificName')
+      .get('/api/users/count_iucn_species')
       .query({
         state: 'Himachal Pradesh',
         county: 'Kangra',
-        locality:'Nagrota Surian Forest Complex',
-        start: '01-01-2000',
+        locality: 'Nagrota Surian Forest Complex',
+        start:'01-01-2000',
         end: '05-31-2022'
       })
       .expect(200);
@@ -117,13 +122,26 @@ describe('(State, County, Locality and Date) Species Details ID-T5029', () => {
             "Critically Endangered": 1,
             "Near Threatened": 5,
             "Endangered": 1
-        },
-        "total": 109,
-        "migrate": 34,
-        "iucnRedList": 8,
-        "soibHighPriority": 16,
-        "scheduleI": 8,
-        "indiaEndemic": 0,
+        }
+    })
+  })
+})
+
+describe('(State,County, Locality and Date) Species Details ID-T5038', () => {
+
+  it('T5038/count_appendix_species', async () => {
+
+    const response = await request(app)
+      .get('/api/users/count_appendix_species')
+      .query({
+        state: 'Himachal Pradesh',
+        county: 'Kangra',
+        locality: 'Nagrota Surian Forest Complex',
+        start:'01-01-2000',
+        end: '05-31-2022'
+      })
+      .expect(200);
+    expect(response.body).toEqual({
         "soibConservationConcernSpecies": [
             {
                 "species": "Moderate Priority",
@@ -159,224 +177,293 @@ describe('(State, County, Locality and Date) Species Details ID-T5029', () => {
 })
 
 
-describe('(State, County, Locality and Date) IUCN Red List Species ID-T5030', () => {
+describe('(State,County, Locality and Date) Species Details ID-T5039', () => {
 
-    it('T5030/percentage_iucn_redList_species', async () => {
+  it('T5039/count_number_species', async () => {
+
+    const response = await request(app)
+      .get('/api/users/count_number_species')
+      .query({
+        state: 'Himachal Pradesh',
+        county: 'Kangra',
+        locality: 'Nagrota Surian Forest Complex',
+        start:'01-01-2000',
+        end: '05-31-2022'
+      })
+      .expect(200);
+    expect(response.body).toEqual({
+        "total": 109,
+        "migrate": 34,
+        "iucnRedList": 3,
+        "soibHighPriority": 16,
+        "scheduleI": 8,
+        "indiaEndemic": 0
+    })
+  })
+})
   
-      const response = await request(app)
-        .get('/api/users/percentage_iucn_redList_species')
-        .query({
-            state: 'Himachal Pradesh',
-            county: 'Kangra',
-            locality:'Nagrota Surian Forest Complex',
-            start: '01-01-2000',
-            end: '05-31-2022'
-          })
-        .expect(200);
-        // console.log(response.body);
-      expect(response.body).toEqual([
+  describe('(State,County, Locality and Date) IUCN Red List Species ID-T5040', () => {
+
+  it('T5040/percentage_iucn_redList_species', async () => {
+
+    const response = await request(app)
+      .get('/api/users/percentage_iucn_redList_species')
+      .query({
+        state: 'Himachal Pradesh',
+        county: 'Kangra',
+        locality: 'Nagrota Surian Forest Complex',
+        start:'01-01-2000',
+        end: '05-31-2022'
+      })
+      .expect(200);
+      // console.log(response.body);
+    expect(response.body).toEqual([
         {
             "region": "Critically Endangered",
             "indiaChecklistScientificName": "Gyps bengalensis",
             "indiaChecklistCommonName": "White-rumped Vulture",
             "uniqueValue": 421,
-            "percentage": "13%"
+            "percentage": "13%",
+            "samplingEventIdentifier": "S81526792",
+            "observationDate": "15-02-2021"
         },
         {
             "region": "Endangered",
             "indiaChecklistScientificName": "Neophron percnopterus",
             "indiaChecklistCommonName": "Egyptian Vulture",
             "uniqueValue": 414,
-            "percentage": "20%"
+            "percentage": "20%",
+            "samplingEventIdentifier": "S102469964",
+            "observationDate": "12-02-2022"
         },
         {
             "region": "Vulnerable",
             "indiaChecklistScientificName": "Sterna aurantia",
             "indiaChecklistCommonName": "River Tern",
             "uniqueValue": 337,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S102469964",
+            "observationDate": "12-02-2022"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Vanellus vanellus",
             "indiaChecklistCommonName": "Northern Lapwing",
             "uniqueValue": 230,
-            "percentage": "7%"
+            "percentage": "7%",
+            "samplingEventIdentifier": "S102469964",
+            "observationDate": "12-02-2022"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Vanellus duvaucelii",
             "indiaChecklistCommonName": "River Lapwing",
             "uniqueValue": 231,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S102469964",
+            "observationDate": "12-02-2022"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Aegypius monachus",
             "indiaChecklistCommonName": "Cinereous Vulture",
             "uniqueValue": 420,
-            "percentage": "7%"
+            "percentage": "7%",
+            "samplingEventIdentifier": "S52866762",
+            "observationDate": "18-02-2019"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Gyps himalayensis",
             "indiaChecklistCommonName": "Himalayan Vulture",
             "uniqueValue": 424,
-            "percentage": "20%"
+            "percentage": "20%",
+            "samplingEventIdentifier": "S81526792",
+            "observationDate": "15-02-2021"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Psittacula eupatria",
             "indiaChecklistCommonName": "Alexandrine Parakeet",
             "uniqueValue": 602,
-            "percentage": "20%"
+            "percentage": "20%",
+            "samplingEventIdentifier": "S77872198",
+            "observationDate": "21-12-2020"
         }
     ])
-    })
   })
+})
 
+  describe('(State,County, Locality and Date) Endemic Species ID-T5041', () => {
+  it('T5041/percentage_endemic_species', async () => {
 
-  describe('(State, County, Locality and Date) Endemic Species ID-T5031', () => {
-    it('T5031/percentage_endemic_species', async () => {
-  
-      const response = await request(app)
-        .get('/api/users/percentage_endemic_species')
-        .query({
-            state: 'Himachal Pradesh',
-            county: 'Kangra',
-            locality:'Nagrota Surian Forest Complex',
-            start: '01-01-2000',
-            end: '05-31-2022'
-          })
-        .expect(200);
-        // console.log(response.body)
-      expect(response.body).toEqual([
+    const response = await request(app)
+      .get('/api/users/percentage_endemic_species')
+      .query({
+        state: 'Himachal Pradesh',
+        county: 'Kangra',
+        locality: 'Nagrota Surian Forest Complex',
+        start:'01-01-2000',
+        end: '05-31-2022'
+      })
+      .expect(200);
+      // console.log(response.body)
+    expect(response.body).toEqual([
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Pavo cristatus",
             "indiaChecklistCommonName": "Indian Peafowl",
             "uniqueValue": 63,
-            "percentage": "20%"
+            "percentage": "20%",
+            "samplingEventIdentifier": "S81291555",
+            "observationDate": "14-02-2021"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Hierococcyx varius",
             "indiaChecklistCommonName": "Common Hawk Cuckoo",
             "uniqueValue": 159,
-            "percentage": "7%"
+            "percentage": "7%",
+            "samplingEventIdentifier": "S93782645",
+            "observationDate": "27-08-2021"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Pseudibis papillosa",
             "indiaChecklistCommonName": "Red-naped Ibis",
             "uniqueValue": 409,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S102469964",
+            "observationDate": "12-02-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Ocyceros birostris",
             "indiaChecklistCommonName": "Indian Grey Hornbill",
             "uniqueValue": 515,
-            "percentage": "7%"
+            "percentage": "7%",
+            "samplingEventIdentifier": "S52866762",
+            "observationDate": "18-02-2019"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Psilopogon zeylanicus",
             "indiaChecklistCommonName": "Brown-headed Barbet",
             "uniqueValue": 551,
-            "percentage": "27%"
+            "percentage": "27%",
+            "samplingEventIdentifier": "S81526792",
+            "observationDate": "15-02-2021"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Dinopium benghalense",
             "indiaChecklistCommonName": "Black-rumped Flameback",
             "uniqueValue": 580,
-            "percentage": "20%"
+            "percentage": "20%",
+            "samplingEventIdentifier": "S93782645",
+            "observationDate": "27-08-2021"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Psittacula cyanocephala",
             "indiaChecklistCommonName": "Plum-headed Parakeet",
             "uniqueValue": 606,
-            "percentage": "47%"
+            "percentage": "47%",
+            "samplingEventIdentifier": "S102469964",
+            "observationDate": "12-02-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Prinia socialis",
             "indiaChecklistCommonName": "Ashy Prinia",
             "uniqueValue": 763,
-            "percentage": "13%"
+            "percentage": "13%",
+            "samplingEventIdentifier": "S93782645",
+            "observationDate": "27-08-2021"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Pycnonotus leucogenys",
             "indiaChecklistCommonName": "Himalayan Bulbul",
             "uniqueValue": 821,
-            "percentage": "47%"
+            "percentage": "47%",
+            "samplingEventIdentifier": "S93782645",
+            "observationDate": "27-08-2021"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Phylloscopus xanthoschistos",
             "indiaChecklistCommonName": "Grey-hooded Warbler",
             "uniqueValue": 871,
-            "percentage": "33%"
+            "percentage": "33%",
+            "samplingEventIdentifier": "S102641550",
+            "observationDate": "12-02-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Argya striata",
             "indiaChecklistCommonName": "Jungle Babbler",
             "uniqueValue": 1008,
-            "percentage": "40%"
+            "percentage": "40%",
+            "samplingEventIdentifier": "S93782645",
+            "observationDate": "27-08-2021"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Argya caudata",
             "indiaChecklistCommonName": "Common Babbler",
             "uniqueValue": 1010,
-            "percentage": "7%"
+            "percentage": "7%",
+            "samplingEventIdentifier": "S52866762",
+            "observationDate": "18-02-2019"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Acridotheres ginginianus",
             "indiaChecklistCommonName": "Bank Myna",
             "uniqueValue": 1066,
-            "percentage": "20%"
+            "percentage": "20%",
+            "samplingEventIdentifier": "S61860792",
+            "observationDate": "30-11-2019"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Copsychus fulicatus",
             "indiaChecklistCommonName": "Indian Robin",
             "uniqueValue": 1110,
-            "percentage": "7%"
+            "percentage": "7%",
+            "samplingEventIdentifier": "S102641550",
+            "observationDate": "12-02-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Motacilla maderaspatensis",
             "indiaChecklistCommonName": "White-browed Wagtail",
             "uniqueValue": 1275,
-            "percentage": "7%"
+            "percentage": "7%",
+            "samplingEventIdentifier": "S52866762",
+            "observationDate": "18-02-2019"
         }
     ])
-    })
   })
+})
 
 
+  describe('(State,County, Locality and Date) Most Common Species ID-T5042', () => {
+  it('T5042/pertcentage_most_common_species', async () => {
 
-  describe('(State, County, Locality and Date) Most Common Species ID-5032', () => {
-    it('/pertcentage_most_common_species', async () => {
-  
-      const response = await request(app)
-        .get('/api/users/pertcentage_most_common_species')
-        .query({
-            state: 'Himachal Pradesh',
-            county: 'Kangra',
-            locality:'Nagrota Surian Forest Complex',
-            start: '01-01-2000',
-            end: '05-31-2022'
-          })
-        .expect(200);
-          //  console.log(response.body)
-      expect(response.body).toEqual([
+    const response = await request(app)
+      .get('/api/users/pertcentage_most_common_species')
+      .query({
+        state: 'Himachal Pradesh',
+        county: 'Kangra',
+        locality: 'Nagrota Surian Forest Complex',
+        start:'01-01-2000',
+        end: '05-31-2022'
+      })
+      .expect(200);
+        //  console.log(response.body)
+    expect(response.body).toEqual([
         {
             "indiaChecklistScientificName": "Myophonus caeruleus",
             "indiaChecklistCommonName": "Blue Whistling Thrush",
@@ -438,44 +525,46 @@ describe('(State, County, Locality and Date) IUCN Red List Species ID-T5030', ()
             "percentage": 40
         }
     ])
-    }, 60000)
   })
+})
 
-  describe('(State, County, Locality and Date) Seasonal Chart ID-T5033', () => {
-    it('T5033/seasonal_chart_for_species', async () => {
-  
-      const response = await request(app)
-        .get('/api/users/seasonal_chart_for_species')
-        .query({
-            state: 'Himachal Pradesh',
-            county: 'Kangra',
-            locality:'Nagrota Surian Forest Complex',
-            start: '01-01-2000',
-            end: '05-31-2022'
-          })
-        .expect(200);
-      expect(response.body).toEqual({
+
+
+  describe('(State,County, Locality and Date) Seasonal Chart ID-T5043', () => {
+  it('T5043/seasonal_chart_for_species', async () => {
+
+    const response = await request(app)
+      .get('/api/users/seasonal_chart_for_species')
+      .query({
+        state: 'Himachal Pradesh',
+        county: 'Kangra',
+        locality: 'Nagrota Surian Forest Complex',
+        start:'01-01-2000',
+        end: '05-31-2022'
+      })
+      .expect(200);
+    expect(response.body).toEqual({
         "msg": "denominator is zero"
     })
-    })
   })
+})
 
-  describe('(State, County, Locality and Date) Hotspots ID-T5034', () => {
+  describe('(State,County, Locality and Date) Hotspots ID-T5044', () => {
 
 
-    it('T5034/hotspot_area', async () => {
-  
-      const response = await request(app)
-        .get('/api/users/hotspot_area')
-        .query({
-            state: 'Himachal Pradesh',
-            county: 'Kangra',
-            locality:'Nagrota Surian Forest Complex',
-            start: '01-01-2000',
-            end: '05-31-2022'
-          })
-        .expect(200);
-      expect(response.body).toEqual([
+  it('T5044/hotspot_area', async () => {
+
+    const response = await request(app)
+      .get('/api/users/hotspot_area')
+      .query({
+        state: 'Himachal Pradesh',
+        county: 'Kangra',
+        locality: 'Nagrota Surian Forest Complex',
+        start:'01-01-2000',
+        end: '05-31-2022'
+      })
+      .expect(200);
+    expect(response.body).toEqual([
         {
             "locality": "Nagrota Surian Forest Complex",
             "localityId": "L6626095",
@@ -484,25 +573,25 @@ describe('(State, County, Locality and Date) IUCN Red List Species ID-T5030', ()
             "count": "109"
         }
     ])
-    })
   })
+})
 
 
-  describe('(State, County, Locality and Date) Complete List of Species ID-T5035', () => {
+  describe('(State,County, Locality and Date) Complete List of Species ID-T5045', () => {
 
-    it('T5035/complete_List_Of_Species', async () => {
-  
-      const response = await request(app)
-        .get('/api/users/complete_List_Of_Species')
-        .query({
-            state: 'Himachal Pradesh',
-            county: 'Kangra',
-            locality:'Nagrota Surian Forest Complex',
-            start: '01-01-2000',
-            end: '05-31-2022'
-          })
-        .expect(200);
-      expect(response.body).toEqual([
+  it('T5045/complete_List_Of_Species', async () => {
+
+    const response = await request(app)
+      .get('/api/users/complete_List_Of_Species')
+      .query({
+        state: 'Himachal Pradesh',
+        county: 'Kangra',
+        locality: 'Nagrota Surian Forest Complex',
+        start:'01-01-2000',
+        end: '05-31-2022'
+      })
+      .expect(200);
+    expect(response.body).toEqual([
         {
             "indiaChecklistScientificName": "Anser indicus",
             "migratoryStatusWithinIndia": "Winter Migrant & Localized Summer Migrant",
@@ -1595,24 +1684,55 @@ describe('(State, County, Locality and Date) IUCN Red List Species ID-T5030', ()
         }
     ])
   })
+})
+
+  describe('(State,County, Locality and Date) Water Bird Congregations ID-T5046', () => {
+
+  it('T5046/water_bird_congregation', async () => {
+
+    const response = await request(app)
+      .get('/api/users/water_bird_congregation')
+      .query({
+        state: 'Himachal Pradesh',
+        county: 'Kangra',
+        locality: 'Nagrota Surian Forest Complex',
+        start:'01-01-2000',
+        end: '05-31-2022'
+      })
+      .expect(200);
+    expect(response.body).toEqual({
+        "data": [
+            {
+                "indiaChecklistCommonName": "Greylag Goose",
+                "indiaChecklistScientificName": "Anser anser",
+                "highestCongregation": "400",
+                "maxObservationCount": 2,
+                "onePercentBiographicPopulation": "250",
+                "uniqueValue": 4,
+                "samplingEventIdentifier": "S102469964",
+                "observationDate": "12-02-2022"
+            }
+        ],
+        "success": true
+    })
+  })
   })
 
+describe('(State,County, Locality and Date) Data Contributions ID-T5047', () => {
 
-  describe('(State, County, Locality and Date) Data Contributions ID-T5037', () => {
+  it('T5047/effortsDetails', async () => {
 
-    it('T5037/effortsDetails', async () => {
-  
-      const response = await request(app)
-        .get('/api/users/effortsDetails')
-        .query({
-            state: 'Himachal Pradesh',
-            county: 'Kangra',
-            locality:'Nagrota Surian Forest Complex',
-            start: '01-01-2000',
-            end: '05-31-2022'
-          })
-        .expect(200);
-      expect(response.body).toEqual({
+    const response = await request(app)
+      .get('/api/users/effortsDetails')
+      .query({
+        state: 'Himachal Pradesh',
+        county: 'Kangra',
+        locality: 'Nagrota Surian Forest Complex',
+        start:'01-01-2000',
+        end: '05-31-2022'
+      })
+      .expect(200);
+    expect(response.body).toEqual({
         "data": {
             "numberOfObservations": 369,
             "numberOfList": "35",
@@ -1621,5 +1741,7 @@ describe('(State, County, Locality and Date) IUCN Red List Species ID-T5030', ()
             "totalNumberOfObservers": 20
         }
     })
-    })
-  });
+  })
+});
+
+

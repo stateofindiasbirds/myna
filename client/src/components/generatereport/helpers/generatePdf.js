@@ -12,12 +12,16 @@ import {
   generateCompleteListOfSpeciesData,
   generateEndemicData,
   generateIUCNData,
+  generateSOIBData,
   generateWaterBirdCongregationData,
   addPageIfLessSpaceLeft,
   generateHotspotData,
   isHeadingRequired,
   generateCustomFirstCellWithScientificName,
   generateObservationList,
+  createHyperlinkForYear,
+  createHyperlinkForYearSoib
+  // genrateSoibConcernStatus
 } from "./generateReportTableData";
 // import { data } from "autoprefixer";
 import { generateFirstPage } from "./generateFirstPage";
@@ -63,11 +67,14 @@ export const handleDownloadPdf = async (
   EN_Count,
   CR_Count,
   effortDetails,
+  getSoibConcernStatus,
   startDate,
   endDate,
   getSeasonalChartData,
 
 ) => {
+  console.log(otherScreen, 'helo')
+
   const shouldDrawTable = (data) => {
     return data.length > 0 ? true : false;
   };
@@ -84,7 +91,10 @@ export const handleDownloadPdf = async (
   const canvas2 = await html2canvas(otherScreen.current, {
     windowWidth: 1600,
     useCORS: true,
+    // proxy: "server.js",
   });
+  console.log(canvas2, 'canvas2');  // canvas2 object ko log karein
+
   setPdfDownloadStatus("Creating Tables...");
   const canvas3 = await html2canvas(mostCommonSpeciesDiv.current, {
     windowWidth: 2000,
@@ -103,6 +113,10 @@ export const handleDownloadPdf = async (
   });
   // Generating data for various tables
   const iucnData = generateIUCNData(getDataForIucnRedListTable);
+  console.log(iucnData);
+
+  const soibData = generateSOIBData(getSoibConcernStatus);
+  // const soibConcernData = genrateSoibConcernStatus(getSoibConcernStatus);
   const endemicData = generateEndemicData(getDataForEndemicSpeciesTable);
   const waterBirdCongregationsData = generateWaterBirdCongregationData(
     getDataForWaterbirdCongregation
@@ -148,6 +162,106 @@ export const handleDownloadPdf = async (
   const footerImgHeight =
     (footerImgProperty.height * pdfWidth) / footerImgProperty.width;
   //add page only if any of the tabe exists iucn, endemic, waterBirdCongregation
+
+  // const processedData =  soibData.map(row => {
+  //   if (row[2]?.newDate) {
+  //     const url = `https://ebird.org/checklist/${row[2].samplingEventIdentifier}`;
+  //     const linkText = row[2].newDate.toString(); // Convert the date to a string
+  //     //  pdf.textWithLink(linkText,50, 10,{ url: url }); // Add clickable link to the PDF
+  //     return [row[0], row[1], pdf]; 
+  //   } else {
+  //     return row;
+  //   }
+  // });
+
+  // pdf.textWithLink(row[2].newDate, 91, 162, {url: url});
+
+//  console.log(processedData);
+  (soibData.length > 0 ||
+    endemicData.length > 0 ||
+    waterBirdCongregationsData > 0) &&
+    pdf.addPage();
+  if (shouldDrawTable(soibData)) {
+    pdf.autoTable({
+      headStyles: {
+      fillColor: [154, 114, 105],
+      cellPadding: 5,
+      halign: "center",
+      font: "GandhiFont",
+      fontStyle: "bold",
+      },
+      head: [["SOIB HIGH CONSERVATION PRIORITY SPECIES"]],
+      margin: { top: 30 },
+      body: [],
+      startY: 40,
+      font: "GandhiSans-Regular",
+      fontStyle: "normal",
+      rowPageBreak: "avoid",
+    });
+    // defining header image data
+    //second table
+    //tableStartPage and tableEndPage is repeated at start and end of table to know pagenumber on which repeater table title is required
+    tableStartPage = pdf.internal.getNumberOfPages();
+    pdf.autoTable({
+      margin: { top: 0 },
+      body: soibData,
+      headStyles: {
+        fillColor: [232, 232, 232],
+        textColor: [54, 54, 54],
+        font: "GandhiFont",
+        fontStyle: "bold",
+      },
+      head: [["Species",  "Frequency of Reporting", "Year of Latest Report"]],
+      styles: {
+        cellPadding: 4, // Set padding for all cells
+        font: "GandhiSans-Regular",
+        fontStyle: "normal",
+      },
+      rowPageBreak: "avoid",
+      startY: removeSpace(pdf.previousAutoTable.finalY),
+      didParseCell: function (data) {
+        data.cell.styles.fontStyle = "bold";
+        const { row } = data;
+        const fillColor = rowColors[row.index % 2];
+        if (fillColor && row.section !== "head") {
+          data.cell.styles.fillColor = fillColor;
+        }
+        const doesExist = backgroundColorForHeading.find(
+          (item) => item.pageNo === data.doc.internal.getNumberOfPages()
+        );
+        if (doesExist) {
+          const foundIndex = backgroundColorForHeading.indexOf(doesExist);
+          backgroundColorForHeading.splice(foundIndex, 1, {
+            color: fillColor,
+            pageNo: data.doc.internal.getNumberOfPages(),
+          });
+          return;
+        }
+        backgroundColorForHeading.push({
+          color: fillColor,
+          pageNo: data.doc.internal.getNumberOfPages(),
+        });
+      },
+      didDrawCell: (data) => {
+        generateCustomFirstCellWithScientificName(data, pdf, rowColors);
+        createHyperlinkForYearSoib(pdf,data,rowColors)
+      },
+      didDrawPage: function (data) {
+        data.settings.margin.top = 54;
+      },
+    });
+    tableEndPage = pdf.internal.getNumberOfPages();
+    isHeadingRequired(
+      tableStartPage,
+      tableEndPage,
+      backgroundColorForHeading,
+      ["SOIB HIGH CONSERVATION PRIORITY SPECIES"],
+      ["Species", "Frequency of Reporting", "Year of Latest Report"],
+      headerRequiredOnPageNumber
+    );
+    addPageIfLessSpaceLeft(pdf.previousAutoTable.finalY) && pdf.addPage();
+  }
+
   (iucnData.length > 0 ||
     endemicData.length > 0 ||
     waterBirdCongregationsData > 0) &&
@@ -182,7 +296,7 @@ export const handleDownloadPdf = async (
         font: "GandhiFont",
         fontStyle: "bold",
       },
-      head: [["Species", "IUCN Status", "Frequency of Reporting"]],
+      head: [["Species", "IUCN Status", "Frequency of Reporting", "Year of Latest Report"]],
       styles: {
         cellPadding: 4, // Set padding for all cells
         font: "GandhiSans-Regular",
@@ -213,9 +327,14 @@ export const handleDownloadPdf = async (
           pageNo: data.doc.internal.getNumberOfPages(),
         });
       },
+      // didDrawCell: (data) => {
+      //   generateCustomFirstCellWithScientificName(data, pdf, rowColors);
+      // },
       didDrawCell: (data) => {
         generateCustomFirstCellWithScientificName(data, pdf, rowColors);
+        createHyperlinkForYear(pdf,data,rowColors)
       },
+     
       didDrawPage: function (data) {
         data.settings.margin.top = 54;
       },
@@ -226,7 +345,7 @@ export const handleDownloadPdf = async (
       tableEndPage,
       backgroundColorForHeading,
       ["IUCN RED LIST SPECIES"],
-      ["Species", "IUCN Status", "Frequency of Reporting"],
+      ["Species", "IUCN Status", "Frequency of Reporting", "Year of Latest Report"],
       headerRequiredOnPageNumber
     );
     addPageIfLessSpaceLeft(pdf.previousAutoTable.finalY) && pdf.addPage();
@@ -260,7 +379,7 @@ export const handleDownloadPdf = async (
         font: "GandhiFont",
         fontStyle: "bold",
       },
-      head: [["Species", "Endemic Region", "Frequency of Reporting"]],
+      head: [["Species", "Endemic Region", "Frequency of Reporting", "Year of Latest Report"]],
       styles: {
         cellPadding: 4, // Set padding for all cells
         font: "GandhiSans-Regular",
@@ -298,6 +417,7 @@ export const handleDownloadPdf = async (
       },
       didDrawCell: (data) => {
         generateCustomFirstCellWithScientificName(data, pdf, rowColors);
+        createHyperlinkForYear(pdf,data,rowColors)
       },
     });
     tableEndPage = pdf.internal.getNumberOfPages();
@@ -306,7 +426,7 @@ export const handleDownloadPdf = async (
       tableEndPage,
       backgroundColorForHeading,
       ["ENDEMIC SPECIES"],
-      ["Species", "Endemic Region", "Frequency of Reporting"],
+      ["Species", "Endemic Region", "Frequency of Reporting", "Year of Latest Report"],
       headerRequiredOnPageNumber
     );
     addPageIfLessSpaceLeft(pdf.previousAutoTable.finalY) && pdf.addPage();
@@ -339,7 +459,7 @@ export const handleDownloadPdf = async (
         font: "GandhiFont",
         fontStyle: "bold",
       },
-      head: [["Species", "Highest Count", "1% of Biogeographic Population"]],
+      head: [["Species", "Highest Count", "1% of Biogeographic Population","Year of Report"]],
       body: waterBirdCongregationsData,
       rowPageBreak: "avoid",
       startY: removeSpace(pdf.previousAutoTable.finalY),
@@ -376,6 +496,7 @@ export const handleDownloadPdf = async (
       },
       didDrawCell: (data) => {
         generateCustomFirstCellWithScientificName(data, pdf, rowColors);
+        createHyperlinkForYear(pdf,data,rowColors)
       },
     });
     tableEndPage = pdf.internal.getNumberOfPages();
@@ -427,6 +548,7 @@ export const handleDownloadPdf = async (
   );
   { getSeasonalChartData?.length && pdf.addPage(); }
   const secondImg = canvas2.toDataURL("image/png");
+  console.log(secondImg, 'secnd img')
   const hotspotImageProperties = pdf.getImageProperties(secondImg);
   const hotspotImageHeight =
     (hotspotImageProperties.height * 100) / hotspotImageProperties.width;
@@ -440,13 +562,32 @@ export const handleDownloadPdf = async (
     "three",
     "fast"
   );
+
+// ye second map hai 
+  // const secondImg2 = canvas2.toDataURL("image/png");
+  // console.log(secondImg2, 'secnd img')
+  // const hotspotImageProp = pdf.getImageProperties(secondImg2);
+  // const hotspotImageHei =
+  //   (hotspotImageProp.height * 100) / hotspotImageProp.width;
+  // hotspotList[0] != 'No Data Available' && pdf.addImage(
+  //   secondImg2,
+  //   "PNG",
+  //   40,
+  //   120,
+  //   100,
+  //   hotspotImageHei,
+  //   "three",
+  //   "fast"
+  // );
+
+
   let isShiftingRequiredafterHotspot = false;
   if (hotspotList?.length > 3) {
     isShiftingRequiredafterHotspot = true;
   }
   pdf.setFillColor("#000000");
 
-  hotspotList[0] != 'No Data Available'&& pdf.autoTable({
+  hotspotList[0] != 'No Data Available' && pdf.autoTable({
     body: hotspotList,
     headStyles: {
       fillColor: [154, 114, 105],
@@ -490,7 +631,7 @@ export const handleDownloadPdf = async (
       font: "GandhiSans-Regular",
       fontStyle: "normal",
       rowPageBreak: "avoid",
-      startY: hotspotList[0] != 'No Data Available'?(isShiftingRequiredafterHotspot ? 130 : 110):40,
+      startY: hotspotList[0] != 'No Data Available' ? (isShiftingRequiredafterHotspot ? 130 : 110) : 40,
       // startY: isShiftingRequiredafterHotspot ? 130 : 110,
     });
     tableStartPage = pdf.internal.getNumberOfPages();
@@ -642,7 +783,7 @@ export const handleDownloadPdf = async (
     pdf.addImage(Logo, "PNG", 3, 3, 20, 16, "hederlogo", "FAST");
     pdf.setFontSize(18);
     pdf.addImage(Myna, "PNG", 3, 20, 18, 5, "myna", "fast");
-    console.log(pdf.getFontList())
+    // console.log(pdf.getFontList())
     pdf.setFont('GandhiSans-Regular', 'normal')
     pdf.setFontSize(18);
     // Set the font as the default font

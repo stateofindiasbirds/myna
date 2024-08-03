@@ -11,6 +11,7 @@ const initState = {
   getDataForWaterbirdCongregation: [],
   getEffortDetails: {},
   completeListOfSpeciesFetchSuccess: false,
+  getSoibConcernStatus:[]
   // getDataForIucnRedListTableThroughJsonFile: [],
   // getDataForEndemicSpeciesTableThroughJsonFile: [],
   // getMostCommonSpeciesDataThroughJsonFile: [],
@@ -46,6 +47,8 @@ export const UserReducer = (state = initState, action) => {
       return { ...state, getDataForWaterbirdCongregation: action?.payload };
     case "GET_ALL_EFFORT_DETAILS":
       return { ...state, getEffortDetails: action?.payload };
+      case "GET_SOIB_CONCERN_STATUS":
+        return { ...state, getSoibConcernStatus: action?.payload };  
     case "RESET_DATA":
       return {
         ...state,
@@ -58,6 +61,7 @@ export const UserReducer = (state = initState, action) => {
         getDataForWaterbirdCongregation: [],
         getEffortDetails: [],
         completeListOfSpeciesFetchSuccess: false,
+        getSoibConcernStatus:[]
       };
     default:
       return state;

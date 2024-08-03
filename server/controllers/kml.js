@@ -12,8 +12,11 @@ const { getCipherInfo } = require("crypto");
 
 const UserController = {
   async count(req, res) {
+    console.log(req);
     const filePath = req.file.path;
+    console.log(filePath)
     fs.readFile(filePath, "utf-8", async (err, data) => {
+      // console.log(data);
       if (err) {
         console.error(err);
         res.status(500).send("An error occurred while reading the file");
@@ -33,28 +36,33 @@ const UserController = {
         ];
         const counts = {};
         const obj = {};
-        const count = await Kinnaur.count({
-          distinct: "eBirdScientificName",
-          where: {
-            category: "species",
-            [Sequelize.Op.and]: Sequelize.where(
-              Sequelize.fn(
-                "ST_Within",
+        try {
+          const count = await Kinnaur.count({
+            distinct: "eBirdScientificName",
+            where: {
+              category: "species",
+              [Sequelize.Op.and]: Sequelize.where(
                 Sequelize.fn(
-                  "ST_SetSRID",
+                  "ST_Within",
                   Sequelize.fn(
-                    "ST_MakePoint",
-                    Sequelize.col("longitude"),
-                    Sequelize.col("latitude")
+                    "ST_SetSRID",
+                    Sequelize.fn(
+                      "ST_MakePoint",
+                      Sequelize.col("longitude"),
+                      Sequelize.col("latitude")
+                    ),
+                    4326
                   ),
-                  4326
+                  Sequelize.fn("ST_GeomFromText", polygonText, 4326)
                 ),
-                Sequelize.fn("ST_GeomFromText", polygonText, 4326)
+                true
               ),
-              true
-            ),
-          },
-        });
+            },
+          });
+        } catch (error) {
+          console.log(error)
+        }
+    
         const soib = await Kinnaur.count({
           distinct: "eBirdScientificName",
           where: {
@@ -629,7 +637,7 @@ const UserController = {
           const rows = results.map((row) => {
             const scientificName = row.eBirdScientificName;
             const englishName = row.eBirdEnglishName;
-            const count = row.get("count");
+            const count = row.count;
             const percentage = ((count / totalCount) * 100).toFixed(2) + "%";
             return {
               eBirdScientificName: scientificName,

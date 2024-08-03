@@ -1,12 +1,14 @@
 import React from "react";
 import Navbar from "../Navbar/Navbar";
 import logo from "../../assets/images/logo.png";
+// import HeatMapReport from "../HeatMapReport";
 
 function About() {
   return (
     <>
       <Navbar />
-      <div className="container mt-12 leading-8">
+      {/* <HeatMapReport /> */}
+      <div className="container mt-12 leading-8 gandhi-family">
         <b>M</b>apping <b>Y</b>our <b>N</b>eighbourhood <b>A</b>vifauna (MYNA) is a data exploration tool
         published by the{" "}
         <a href="https://www.stateofindiasbirds.in/" target="_blank">State of India's Birds</a>{" "}
@@ -35,7 +37,7 @@ function About() {
       <div className="grid place-content-center ">
         <img width={250} src={logo}></img>
       </div>
-      <div className="container mt-12 leading-8">
+      <div className="container mt-12 leading-8 gandhi-family">
         Contact us at{" "}
         <a href="mailto:myna@stateofindiasbirds.in">
           myna@stateofindiasbirds.in

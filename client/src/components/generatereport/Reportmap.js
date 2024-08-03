@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { MapContainer} from "react-leaflet";
+import { MapContainer } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import Ziptogeojson from "./Ziptogeojson";
 //import { EditControl } from "react-leaflet-draw";
@@ -14,8 +14,7 @@ import ReactLeafletGoogleLayer from "react-leaflet-google-layer";
 import { formattedDate } from "./helpers/generateReportTableData";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 import MyControls from "./MyControls";
-
-
+import Boundary from "./Boundary";
 
 function Reportmap(props) {
   const { editedData, setEditedData } = props;
@@ -188,13 +187,19 @@ function Reportmap(props) {
         center={[25.21, 79.32]}
         zoom={5}
         scrollWheelZoom={true}
-        // zoomControl={false}
+      // zoomControl={false}
       >
 
         <ReactLeafletGoogleLayer
           googleMapsLoaderConf={{ region: "IN" }}
-          apiKey= {process.env.REACT_APP_API_KEY}
+          apiKey={process.env.REACT_APP_API_KEY}
         />
+         <style jsx>{`
+        .leaflet-control-attribution {
+          display: none;
+        }
+      `}</style>
+
 
         {!props.selectedState && (
           <MyControls
@@ -220,6 +225,13 @@ function Reportmap(props) {
             setArea={props.setArea}
           />
         )}
+
+        {props.boundary &&
+          <Boundary
+            data={props.boundary}
+            setData={props.setBoudary}
+          />
+        }
       </MapContainer>
       <div className="download-div">
         <IconButton onClick={handleClick} id="account-menu">
@@ -264,3 +276,4 @@ function Reportmap(props) {
 }
 
 export default Reportmap;
+

@@ -20,8 +20,10 @@
     "pg": "^8.10.0",
     "sequelize": "^6.31.1",
     "shpjs": "^4.0.4",
+    "simple-git": "^3.25.0",
     "togeojson": "^0.16.0",
-    "tokml": "^0.4.0"
+    "tokml": "^0.4.0",
+    "xmldom": "^0.6.0"
   },
   "name": "birdsdata",
   "version": "1.0.0",

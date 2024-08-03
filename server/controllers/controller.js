@@ -34,7 +34,6 @@ async function getMonthlyData(birds, scientificName, frequency, getMonth) {
     const percentage = ((count / frequency) * 100).toFixed(0) + "%";
     return { month, count, percentage };
   });
-  console.log(monthlyData);
 
   return monthlyData;
 }
@@ -44,7 +43,6 @@ const UserController = {
     try {
       const { state, county } = req.query;
       if (state && county) {
-        console.log(county);
         const localities = await Kinnaur.findAll({
           attributes: [
             [Sequelize.fn("DISTINCT", Sequelize.col("locality")), "locality"],
@@ -86,7 +84,1092 @@ const UserController = {
       res.status(500).send("Server Error");
     }
   },
-  async count(req, res) {
+  // async count(req, res) {
+  //   const categories = [
+  //     "Vulnerable",
+  //     "Critically Endangered",
+  //     "Near Threatened",
+  //     "Endangered",
+  //   ];
+  //   const { state, county, locality } = req.query;
+
+  //   const start = req.query.start || false;
+  //   const end = req.query.end || false;
+  //   if (start && end && state && county && locality) {
+  //     var obj1 = {
+  //       state: state,
+  //       county: county,
+  //       locality: locality,
+  //       [Op.and]: [
+  //         Sequelize.where(
+  //           Sequelize.fn(
+  //             "TO_DATE",
+  //             Sequelize.col("observationDate"),
+  //             "DD-MM-YYYY"
+  //           ),
+  //           {
+  //             [Op.between]: [start, end], // Filter by date range
+  //           }
+  //         ),
+  //       ],
+  //     };
+  //   } else if (start && end && state && county) {
+  //     var obj1 = {
+  //       state: state,
+  //       county: county,
+  //       [Op.and]: [
+  //         Sequelize.where(
+  //           Sequelize.fn(
+  //             "TO_DATE",
+  //             Sequelize.col("observationDate"),
+  //             "DD-MM-YYYY"
+  //           ),
+  //           {
+  //             [Op.between]: [start, end], // Filter by date range
+  //           }
+  //         ),
+  //       ],
+  //     };
+  //   } else if (start && end && state) {
+  //     var obj1 = {
+  //       state: state,
+  //       [Op.and]: [
+  //         Sequelize.where(
+  //           Sequelize.fn(
+  //             "TO_DATE",
+  //             Sequelize.col("observationDate"),
+  //             "DD-MM-YYYY"
+  //           ),
+  //           {
+  //             [Op.between]: [start, end], // Filter by date range
+  //           }
+  //         ),
+  //       ],
+  //     };
+  //   } else if (state && county && locality) {
+  //     var obj1 = {
+  //       state: state,
+  //       county: county,
+  //       locality: locality,
+  //     };
+  //   } else if (state && county) {
+  //     var obj1 = {
+  //       state: state,
+  //       county: county,
+  //     };
+  //   } else if (state) {
+  //     var obj1 = {
+  //       state: state,
+  //     };
+  //   }
+
+  //   try {
+  //     if (state && county && locality) {
+  //       const counts = {};
+  //       const obj = {};
+  //       const count = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           category: ["species", "issf", "domestic"],
+  //           ...obj1,
+  //         },
+  //       });
+  //       const soib = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           soibConcernStatus: "High",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const scheduleI = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           wpaSchedule: "Schedule-I",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const indiaEndemic = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           indiaEndemic: "Yes",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const highConcern = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           soibConcernStatus: "High",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const moderateConcern = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           soibConcernStatus: "Moderate",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const citesAppendixI = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           citesAppendix: "Appendix I",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const citesAppendixII = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           citesAppendix: "Appendix II",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const cmsAppendixI = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           cmsAppendix: "Appendix I",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const cmsAppendixII = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           cmsAppendix: "Appendix II",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const migrate = await Kinnaur.findAll({
+  //         attributes: [
+  //           [
+  //             Sequelize.fn("DISTINCT", Sequelize.col("eBirdScientificName")),
+  //             "eBirdScientificName",
+  //           ],
+  //           "migratoryStatusWithinIndia",
+  //         ],
+  //         where: {
+  //           ...obj1,
+  //         },
+  //         raw: true,
+  //       });
+  //       const migrateCount = migrate.filter((ele) => {
+  //         const pattern = /^(?!.*(Resident|Uncertain)).*$/;
+  //         return pattern.test(ele.migratoryStatusWithinIndia);
+  //       });
+  //       for (const category of categories) {
+  //         const count = await Kinnaur.count({
+  //           distinct: true,
+  //           col: "eBirdScientificName",
+  //           where: {
+  //             iucnCategory: category,
+  //             ...obj1,
+  //             eBirdScientificName: Sequelize.where(
+  //               Sequelize.fn(
+  //                 "regexp_replace",
+  //                 Sequelize.col("eBirdScientificName"),
+  //                 "\\d+",
+  //                 "",
+  //                 "g"
+  //               ),
+  //               "=",
+  //               Sequelize.col("eBirdScientificName")
+  //             ),
+  //           },
+  //         });
+  //         counts[category] = count;
+  //       }
+  //       const cms1 = {};
+  //       const cms2 = {};
+  //       cms1["species"] = "Appendix I";
+  //       cms1["count"] = cmsAppendixI;
+  //       cms2["species"] = "Appendix II";
+  //       cms2["count"] = cmsAppendixII;
+  //       const cities1 = {};
+  //       const cities2 = {};
+  //       cities1["species"] = "Appendix I";
+  //       cities1["count"] = citesAppendixI;
+  //       cities2["species"] = "Appendix II";
+  //       cities2["count"] = citesAppendixII;
+  //       const soibConcern1 = {};
+  //       const soibConcern2 = {};
+  //       soibConcern1["species"] = "Moderate Priority";
+  //       soibConcern1["count"] = moderateConcern;
+  //       soibConcern2["species"] = "High Priority";
+  //       soibConcern2["count"] = highConcern;
+  //       obj["iucnRedListCategoriesCount"] = counts;
+  //       obj["total"] = count;
+  //       obj["migrate"] = migrateCount.length;
+  //       obj["iucnRedList"] =
+  //         counts["Vulnerable"] +
+  //         counts["Critically Endangered"] +
+  //         counts["Near Threatened"] +
+  //         counts["Endangered"];
+  //       obj["soibHighPriority"] = soib;
+  //       obj["scheduleI"] = scheduleI;
+  //       obj["indiaEndemic"] = indiaEndemic;
+  //       obj["soibConservationConcernSpecies"] = [];
+  //       obj["soibConservationConcernSpecies"].push(soibConcern1, soibConcern2);
+  //       obj["citesAppendixSpecies"] = [];
+  //       obj["citesAppendixSpecies"].push(cities1, cities2);
+  //       obj["cmsAppendixSpecies"] = [];
+  //       obj["cmsAppendixSpecies"].push(cms1, cms2);
+  //       res.json(obj);
+  //     } else if (state && county) {
+  //       const counts = {};
+  //       const obj = {};
+  //       const count = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           category: ["species", "domestic", "issf"],
+  //           eBirdScientificName: {
+  //             [Op.not]: null, // Use [Op.not] to check for non-null values
+  //           },
+  //           ...obj1,
+  //         },
+  //       });
+  //       const soib = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           soibConcernStatus: "High",
+  //           ...obj1,
+  //         },
+  //       });
+
+  //       const scheduleI = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           wpaSchedule: "Schedule-I",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const indiaEndemic = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           indiaEndemic: "Yes",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const highConcern = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           soibConcernStatus: "High",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const moderateConcern = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           soibConcernStatus: "Moderate",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const citesAppendixI = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           citesAppendix: "Appendix I",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const citesAppendixII = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           citesAppendix: "Appendix II",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const cmsAppendixI = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           cmsAppendix: "Appendix I",
+  //           category: ["species", "issf"],
+  //           state: state,
+  //           county: county,
+  //         },
+  //       });
+  //       const cmsAppendixII = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           cmsAppendix: "Appendix II",
+  //           ...obj1,
+  //         },
+  //       });
+
+  //       const migrate = await Kinnaur.findAll({
+  //         attributes: [
+  //           [
+  //             Sequelize.fn("DISTINCT", Sequelize.col("eBirdScientificName")),
+  //             "eBirdScientificName",
+  //           ],
+  //           "migratoryStatusWithinIndia",
+  //         ],
+  //         where: {
+  //           ...obj1,
+  //         },
+  //         raw: true,
+  //       });
+  //       const migrateCount = migrate.filter((ele) => {
+  //         const pattern = /^(?!.*(Resident|Uncertain)).*$/;
+  //         return pattern.test(ele.migratoryStatusWithinIndia);
+  //       });
+  //       for (const category of categories) {
+  //         const count = await Kinnaur.count({
+  //           distinct: true,
+  //           col: "eBirdScientificName",
+  //           where: {
+  //             iucnCategory: category,
+  //             // category: ["species","issf"],
+  //             ...obj1,
+  //             eBirdScientificName: Sequelize.where(
+  //               Sequelize.fn(
+  //                 "regexp_replace",
+  //                 Sequelize.col("eBirdScientificName"),
+  //                 "\\d+",
+  //                 "",
+  //                 "g"
+  //               ),
+  //               "=",
+  //               Sequelize.col("eBirdScientificName")
+  //             ),
+  //           },
+  //         });
+  //         counts[category] = count;
+  //       }
+
+  //       const cms1 = {};
+  //       const cms2 = {};
+  //       cms1["species"] = "Appendix I";
+  //       cms1["count"] = cmsAppendixI;
+  //       cms2["species"] = "Appendix II";
+  //       cms2["count"] = cmsAppendixII;
+  //       const cities1 = {};
+  //       const cities2 = {};
+  //       cities1["species"] = "Appendix I";
+  //       cities1["count"] = citesAppendixI;
+  //       cities2["species"] = "Appendix II";
+  //       cities2["count"] = citesAppendixII;
+  //       const soibConcern1 = {};
+  //       const soibConcern2 = {};
+  //       soibConcern1["species"] = "Moderate Priority";
+  //       soibConcern1["count"] = moderateConcern;
+  //       soibConcern2["species"] = "High Priority";
+  //       soibConcern2["count"] = highConcern;
+  //       obj["iucnRedListCategoriesCount"] = counts;
+  //       obj["total"] = count;
+  //       obj["migrate"] = migrateCount.length;
+  //       obj["iucnRedList"] =
+  //         counts["Vulnerable"] +
+  //         counts["Critically Endangered"] +
+  //         counts["Endangered"];
+  //       obj["soibHighPriority"] = soib;
+  //       obj["scheduleI"] = scheduleI;
+  //       obj["indiaEndemic"] = indiaEndemic;
+  //       obj["soibConservationConcernSpecies"] = [];
+  //       obj["soibConservationConcernSpecies"].push(soibConcern1, soibConcern2);
+  //       obj["citesAppendixSpecies"] = [];
+  //       obj["citesAppendixSpecies"].push(cities1, cities2);
+  //       obj["cmsAppendixSpecies"] = [];
+  //       obj["cmsAppendixSpecies"].push(cms1, cms2);
+  //       res.json(obj);
+  //     } else if (state) {
+  //       const obj = {};
+  //       const count = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           category: ["species", "issf", "domestic"],
+  //           ...obj1,
+  //         },
+  //       });
+  //       const soib = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           soibConcernStatus: "High",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const scheduleI = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           wpaSchedule: "Schedule-I",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const indiaEndemic = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           indiaEndemic: "Yes",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const highConcern = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           soibConcernStatus: "High",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const moderateConcern = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           soibConcernStatus: "Moderate",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const citesAppendixI = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           citesAppendix: "Appendix I",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const citesAppendixII = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           citesAppendix: "Appendix II",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const cmsAppendixI = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           cmsAppendix: "Appendix I",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const cmsAppendixII = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           cmsAppendix: "Appendix II",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const migrate = await Kinnaur.findAll({
+  //         attributes: [
+  //           [
+  //             Sequelize.fn("DISTINCT", Sequelize.col("eBirdScientificName")),
+  //             "eBirdScientificName",
+  //           ],
+  //           "migratoryStatusWithinIndia",
+  //         ],
+  //         where: {
+  //           [Op.and]: [
+  //             {
+  //               migratoryStatusWithinIndia: {
+  //                 [Op.notLike]: "%Resident%", // Exclude rows not containing "Resident"
+  //               },
+  //             },
+  //             {
+  //               migratoryStatusWithinIndia: {
+  //                 [Op.notLike]: "%Uncertain%", // Exclude rows not matching "Uncertain"
+  //               },
+  //             },
+  //           ],
+  //           ...obj1,
+  //         },
+  //         raw: true,
+  //       });
+  //       const counts = {};
+
+  //       for (const category of categories) {
+  //         const count = await Kinnaur.count({
+  //           distinct: true,
+  //           col: "eBirdScientificName",
+  //           where: {
+  //             iucnCategory: category,
+  //             ...obj1,
+  //             eBirdScientificName: Sequelize.where(
+  //               Sequelize.fn(
+  //                 "regexp_replace",
+  //                 Sequelize.col("eBirdScientificName"),
+  //                 "\\d+",
+  //                 "",
+  //                 "g"
+  //               ),
+  //               "=",
+  //               Sequelize.col("eBirdScientificName")
+  //             ),
+  //           },
+  //         });
+  //         counts[category] = count;
+  //       }
+  //       const cms1 = {};
+  //       const cms2 = {};
+  //       cms1["species"] = "Appendix I";
+  //       cms1["count"] = cmsAppendixI;
+  //       cms2["species"] = "Appendix II";
+  //       cms2["count"] = cmsAppendixII;
+  //       const cities1 = {};
+  //       const cities2 = {};
+  //       cities1["species"] = "Appendix I";
+  //       cities1["count"] = citesAppendixI;
+  //       cities2["species"] = "Appendix II";
+  //       cities2["count"] = citesAppendixII;
+  //       const soibConcern1 = {};
+  //       const soibConcern2 = {};
+  //       soibConcern1["species"] = "Moderate Priority";
+  //       soibConcern1["count"] = moderateConcern;
+  //       soibConcern2["species"] = "High Priority";
+  //       soibConcern2["count"] = highConcern;
+  //       obj["iucnRedListCategoriesCount"] = counts;
+  //       obj["total"] = count;
+  //       obj["migrate"] = migrate.length;
+  //       obj["iucnRedList"] =
+  //         counts["Vulnerable"] +
+  //         counts["Critically Endangered"] +
+  //         counts["Endangered"];
+  //       obj["soibHighPriority"] = soib;
+  //       obj["scheduleI"] = scheduleI;
+  //       obj["indiaEndemic"] = indiaEndemic;
+  //       obj["soibConservationConcernSpecies"] = [];
+  //       obj["soibConservationConcernSpecies"].push(soibConcern1, soibConcern2);
+  //       obj["citesAppendixSpecies"] = [];
+  //       obj["citesAppendixSpecies"].push(cities1, cities2);
+  //       obj["cmsAppendixSpecies"] = [];
+  //       obj["cmsAppendixSpecies"].push(cms1, cms2);
+  //       res.json(obj);
+  //     }
+  //   } catch (err) {
+  //     res.send({ error: err });
+  //   }
+  // },
+
+  async count1(req, res) {
+    const categories = [
+      "Vulnerable",
+      "Critically Endangered",
+      "Near Threatened",
+      "Endangered",
+    ];
+    const { state, county, locality } = req.query;
+    const start = req.query.start || false;
+    const end = req.query.end || false;
+    if (start && end && state && county && locality) {
+      var obj1 = {
+        state: state,
+        county: county,
+        locality: locality,
+        [Op.and]: [
+          Sequelize.where(
+            Sequelize.fn(
+              "TO_DATE",
+              Sequelize.col("observationDate"),
+              "DD-MM-YYYY"
+            ),
+            {
+              [Op.between]: [start, end], // Filter by date range
+            }
+          ),
+        ],
+      };
+    } else if (start && end && state && county) {
+      var obj1 = {
+        state: state,
+        county: county,
+        [Op.and]: [
+          Sequelize.where(
+            Sequelize.fn(
+              "TO_DATE",
+              Sequelize.col("observationDate"),
+              "DD-MM-YYYY"
+            ),
+            {
+              [Op.between]: [start, end], // Filter by date range
+            }
+          ),
+        ],
+      };
+    } else if (start && end && state) {
+      var obj1 = {
+        state: state,
+        [Op.and]: [
+          Sequelize.where(
+            Sequelize.fn(
+              "TO_DATE",
+              Sequelize.col("observationDate"),
+              "DD-MM-YYYY"
+            ),
+            {
+              [Op.between]: [start, end], // Filter by date range
+            }
+          ),
+        ],
+      };
+    } else if (state && county && locality) {
+      var obj1 = {
+        state: state,
+        county: county,
+        locality: locality,
+      };
+    } else if (state && county) {
+      var obj1 = {
+        state: state,
+        county: county,
+      };
+    } else if (state) {
+      var obj1 = {
+        state: state,
+      };
+    }
+
+    try {
+      if (state && county && locality) {
+        const counts = {};
+        const obj = {};
+        const count = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            category: ["species", "issf", "domestic"],
+            ...obj1,
+          },
+        });
+
+        for (const category of categories) {
+          const count = await Kinnaur.count({
+            distinct: true,
+            col: "eBirdScientificName",
+            where: {
+              iucnCategory: category,
+              ...obj1,
+              eBirdScientificName: Sequelize.where(
+                Sequelize.fn(
+                  "regexp_replace",
+                  Sequelize.col("eBirdScientificName"),
+                  "\\d+",
+                  "",
+                  "g"
+                ),
+                "=",
+                Sequelize.col("eBirdScientificName")
+              ),
+            },
+          });
+          counts[category] = count;
+        }
+        obj["iucnRedListCategoriesCount"] = counts;
+        res.json(obj);
+      } else if (state && county) {
+        const counts = {};
+        const obj = {};
+
+        const count = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            category: ["species", "domestic", "issf"],
+            eBirdScientificName: {
+              [Op.not]: null, // Use [Op.not] to check for non-null values
+            },
+            ...obj1,
+          },
+        });
+
+        for (const category of categories) {
+          const count = await Kinnaur.count({
+            distinct: true,
+            col: "eBirdScientificName",
+            where: {
+              iucnCategory: category,
+              // category: ["species","issf"],
+              ...obj1,
+              eBirdScientificName: Sequelize.where(
+                Sequelize.fn(
+                  "regexp_replace",
+                  Sequelize.col("eBirdScientificName"),
+                  "\\d+",
+                  "",
+                  "g"
+                ),
+                "=",
+                Sequelize.col("eBirdScientificName")
+              ),
+            },
+          });
+          counts[category] = count;
+        }
+
+        obj["iucnRedListCategoriesCount"] = counts;
+        res.json(obj);
+      } else if (state) {
+        const obj = {};
+        const count = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            category: ["species", "issf", "domestic"],
+            ...obj1,
+          },
+        });
+        const counts = {};
+
+        for (const category of categories) {
+          const count = await Kinnaur.count({
+            distinct: true,
+            col: "eBirdScientificName",
+            where: {
+              iucnCategory: category,
+              ...obj1,
+              eBirdScientificName: Sequelize.where(
+                Sequelize.fn(
+                  "regexp_replace",
+                  Sequelize.col("eBirdScientificName"),
+                  "\\d+",
+                  "",
+                  "g"
+                ),
+                "=",
+                Sequelize.col("eBirdScientificName")
+              ),
+            },
+          });
+          counts[category] = count;
+        }
+        obj["iucnRedListCategoriesCount"] = counts;
+        res.json(obj);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
+  async count2(req, res) {
+    const { state, county, locality } = req.query;
+    const start = req.query.start || false;
+    const end = req.query.end || false;
+    if (start && end && state && county && locality) {
+      var obj1 = {
+        state: state,
+        county: county,
+        locality: locality,
+        [Op.and]: [
+          Sequelize.where(
+            Sequelize.fn(
+              "TO_DATE",
+              Sequelize.col("observationDate"),
+              "DD-MM-YYYY"
+            ),
+            {
+              [Op.between]: [start, end], // Filter by date range
+            }
+          ),
+        ],
+      };
+    } else if (start && end && state && county) {
+      var obj1 = {
+        state: state,
+        county: county,
+        [Op.and]: [
+          Sequelize.where(
+            Sequelize.fn(
+              "TO_DATE",
+              Sequelize.col("observationDate"),
+              "DD-MM-YYYY"
+            ),
+            {
+              [Op.between]: [start, end], // Filter by date range
+            }
+          ),
+        ],
+      };
+    } else if (start && end && state) {
+      var obj1 = {
+        state: state,
+        [Op.and]: [
+          Sequelize.where(
+            Sequelize.fn(
+              "TO_DATE",
+              Sequelize.col("observationDate"),
+              "DD-MM-YYYY"
+            ),
+            {
+              [Op.between]: [start, end], // Filter by date range
+            }
+          ),
+        ],
+      };
+    } else if (state && county && locality) {
+      var obj1 = {
+        state: state,
+        county: county,
+        locality: locality,
+      };
+    } else if (state && county) {
+      var obj1 = {
+        state: state,
+        county: county,
+      };
+    } else if (state) {
+      var obj1 = {
+        state: state,
+      };
+    }
+
+    try {
+      if (state && county && locality) {
+        const obj = {};
+        const cmsAppendixI = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            cmsAppendix: "Appendix I",
+            ...obj1,
+          },
+        });
+
+        const cmsAppendixII = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            cmsAppendix: "Appendix II",
+            ...obj1,
+          },
+        });
+
+        const citesAppendixI = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            citesAppendix: "Appendix I",
+            ...obj1,
+          },
+        });
+        const citesAppendixII = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            citesAppendix: "Appendix II",
+            ...obj1,
+          },
+        });
+
+        const highConcern = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            soibConcernStatus: "High",
+            ...obj1,
+          },
+        });
+        const moderateConcern = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            soibConcernStatus: "Moderate",
+            ...obj1,
+          },
+        });
+        const cms1 = {};
+        const cms2 = {};
+        cms1["species"] = "Appendix I";
+        cms1["count"] = cmsAppendixI;
+        cms2["species"] = "Appendix II";
+        cms2["count"] = cmsAppendixII;
+        const cities1 = {};
+        const cities2 = {};
+        cities1["species"] = "Appendix I";
+        cities1["count"] = citesAppendixI;
+        cities2["species"] = "Appendix II";
+        cities2["count"] = citesAppendixII;
+        const soibConcern1 = {};
+        const soibConcern2 = {};
+        soibConcern1["species"] = "Moderate Priority";
+        soibConcern1["count"] = moderateConcern;
+        soibConcern2["species"] = "High Priority";
+        soibConcern2["count"] = highConcern;
+        obj["soibConservationConcernSpecies"] = [];
+        obj["soibConservationConcernSpecies"].push(soibConcern1, soibConcern2);
+        obj["citesAppendixSpecies"] = [];
+        obj["citesAppendixSpecies"].push(cities1, cities2);
+        obj["cmsAppendixSpecies"] = [];
+        obj["cmsAppendixSpecies"].push(cms1, cms2);
+        res.json(obj);
+      } else if (state && county) {
+        const counts = {};
+        const obj = {};
+        const highConcern = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            soibConcernStatus: "High",
+            ...obj1,
+          },
+        });
+        const moderateConcern = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            soibConcernStatus: "Moderate",
+            ...obj1,
+          },
+        });
+        const citesAppendixI = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            citesAppendix: "Appendix I",
+            ...obj1,
+          },
+        });
+        const citesAppendixII = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            citesAppendix: "Appendix II",
+            ...obj1,
+          },
+        });
+        const cmsAppendixI = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            cmsAppendix: "Appendix I",
+            category: ["species", "issf"],
+            state: state,
+            county: county,
+          },
+        });
+        const cmsAppendixII = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            cmsAppendix: "Appendix II",
+            ...obj1,
+          },
+        });
+        const cms1 = {};
+        const cms2 = {};
+        cms1["species"] = "Appendix I";
+        cms1["count"] = cmsAppendixI;
+        cms2["species"] = "Appendix II";
+        cms2["count"] = cmsAppendixII;
+        const cities1 = {};
+        const cities2 = {};
+        cities1["species"] = "Appendix I";
+        cities1["count"] = citesAppendixI;
+        cities2["species"] = "Appendix II";
+        cities2["count"] = citesAppendixII;
+        const soibConcern1 = {};
+        const soibConcern2 = {};
+        soibConcern1["species"] = "Moderate Priority";
+        soibConcern1["count"] = moderateConcern;
+        soibConcern2["species"] = "High Priority";
+        soibConcern2["count"] = highConcern;
+        obj["soibConservationConcernSpecies"] = [];
+        obj["soibConservationConcernSpecies"].push(soibConcern1, soibConcern2);
+        obj["citesAppendixSpecies"] = [];
+        obj["citesAppendixSpecies"].push(cities1, cities2);
+        obj["cmsAppendixSpecies"] = [];
+        obj["cmsAppendixSpecies"].push(cms1, cms2);
+        res.json(obj);
+      } else if (state) {
+        const obj = {};
+        const highConcern = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            soibConcernStatus: "High",
+            ...obj1,
+          },
+        });
+        const moderateConcern = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            soibConcernStatus: "Moderate",
+            ...obj1,
+          },
+        });
+        const citesAppendixI = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            citesAppendix: "Appendix I",
+            ...obj1,
+          },
+        });
+        const citesAppendixII = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            citesAppendix: "Appendix II",
+            ...obj1,
+          },
+        });
+        const cmsAppendixI = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            cmsAppendix: "Appendix I",
+            ...obj1,
+          },
+        });
+        const cmsAppendixII = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            cmsAppendix: "Appendix II",
+            ...obj1,
+          },
+        });
+        const cms1 = {};
+        const cms2 = {};
+        cms1["species"] = "Appendix I";
+        cms1["count"] = cmsAppendixI;
+        cms2["species"] = "Appendix II";
+        cms2["count"] = cmsAppendixII;
+        const cities1 = {};
+        const cities2 = {};
+        cities1["species"] = "Appendix I";
+        cities1["count"] = citesAppendixI;
+        cities2["species"] = "Appendix II";
+        cities2["count"] = citesAppendixII;
+        const soibConcern1 = {};
+        const soibConcern2 = {};
+        soibConcern1["species"] = "Moderate Priority";
+        soibConcern1["count"] = moderateConcern;
+        soibConcern2["species"] = "High Priority";
+        soibConcern2["count"] = highConcern;
+        obj["soibConservationConcernSpecies"] = [];
+        obj["soibConservationConcernSpecies"].push(soibConcern1, soibConcern2);
+        obj["citesAppendixSpecies"] = [];
+        obj["citesAppendixSpecies"].push(cities1, cities2);
+        obj["cmsAppendixSpecies"] = [];
+        obj["cmsAppendixSpecies"].push(cms1, cms2);
+        res.json(obj);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
+  async count3(req, res) {
     const categories = [
       "Vulnerable",
       "Critically Endangered",
@@ -164,91 +1247,21 @@ const UserController = {
         state: state,
       };
     }
-    
+
     try {
       if (state && county && locality) {
         const counts = {};
         const obj = {};
+
         const count = await Kinnaur.count({
           distinct: true,
           col: "eBirdScientificName",
-          where: {      
+          where: {
             category: ["species", "issf", "domestic"],
             ...obj1,
           },
         });
-        const soib = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            soibConcernStatus: "High",
-            ...obj1,
-          },
-        });
-        const scheduleI = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            wpaSchedule: "Schedule-I",
-            ...obj1,
-          }, 
-        });
-        const indiaEndemic = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            indiaEndemic: "Yes",
-            ...obj1,
-          },
-        });
-        const highConcern = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            soibConcernStatus: "High",
-            ...obj1,
-          },
-        });
-        const moderateConcern = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            soibConcernStatus: "Moderate",
-            ...obj1,
-          },
-        });
-        const citesAppendixI = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            citesAppendix: "Appendix I",
-            ...obj1,
-          },
-        });
-        const citesAppendixII = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            citesAppendix: "Appendix II",
-            ...obj1,
-          },
-        });
-        const cmsAppendixI = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            cmsAppendix: "Appendix I",
-            ...obj1,
-          },
-        });
-        const cmsAppendixII = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            cmsAppendix: "Appendix II",
-            ...obj1,
-          },
-        });
+
         const migrate = await Kinnaur.findAll({
           attributes: [
             [
@@ -266,6 +1279,34 @@ const UserController = {
           const pattern = /^(?!.*(Resident|Uncertain)).*$/;
           return pattern.test(ele.migratoryStatusWithinIndia);
         });
+
+        const soib = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            soibConcernStatus: "High",
+            ...obj1,
+          },
+        });
+
+        const scheduleI = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            wpaSchedule: "Schedule-I",
+            ...obj1,
+          },
+        });
+
+        const indiaEndemic = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            indiaEndemic: "Yes",
+            ...obj1,
+          },
+        });
+
         for (const category of categories) {
           const count = await Kinnaur.count({
             distinct: true,
@@ -288,41 +1329,17 @@ const UserController = {
           });
           counts[category] = count;
         }
-        const cms1 = {};
-        const cms2 = {};
-        cms1["species"] = "Appendix I";
-        cms1["count"] = cmsAppendixI;
-        cms2["species"] = "Appendix II";
-        cms2["count"] = cmsAppendixII;
-        const cities1 = {};
-        const cities2 = {};
-        cities1["species"] = "Appendix I";
-        cities1["count"] = citesAppendixI;
-        cities2["species"] = "Appendix II";
-        cities2["count"] = citesAppendixII;
-        const soibConcern1 = {};
-        const soibConcern2 = {};
-        soibConcern1["species"] = "Moderate Priority";
-        soibConcern1["count"] = moderateConcern;
-        soibConcern2["species"] = "High Priority";
-        soibConcern2["count"] = highConcern;
-        obj["iucnRedListCategoriesCount"] = counts;
+
         obj["total"] = count;
         obj["migrate"] = migrateCount.length;
+
         obj["iucnRedList"] =
           counts["Vulnerable"] +
           counts["Critically Endangered"] +
-          counts["Near Threatened"] +
           counts["Endangered"];
         obj["soibHighPriority"] = soib;
         obj["scheduleI"] = scheduleI;
         obj["indiaEndemic"] = indiaEndemic;
-        obj["soibConservationConcernSpecies"] = [];
-        obj["soibConservationConcernSpecies"].push(soibConcern1, soibConcern2);
-        obj["citesAppendixSpecies"] = [];
-        obj["citesAppendixSpecies"].push(cities1, cities2);
-        obj["cmsAppendixSpecies"] = [];
-        obj["cmsAppendixSpecies"].push(cms1, cms2);
         res.json(obj);
       } else if (state && county) {
         const counts = {};
@@ -338,82 +1355,6 @@ const UserController = {
             ...obj1,
           },
         });
-        const soib = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            soibConcernStatus: "High",
-            ...obj1,
-          },
-        });
-
-        const scheduleI = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            wpaSchedule: "Schedule-I",
-            ...obj1,
-          },
-        });
-        const indiaEndemic = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            indiaEndemic: "Yes",
-            ...obj1,
-          },
-        });
-        const highConcern = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            soibConcernStatus: "High",
-            ...obj1,
-          },
-        });
-        const moderateConcern = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            soibConcernStatus: "Moderate",
-            ...obj1,
-          },
-        });
-        const citesAppendixI = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            citesAppendix: "Appendix I",
-            ...obj1,
-          },
-        });
-        const citesAppendixII = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            citesAppendix: "Appendix II",
-            ...obj1,
-          },
-        });
-        const cmsAppendixI = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            cmsAppendix: "Appendix I",
-            category: ["species", "issf"],
-            state: state,
-            county: county,
-          },
-        });
-        const cmsAppendixII = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            cmsAppendix: "Appendix II",
-            ...obj1,
-          },
-        });
-
         const migrate = await Kinnaur.findAll({
           attributes: [
             [
@@ -430,6 +1371,30 @@ const UserController = {
         const migrateCount = migrate.filter((ele) => {
           const pattern = /^(?!.*(Resident|Uncertain)).*$/;
           return pattern.test(ele.migratoryStatusWithinIndia);
+        });
+        const soib = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            soibConcernStatus: "High",
+            ...obj1,
+          },
+        });
+        const scheduleI = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            wpaSchedule: "Schedule-I",
+            ...obj1,
+          },
+        });
+        const indiaEndemic = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            indiaEndemic: "Yes",
+            ...obj1,
+          },
         });
         for (const category of categories) {
           const count = await Kinnaur.count({
@@ -454,28 +1419,9 @@ const UserController = {
           });
           counts[category] = count;
         }
-
-        const cms1 = {};
-        const cms2 = {};
-        cms1["species"] = "Appendix I";
-        cms1["count"] = cmsAppendixI;
-        cms2["species"] = "Appendix II";
-        cms2["count"] = cmsAppendixII;
-        const cities1 = {};
-        const cities2 = {};
-        cities1["species"] = "Appendix I";
-        cities1["count"] = citesAppendixI;
-        cities2["species"] = "Appendix II";
-        cities2["count"] = citesAppendixII;
-        const soibConcern1 = {};
-        const soibConcern2 = {};
-        soibConcern1["species"] = "Moderate Priority";
-        soibConcern1["count"] = moderateConcern;
-        soibConcern2["species"] = "High Priority";
-        soibConcern2["count"] = highConcern;
-        obj["iucnRedListCategoriesCount"] = counts;
         obj["total"] = count;
         obj["migrate"] = migrateCount.length;
+
         obj["iucnRedList"] =
           counts["Vulnerable"] +
           counts["Critically Endangered"] +
@@ -483,15 +1429,10 @@ const UserController = {
         obj["soibHighPriority"] = soib;
         obj["scheduleI"] = scheduleI;
         obj["indiaEndemic"] = indiaEndemic;
-        obj["soibConservationConcernSpecies"] = [];
-        obj["soibConservationConcernSpecies"].push(soibConcern1, soibConcern2);
-        obj["citesAppendixSpecies"] = [];
-        obj["citesAppendixSpecies"].push(cities1, cities2);
-        obj["cmsAppendixSpecies"] = [];
-        obj["cmsAppendixSpecies"].push(cms1, cms2);
         res.json(obj);
       } else if (state) {
         const obj = {};
+        const counts = {};
         const count = await Kinnaur.count({
           distinct: true,
           col: "eBirdScientificName",
@@ -500,78 +1441,7 @@ const UserController = {
             ...obj1,
           },
         });
-        const soib = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            soibConcernStatus: "High",
-            ...obj1,
-          },
-        });
-        const scheduleI = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            wpaSchedule: "Schedule-I",
-            ...obj1,
-          },
-        });
-        const indiaEndemic = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            indiaEndemic: "Yes",
-            ...obj1,
-          },
-        });
-        const highConcern = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            soibConcernStatus: "High",
-            ...obj1,
-          },
-        });
-        const moderateConcern = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            soibConcernStatus: "Moderate",
-            ...obj1,
-          },
-        });
-        const citesAppendixI = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            citesAppendix: "Appendix I",
-            ...obj1,
-          },
-        });
-        const citesAppendixII = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            citesAppendix: "Appendix II",
-            ...obj1,
-          },
-        });
-        const cmsAppendixI = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            cmsAppendix: "Appendix I",
-            ...obj1,
-          },
-        });
-        const cmsAppendixII = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            cmsAppendix: "Appendix II",
-            ...obj1,
-          },
-        });
+
         const migrate = await Kinnaur.findAll({
           attributes: [
             [
@@ -597,7 +1467,32 @@ const UserController = {
           },
           raw: true,
         });
-        const counts = {};
+
+        const soib = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            soibConcernStatus: "High",
+            ...obj1,
+          },
+        });
+        const scheduleI = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            wpaSchedule: "Schedule-I",
+            ...obj1,
+          },
+        });
+
+        const indiaEndemic = await Kinnaur.count({
+          distinct: true,
+          col: "eBirdScientificName",
+          where: {
+            indiaEndemic: "Yes",
+            ...obj1,
+          },
+        });
 
         for (const category of categories) {
           const count = await Kinnaur.count({
@@ -621,27 +1516,10 @@ const UserController = {
           });
           counts[category] = count;
         }
-        const cms1 = {};
-        const cms2 = {};
-        cms1["species"] = "Appendix I";
-        cms1["count"] = cmsAppendixI;
-        cms2["species"] = "Appendix II";
-        cms2["count"] = cmsAppendixII;
-        const cities1 = {};
-        const cities2 = {};
-        cities1["species"] = "Appendix I";
-        cities1["count"] = citesAppendixI;
-        cities2["species"] = "Appendix II";
-        cities2["count"] = citesAppendixII;
-        const soibConcern1 = {};
-        const soibConcern2 = {};
-        soibConcern1["species"] = "Moderate Priority";
-        soibConcern1["count"] = moderateConcern;
-        soibConcern2["species"] = "High Priority";
-        soibConcern2["count"] = highConcern;
-        obj["iucnRedListCategoriesCount"] = counts;
+
         obj["total"] = count;
         obj["migrate"] = migrate.length;
+
         obj["iucnRedList"] =
           counts["Vulnerable"] +
           counts["Critically Endangered"] +
@@ -649,18 +1527,1054 @@ const UserController = {
         obj["soibHighPriority"] = soib;
         obj["scheduleI"] = scheduleI;
         obj["indiaEndemic"] = indiaEndemic;
-        obj["soibConservationConcernSpecies"] = [];
-        obj["soibConservationConcernSpecies"].push(soibConcern1, soibConcern2);
-        obj["citesAppendixSpecies"] = [];
-        obj["citesAppendixSpecies"].push(cities1, cities2);
-        obj["cmsAppendixSpecies"] = [];
-        obj["cmsAppendixSpecies"].push(cms1, cms2);
         res.json(obj);
       }
     } catch (err) {
-      res.send({ error: err });
+      console.log(err);
+      res.status(500).send({ error: err });
     }
   },
+
+  // async count(req, res) {
+  //   const categories = [
+  //     "Vulnerable",
+  //     "Critically Endangered",
+  //     "Near Threatened",
+  //     "Endangered",
+  //   ];
+  //   const { state, county, locality } = req.query;
+
+  //   const start = req.query.start || false;
+  //   const end = req.query.end || false;
+  //   if (start && end && state && county && locality) {
+  //     var obj1 = {
+  //       state: state,
+  //       county: county,
+  //       locality: locality,
+  //       [Op.and]: [
+  //         Sequelize.where(
+  //           Sequelize.fn(
+  //             "TO_DATE",
+  //             Sequelize.col("observationDate"),
+  //             "DD-MM-YYYY"
+  //           ),
+  //           {
+  //             [Op.between]: [start, end], // Filter by date range
+  //           }
+  //         ),
+  //       ],
+  //     };
+  //   } else if (start && end && state && county) {
+  //     var obj1 = {
+  //       state: state,
+  //       county: county,
+  //       [Op.and]: [
+  //         Sequelize.where(
+  //           Sequelize.fn(
+  //             "TO_DATE",
+  //             Sequelize.col("observationDate"),
+  //             "DD-MM-YYYY"
+  //           ),
+  //           {
+  //             [Op.between]: [start, end], // Filter by date range
+  //           }
+  //         ),
+  //       ],
+  //     };
+  //   } else if (start && end && state) {
+  //     var obj1 = {
+  //       state: state,
+  //       [Op.and]: [
+  //         Sequelize.where(
+  //           Sequelize.fn(
+  //             "TO_DATE",
+  //             Sequelize.col("observationDate"),
+  //             "DD-MM-YYYY"
+  //           ),
+  //           {
+  //             [Op.between]: [start, end], // Filter by date range
+  //           }
+  //         ),
+  //       ],
+  //     };
+  //   } else if (state && county && locality) {
+  //     var obj1 = {
+  //       state: state,
+  //       county: county,
+  //       locality: locality,
+  //     };
+  //   } else if (state && county) {
+  //     var obj1 = {
+  //       state: state,
+  //       county: county,
+  //     };
+  //   } else if (state) {
+  //     var obj1 = {
+  //       state: state,
+  //     };
+  //   }
+
+  //   try {
+  //     if (state && county && locality) {
+  //       const counts = {};
+  //       const obj = {};
+  //       const count = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           category: ["species", "issf", "domestic"],
+  //           ...obj1,
+  //         },
+  //       });
+  //       const soib = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           soibConcernStatus: "High",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const scheduleI = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           wpaSchedule: "Schedule-I",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const indiaEndemic = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           indiaEndemic: "Yes",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const highConcern = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           soibConcernStatus: "High",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const moderateConcern = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           soibConcernStatus: "Moderate",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const citesAppendixI = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           citesAppendix: "Appendix I",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const citesAppendixII = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           citesAppendix: "Appendix II",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const cmsAppendixI = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           cmsAppendix: "Appendix I",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const cmsAppendixII = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           cmsAppendix: "Appendix II",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const migrate = await Kinnaur.findAll({
+  //         attributes: [
+  //           [
+  //             Sequelize.fn("DISTINCT", Sequelize.col("eBirdScientificName")),
+  //             "eBirdScientificName",
+  //           ],
+  //           "migratoryStatusWithinIndia",
+  //         ],
+  //         where: {
+  //           ...obj1,
+  //         },
+  //         raw: true,
+  //       });
+  //       const migrateCount = migrate.filter((ele) => {
+  //         const pattern = /^(?!.*(Resident|Uncertain)).*$/;
+  //         return pattern.test(ele.migratoryStatusWithinIndia);
+  //       });
+  //       for (const category of categories) {
+  //         const count = await Kinnaur.count({
+  //           distinct: true,
+  //           col: "eBirdScientificName",
+  //           where: {
+  //             iucnCategory: category,
+  //             ...obj1,
+  //             eBirdScientificName: Sequelize.where(
+  //               Sequelize.fn(
+  //                 "regexp_replace",
+  //                 Sequelize.col("eBirdScientificName"),
+  //                 "\\d+",
+  //                 "",
+  //                 "g"
+  //               ),
+  //               "=",
+  //               Sequelize.col("eBirdScientificName")
+  //             ),
+  //           },
+  //         });
+  //         counts[category] = count;
+  //       }
+  //       const cms1 = {};
+  //       const cms2 = {};
+  //       cms1["species"] = "Appendix I";
+  //       cms1["count"] = cmsAppendixI;
+  //       cms2["species"] = "Appendix II";
+  //       cms2["count"] = cmsAppendixII;
+  //       const cities1 = {};
+  //       const cities2 = {};
+  //       cities1["species"] = "Appendix I";
+  //       cities1["count"] = citesAppendixI;
+  //       cities2["species"] = "Appendix II";
+  //       cities2["count"] = citesAppendixII;
+  //       const soibConcern1 = {};
+  //       const soibConcern2 = {};
+  //       soibConcern1["species"] = "Moderate Priority";
+  //       soibConcern1["count"] = moderateConcern;
+  //       soibConcern2["species"] = "High Priority";
+  //       soibConcern2["count"] = highConcern;
+  //       obj["iucnRedListCategoriesCount"] = counts;
+  //       obj["total"] = count;
+  //       obj["migrate"] = migrateCount.length;
+  //       obj["iucnRedList"] =
+  //         counts["Vulnerable"] +
+  //         counts["Critically Endangered"] +
+  //         counts["Near Threatened"] +
+  //         counts["Endangered"];
+  //       obj["soibHighPriority"] = soib;
+  //       obj["scheduleI"] = scheduleI;
+  //       obj["indiaEndemic"] = indiaEndemic;
+  //       obj["soibConservationConcernSpecies"] = [];
+  //       obj["soibConservationConcernSpecies"].push(soibConcern1, soibConcern2);
+  //       obj["citesAppendixSpecies"] = [];
+  //       obj["citesAppendixSpecies"].push(cities1, cities2);
+  //       obj["cmsAppendixSpecies"] = [];
+  //       obj["cmsAppendixSpecies"].push(cms1, cms2);
+  //       res.json(obj);
+  //     } else if (state && county) {
+  //       const counts = {};
+  //       const obj = {};
+  //       const count = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           category: ["species", "domestic", "issf"],
+  //           eBirdScientificName: {
+  //             [Op.not]: null, // Use [Op.not] to check for non-null values
+  //           },
+  //           ...obj1,
+  //         },
+  //       });
+  //       const soib = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           soibConcernStatus: "High",
+  //           ...obj1,
+  //         },
+  //       });
+
+  //       const scheduleI = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           wpaSchedule: "Schedule-I",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const indiaEndemic = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           indiaEndemic: "Yes",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const highConcern = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           soibConcernStatus: "High",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const moderateConcern = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           soibConcernStatus: "Moderate",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const citesAppendixI = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           citesAppendix: "Appendix I",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const citesAppendixII = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           citesAppendix: "Appendix II",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const cmsAppendixI = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           cmsAppendix: "Appendix I",
+  //           category: ["species", "issf"],
+  //           state: state,
+  //           county: county,
+  //         },
+  //       });
+  //       const cmsAppendixII = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           cmsAppendix: "Appendix II",
+  //           ...obj1,
+  //         },
+  //       });
+
+  //       const migrate = await Kinnaur.findAll({
+  //         attributes: [
+  //           [
+  //             Sequelize.fn("DISTINCT", Sequelize.col("eBirdScientificName")),
+  //             "eBirdScientificName",
+  //           ],
+  //           "migratoryStatusWithinIndia",
+  //         ],
+  //         where: {
+  //           ...obj1,
+  //         },
+  //         raw: true,
+  //       });
+  //       const migrateCount = migrate.filter((ele) => {
+  //         const pattern = /^(?!.*(Resident|Uncertain)).*$/;
+  //         return pattern.test(ele.migratoryStatusWithinIndia);
+  //       });
+  //       for (const category of categories) {
+  //         const count = await Kinnaur.count({
+  //           distinct: true,
+  //           col: "eBirdScientificName",
+  //           where: {
+  //             iucnCategory: category,
+  //             // category: ["species","issf"],
+  //             ...obj1,
+  //             eBirdScientificName: Sequelize.where(
+  //               Sequelize.fn(
+  //                 "regexp_replace",
+  //                 Sequelize.col("eBirdScientificName"),
+  //                 "\\d+",
+  //                 "",
+  //                 "g"
+  //               ),
+  //               "=",
+  //               Sequelize.col("eBirdScientificName")
+  //             ),
+  //           },
+  //         });
+  //         counts[category] = count;
+  //       }
+
+  //       const cms1 = {};
+  //       const cms2 = {};
+  //       cms1["species"] = "Appendix I";
+  //       cms1["count"] = cmsAppendixI;
+  //       cms2["species"] = "Appendix II";
+  //       cms2["count"] = cmsAppendixII;
+  //       const cities1 = {};
+  //       const cities2 = {};
+  //       cities1["species"] = "Appendix I";
+  //       cities1["count"] = citesAppendixI;
+  //       cities2["species"] = "Appendix II";
+  //       cities2["count"] = citesAppendixII;
+  //       const soibConcern1 = {};
+  //       const soibConcern2 = {};
+  //       soibConcern1["species"] = "Moderate Priority";
+  //       soibConcern1["count"] = moderateConcern;
+  //       soibConcern2["species"] = "High Priority";
+  //       soibConcern2["count"] = highConcern;
+  //       obj["iucnRedListCategoriesCount"] = counts;
+  //       obj["total"] = count;
+  //       obj["migrate"] = migrateCount.length;
+  //       obj["iucnRedList"] =
+  //         counts["Vulnerable"] +
+  //         counts["Critically Endangered"] +
+  //         counts["Endangered"];
+  //       obj["soibHighPriority"] = soib;
+  //       obj["scheduleI"] = scheduleI;
+  //       obj["indiaEndemic"] = indiaEndemic;
+  //       obj["soibConservationConcernSpecies"] = [];
+  //       obj["soibConservationConcernSpecies"].push(soibConcern1, soibConcern2);
+  //       obj["citesAppendixSpecies"] = [];
+  //       obj["citesAppendixSpecies"].push(cities1, cities2);
+  //       obj["cmsAppendixSpecies"] = [];
+  //       obj["cmsAppendixSpecies"].push(cms1, cms2);
+  //       res.json(obj);
+  //     } else if (state) {
+  //       const obj = {};
+  //       const count = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           category: ["species", "issf", "domestic"],
+  //           ...obj1,
+  //         },
+  //       });
+  //       const soib = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           soibConcernStatus: "High",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const scheduleI = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           wpaSchedule: "Schedule-I",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const indiaEndemic = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           indiaEndemic: "Yes",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const highConcern = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           soibConcernStatus: "High",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const moderateConcern = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           soibConcernStatus: "Moderate",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const citesAppendixI = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           citesAppendix: "Appendix I",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const citesAppendixII = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           citesAppendix: "Appendix II",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const cmsAppendixI = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           cmsAppendix: "Appendix I",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const cmsAppendixII = await Kinnaur.count({
+  //         distinct: true,
+  //         col: "eBirdScientificName",
+  //         where: {
+  //           cmsAppendix: "Appendix II",
+  //           ...obj1,
+  //         },
+  //       });
+  //       const migrate = await Kinnaur.findAll({
+  //         attributes: [
+  //           [
+  //             Sequelize.fn("DISTINCT", Sequelize.col("eBirdScientificName")),
+  //             "eBirdScientificName",
+  //           ],
+  //           "migratoryStatusWithinIndia",
+  //         ],
+  //         where: {
+  //           [Op.and]: [
+  //             {
+  //               migratoryStatusWithinIndia: {
+  //                 [Op.notLike]: "%Resident%", // Exclude rows not containing "Resident"
+  //               },
+  //             },
+  //             {
+  //               migratoryStatusWithinIndia: {
+  //                 [Op.notLike]: "%Uncertain%", // Exclude rows not matching "Uncertain"
+  //               },
+  //             },
+  //           ],
+  //           ...obj1,
+  //         },
+  //         raw: true,
+  //       });
+  //       const counts = {};
+
+  //       for (const category of categories) {
+  //         const count = await Kinnaur.count({
+  //           distinct: true,
+  //           col: "eBirdScientificName",
+  //           where: {
+  //             iucnCategory: category,
+  //             ...obj1,
+  //             eBirdScientificName: Sequelize.where(
+  //               Sequelize.fn(
+  //                 "regexp_replace",
+  //                 Sequelize.col("eBirdScientificName"),
+  //                 "\\d+",
+  //                 "",
+  //                 "g"
+  //               ),
+  //               "=",
+  //               Sequelize.col("eBirdScientificName")
+  //             ),
+  //           },
+  //         });
+  //         counts[category] = count;
+  //       }
+  //       const cms1 = {};
+  //       const cms2 = {};
+  //       cms1["species"] = "Appendix I";
+  //       cms1["count"] = cmsAppendixI;
+  //       cms2["species"] = "Appendix II";
+  //       cms2["count"] = cmsAppendixII;
+  //       const cities1 = {};
+  //       const cities2 = {};
+  //       cities1["species"] = "Appendix I";
+  //       cities1["count"] = citesAppendixI;
+  //       cities2["species"] = "Appendix II";
+  //       cities2["count"] = citesAppendixII;
+  //       const soibConcern1 = {};
+  //       const soibConcern2 = {};
+  //       soibConcern1["species"] = "Moderate Priority";
+  //       soibConcern1["count"] = moderateConcern;
+  //       soibConcern2["species"] = "High Priority";
+  //       soibConcern2["count"] = highConcern;
+  //       obj["iucnRedListCategoriesCount"] = counts;
+  //       obj["total"] = count;
+  //       obj["migrate"] = migrate.length;
+  //       obj["iucnRedList"] =
+  //         counts["Vulnerable"] +
+  //         counts["Critically Endangered"] +
+  //         counts["Endangered"];
+  //       obj["soibHighPriority"] = soib;
+  //       obj["scheduleI"] = scheduleI;
+  //       obj["indiaEndemic"] = indiaEndemic;
+  //       obj["soibConservationConcernSpecies"] = [];
+  //       obj["soibConservationConcernSpecies"].push(soibConcern1, soibConcern2);
+  //       obj["citesAppendixSpecies"] = [];
+  //       obj["citesAppendixSpecies"].push(cities1, cities2);
+  //       obj["cmsAppendixSpecies"] = [];
+  //       obj["cmsAppendixSpecies"].push(cms1, cms2);
+  //       res.json(obj);
+  //     }
+  //   } catch (err) {
+  //     res.send({ error: err });
+  //   }
+  // },
+
+  async soibConcernStatus(req, res) {
+    const { state, county, locality } = req.query;
+    const start = req.query.start || false;
+    const end = req.query.end || false;
+    if (start && end && state && county && locality) {
+      var obj1 = {
+        state: state,
+        county: county,
+        locality: locality,
+        [Op.and]: [
+          Sequelize.where(
+            Sequelize.fn(
+              "TO_DATE",
+              Sequelize.col("observationDate"),
+              "DD-MM-YYYY"
+            ),
+            {
+              [Op.between]: [start, end], // Filter by date range
+            }
+          ),
+        ],
+      };
+    } else if (start && end && state && county) {
+      var obj1 = {
+        state: state,
+        county: county,
+        [Op.and]: [
+          Sequelize.where(
+            Sequelize.fn(
+              "TO_DATE",
+              Sequelize.col("observationDate"),
+              "DD-MM-YYYY"
+            ),
+            {
+              [Op.between]: [start, end], // Filter by date range
+            }
+          ),
+        ],
+      };
+    } else if (start && end && state) {
+      var obj1 = {
+        state: state,
+        [Op.and]: [
+          Sequelize.where(
+            Sequelize.fn(
+              "TO_DATE",
+              Sequelize.col("observationDate"),
+              "DD-MM-YYYY"
+            ),
+            {
+              [Op.between]: [start, end], // Filter by date range
+            }
+          ),
+        ],
+      };
+    } else if (state && county && locality) {
+      var obj1 = {
+        state: state,
+        county: county,
+        locality: locality,
+      };
+    } else if (state && county) {
+      var obj1 = {
+        state: state,
+        county: county,
+      };
+    } else if (state) {
+      var obj1 = {
+        state: state,
+      };
+    }
+
+    try {
+      if (state && county && locality) {
+        const groupIdentifier = await Kinnaur.findAll({
+          attributes: [
+            "soibConcernStatus",
+            [
+              Sequelize.fn(
+                "count",
+                Sequelize.col("indiaChecklistScientificName")
+              ),
+              "count",
+            ],
+            "groupIdentifier",
+            "allSpeciesReported",
+            [
+              Sequelize.fn(
+                "COUNT",
+                Sequelize.fn("DISTINCT", Sequelize.col("groupIdentifier"))
+              ),
+              "uniqueGroupCount",
+            ],
+          ],
+          where: obj1,
+          group: ["groupIdentifier", "soibConcernStatus","allSpeciesReported"],
+          raw: true,
+        });
+
+        const results = await Kinnaur.findAll({
+          attributes: [
+            "indiaChecklistScientificName",
+            "indiaChecklistCommonName",
+            "soibConcernStatus",
+            "uniqueValue",
+            "samplingEventIdentifier",
+            "observationDate",
+            "allSpeciesReported",
+            [
+              Sequelize.fn(
+                "count",
+                Sequelize.col("indiaChecklistScientificName")
+              ),
+              "count",
+            ],
+            "groupIdentifier",
+            [
+              Sequelize.fn(
+                "COUNT",
+                Sequelize.fn("DISTINCT", Sequelize.col("groupIdentifier"))
+              ),
+              "uniqueGroupCount",
+            ],
+          ],
+
+          where: {
+            iucnCategory: {
+              [Sequelize.Op.in]: [
+                "Vulnerable",
+                "Critically Endangered",
+                "Near Threatened",
+                "Endangered",
+                "Least Concern",
+              ],
+            },
+            ...obj1,
+            soibConcernStatus: "High",
+          },
+          group: [
+            "indiaChecklistScientificName",
+            "indiaChecklistCommonName",
+            "groupIdentifier",
+            "soibConcernStatus",
+            "uniqueValue",
+            "samplingEventIdentifier",
+            "observationDate",
+            "allSpeciesReported"
+
+          ],
+          raw: true,
+        });
+        const scientificNameCounts = {};
+        const maxObservationMap = new Map();
+        const latestObservationsMap = new Map();
+        const uniqueMap = new Map();
+        const arr = [];
+        function formatDate(date) {
+          const day = date.getDate().toString().padStart(2, '0');
+          const month = (date.getMonth() + 1).toString().padStart(2, '0');
+          const year = date.getFullYear();
+          return `${day}-${month}-${year}`;
+        }
+        
+        // Populate the arr with unique groupIdentifiers where allSpeciesReported == "1"
+        groupIdentifier.forEach((result) => {
+          if (!arr.includes(result.groupIdentifier) && result.allSpeciesReported == "1") {
+            arr.push(result.groupIdentifier);
+          }
+        });
+        
+        // Helper function to convert date strings to Date objects
+        function convertDateString(dateStr) {
+          const [day, month, year] = dateStr.split("-");
+          return new Date(`${year}-${month}-${day}`);
+        }
+        
+        // First pass: Find the maximum observation date for each scientific name
+        results.forEach((entry) => {
+          const currentDate = convertDateString(entry.observationDate);
+          const scientificName = entry.indiaChecklistScientificName;
+        
+          if (!maxObservationMap.has(scientificName) || currentDate > maxObservationMap.get(scientificName).date) {
+            maxObservationMap.set(scientificName, {
+              date: currentDate,
+              samplingEventIdentifier: entry.samplingEventIdentifier,
+              entry: { ...entry, date: currentDate },
+            });
+          }
+        });
+        
+        // Second pass: Process entries and populate uniqueMap
+        results.forEach((entry) => {
+          const currentDate = convertDateString(entry.observationDate);
+          const key = `${entry.groupIdentifier}-${entry.indiaChecklistScientificName}`;
+        
+          if (
+            !latestObservationsMap.has(key) ||
+            (latestObservationsMap.has(key) && currentDate > latestObservationsMap.get(key).date)
+          ) {
+            latestObservationsMap.set(key, {
+              date: currentDate,
+              entry: { ...entry, date: currentDate },
+            });
+          }
+        });
+        
+        // Filter the array to keep only entries with the latest observation date and allSpeciesReported equal to 1
+        const filteredData = Array.from(latestObservationsMap.values()).map((obj) => obj.entry);
+        
+        filteredData.forEach((result) => {
+          const birdScientificName = result.indiaChecklistScientificName;
+        
+          // Count the scientific name only if allSpeciesReported is 1
+          if (result.allSpeciesReported == "1") {
+            if (scientificNameCounts.hasOwnProperty(birdScientificName)) {
+              scientificNameCounts[birdScientificName]++;
+            } else {
+              scientificNameCounts[birdScientificName] = 1;
+            }
+          }
+        
+          // Add the entry to uniqueMap
+          const key = result.uniqueValue;
+          if (!uniqueMap.has(key)) {
+            const latestObservationDate = maxObservationMap.get(birdScientificName).date;
+            uniqueMap.set(key, { ...result, latestObservationDate });
+          }
+        });
+        
+        // Prepare the output array
+        const uniqueArray = Array.from(uniqueMap.values());
+        const newArray = uniqueArray.map((ele) => {
+          const bird = ele.indiaChecklistScientificName;
+          const latestObservationDate = formatDate(maxObservationMap.get(bird).date);
+          const samplingEventIdentifier = maxObservationMap.get(bird).samplingEventIdentifier;
+
+        
+          return {
+            region: ele.iucnCategory,
+            indiaChecklistScientificName: ele.indiaChecklistScientificName,
+            indiaChecklistCommonName: ele.indiaChecklistCommonName,
+            uniqueValue: ele.uniqueValue,
+            percentage: isNaN(Math.round((scientificNameCounts[bird] / arr.length) * 100))
+              ? "0%"
+              : Math.round((scientificNameCounts[bird] / arr.length) * 100) + "%",
+            samplingEventIdentifier: samplingEventIdentifier,
+            observationDate: latestObservationDate,
+          };
+        });
+        const sortedArray = newArray.sort((a, b) => {
+          const uniqueValueA = parseInt(a.uniqueValue, 10);
+          const uniqueValueB = parseInt(b.uniqueValue, 10);
+
+          if (uniqueValueA < uniqueValueB) {
+            return -1;
+          }
+          if (uniqueValueA > uniqueValueB) {
+            return 1;
+          }
+          return 0;
+        });
+
+        res.send(sortedArray);
+
+      } else if (state && county) {
+        const groupIdentifier = await Kinnaur.findAll({
+          attributes: [
+            "soibConcernStatus",
+            "allSpeciesReported",
+
+            [
+              Sequelize.fn(
+                "count",
+                Sequelize.col("indiaChecklistScientificName")
+              ),
+              "count",
+            ],
+            "groupIdentifier",
+            [
+              Sequelize.fn(
+                "COUNT",
+                Sequelize.fn("DISTINCT", Sequelize.col("groupIdentifier"))
+              ),
+              "uniqueGroupCount",
+            ],
+          ],
+          where: obj1,
+          group: ["groupIdentifier", "soibConcernStatus","allSpeciesReported"],
+          raw: true,
+        });
+
+        const results = await Kinnaur.findAll({
+          attributes: [
+            "indiaChecklistScientificName",
+            "indiaChecklistCommonName",
+            "soibConcernStatus",
+            "uniqueValue",
+            "samplingEventIdentifier",
+            "observationDate",
+            "allSpeciesReported",
+            [
+              Sequelize.fn(
+                "count",
+                Sequelize.col("indiaChecklistScientificName")
+              ),
+              "count",
+            ],
+            "groupIdentifier",
+            [
+              Sequelize.fn(
+                "COUNT",
+                Sequelize.fn("DISTINCT", Sequelize.col("groupIdentifier"))
+              ),
+              "uniqueGroupCount",
+            ],
+          ],
+
+          where: {
+            iucnCategory: {
+              [Sequelize.Op.in]: [
+                "Vulnerable",
+                "Critically Endangered",
+                "Near Threatened",
+                "Endangered",
+                "Least Concern",
+              ],
+            },
+            ...obj1,
+            soibConcernStatus: "High",
+          },
+          group: [
+            "indiaChecklistScientificName",
+            "indiaChecklistCommonName",
+            "groupIdentifier",
+            "soibConcernStatus",
+            "uniqueValue",
+            "samplingEventIdentifier",
+            "observationDate",
+            "allSpeciesReported"
+
+          ],
+          raw: true,
+        });
+        const scientificNameCounts = {};
+        const maxObservationMap = new Map();
+        const latestObservationsMap = new Map();
+        const uniqueMap = new Map();
+        const arr = [];
+        function formatDate(date) {
+          const day = date.getDate().toString().padStart(2, '0');
+          const month = (date.getMonth() + 1).toString().padStart(2, '0');
+          const year = date.getFullYear();
+          return `${day}-${month}-${year}`;
+        }
+        
+        // Populate the arr with unique groupIdentifiers where allSpeciesReported == "1"
+        groupIdentifier.forEach((result) => {
+          if (!arr.includes(result.groupIdentifier) && result.allSpeciesReported == "1") {
+            arr.push(result.groupIdentifier);
+          }
+        });
+        
+        // Helper function to convert date strings to Date objects
+        function convertDateString(dateStr) {
+          const [day, month, year] = dateStr.split("-");
+          return new Date(`${year}-${month}-${day}`);
+        }
+        
+        // First pass: Find the maximum observation date for each scientific name
+        results.forEach((entry) => {
+          const currentDate = convertDateString(entry.observationDate);
+          const scientificName = entry.indiaChecklistScientificName;
+        
+          if (!maxObservationMap.has(scientificName) || currentDate > maxObservationMap.get(scientificName).date) {
+            maxObservationMap.set(scientificName, {
+              date: currentDate,
+              samplingEventIdentifier: entry.samplingEventIdentifier,
+              entry: { ...entry, date: currentDate },
+            });
+          }
+        });
+        
+        // Second pass: Process entries and populate uniqueMap
+        results.forEach((entry) => {
+          const currentDate = convertDateString(entry.observationDate);
+          const key = `${entry.groupIdentifier}-${entry.indiaChecklistScientificName}`;
+        
+          if (
+            !latestObservationsMap.has(key) ||
+            (latestObservationsMap.has(key) && currentDate > latestObservationsMap.get(key).date)
+          ) {
+            latestObservationsMap.set(key, {
+              date: currentDate,
+              entry: { ...entry, date: currentDate },
+            });
+          }
+        });
+        
+        // Filter the array to keep only entries with the latest observation date and allSpeciesReported equal to 1
+        const filteredData = Array.from(latestObservationsMap.values()).map((obj) => obj.entry);
+        
+        filteredData.forEach((result) => {
+          const birdScientificName = result.indiaChecklistScientificName;
+        
+          // Count the scientific name only if allSpeciesReported is 1
+          if (result.allSpeciesReported == "1") {
+            if (scientificNameCounts.hasOwnProperty(birdScientificName)) {
+              scientificNameCounts[birdScientificName]++;
+            } else {
+              scientificNameCounts[birdScientificName] = 1;
+            }
+          }
+        
+          // Add the entry to uniqueMap
+          const key = result.uniqueValue;
+          if (!uniqueMap.has(key)) {
+            const latestObservationDate = maxObservationMap.get(birdScientificName).date;
+            uniqueMap.set(key, { ...result, latestObservationDate });
+          }
+        });
+        
+        // Prepare the output array
+        const uniqueArray = Array.from(uniqueMap.values());
+        const newArray = uniqueArray.map((ele) => {
+          const bird = ele.indiaChecklistScientificName;
+          const latestObservationDate = formatDate(maxObservationMap.get(bird).date);
+          const samplingEventIdentifier = maxObservationMap.get(bird).samplingEventIdentifier;
+
+        
+          return {
+            region: ele.iucnCategory,
+            indiaChecklistScientificName: ele.indiaChecklistScientificName,
+            indiaChecklistCommonName: ele.indiaChecklistCommonName,
+            uniqueValue: ele.uniqueValue,
+            percentage: isNaN(Math.round((scientificNameCounts[bird] / arr.length) * 100))
+              ? "0%"
+              : Math.round((scientificNameCounts[bird] / arr.length) * 100) + "%",
+            samplingEventIdentifier: samplingEventIdentifier,
+            observationDate: latestObservationDate,
+          };
+        });
+        const sortedArray = newArray.sort((a, b) => {
+          const uniqueValueA = parseInt(a.uniqueValue, 10);
+          const uniqueValueB = parseInt(b.uniqueValue, 10);
+
+          if (uniqueValueA < uniqueValueB) {
+            return -1;
+          }
+          if (uniqueValueA > uniqueValueB) {
+            return 1;
+          }
+          return 0;
+        });
+
+        res.send(sortedArray);
+      } 
+    } catch (err) {
+      console.log(err);
+      res.send({ error: err });
+
+      console.error({ error: err });
+    }
+  },
+
   async iucnRedListSpeicies(req, res) {
     const { state, county, locality } = req.query;
     const start = req.query.start || false;
@@ -771,6 +2685,8 @@ const UserController = {
             "indiaChecklistCommonName",
             "allSpeciesReported",
             "uniqueValue",
+            "samplingEventIdentifier",
+            "observationDate",
             [
               Sequelize.fn(
                 "count",
@@ -805,59 +2721,119 @@ const UserController = {
             "groupIdentifier",
             "allSpeciesReported",
             "uniqueValue",
+            "samplingEventIdentifier",
+            "observationDate",
           ],
           raw: true,
         });
         const scientificNameCounts = {};
-        const arr = [];
+        const maxObservationMap = new Map();
+        const latestObservationsMap = new Map();
         const uniqueMap = new Map();
-        groupIdentifier.map((result) => {
-          if (
-            !arr.includes(result.groupIdentifier) &&
-            result.allSpeciesReported == "1"
-          ) {
+        const arr = [];
+        function formatDate(date) {
+          const day = date.getDate().toString().padStart(2, '0');
+          const month = (date.getMonth() + 1).toString().padStart(2, '0');
+          const year = date.getFullYear();
+          return `${day}-${month}-${year}`;
+        }
+        
+        // Populate the arr with unique groupIdentifiers where allSpeciesReported == "1"
+        groupIdentifier.forEach((result) => {
+          if (!arr.includes(result.groupIdentifier) && result.allSpeciesReported == "1") {
             arr.push(result.groupIdentifier);
           }
         });
-        results.forEach((result) => {
-          const birdScientificName = result.indiaChecklistScientificName;
-          if (
-            scientificNameCounts.hasOwnProperty(birdScientificName) &&
-            result.allSpeciesReported == "1"
-          ) {
-            scientificNameCounts[birdScientificName]++;
-          } else if (result.allSpeciesReported == "1") {
-            scientificNameCounts[birdScientificName] = 1;
-          }
-          const key = result.uniqueValue;
-          if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, result);
+        
+        // Helper function to convert date strings to Date objects
+        function convertDateString(dateStr) {
+          const [day, month, year] = dateStr.split("-");
+          return new Date(`${year}-${month}-${day}`);
+        }
+        
+        // First pass: Find the maximum observation date for each scientific name
+        results.forEach((entry) => {
+          const currentDate = convertDateString(entry.observationDate);
+          const scientificName = entry.indiaChecklistScientificName;
+        
+          if (!maxObservationMap.has(scientificName) || currentDate > maxObservationMap.get(scientificName).date) {
+            maxObservationMap.set(scientificName, {
+              date: currentDate,
+              samplingEventIdentifier: entry.samplingEventIdentifier,
+              entry: { ...entry, date: currentDate },
+            });
           }
         });
-        const uniqueArray = [...uniqueMap.values()];
+        
+        // Second pass: Process entries and populate uniqueMap
+        results.forEach((entry) => {
+          const currentDate = convertDateString(entry.observationDate);
+          const key = `${entry.groupIdentifier}-${entry.indiaChecklistScientificName}`;
+        
+          if (
+            !latestObservationsMap.has(key) ||
+            (latestObservationsMap.has(key) && currentDate > latestObservationsMap.get(key).date)
+          ) {
+            latestObservationsMap.set(key, {
+              date: currentDate,
+              entry: { ...entry, date: currentDate },
+            });
+          }
+        });
+        
+        // Filter the array to keep only entries with the latest observation date and allSpeciesReported equal to 1
+        const filteredData = Array.from(latestObservationsMap.values()).map((obj) => obj.entry);
+        
+        filteredData.forEach((result) => {
+          const birdScientificName = result.indiaChecklistScientificName;
+        
+          // Count the scientific name only if allSpeciesReported is 1
+          if (result.allSpeciesReported == "1") {
+            if (scientificNameCounts.hasOwnProperty(birdScientificName)) {
+              scientificNameCounts[birdScientificName]++;
+            } else {
+              scientificNameCounts[birdScientificName] = 1;
+            }
+          }
+        
+          // Add the entry to uniqueMap
+          const key = result.uniqueValue;
+          if (!uniqueMap.has(key)) {
+            const latestObservationDate = maxObservationMap.get(birdScientificName).date;
+            uniqueMap.set(key, { ...result, latestObservationDate });
+          }
+        });
+        
+        // Prepare the output array
+        const uniqueArray = Array.from(uniqueMap.values());
         const newArray = uniqueArray.map((ele) => {
-          let bird = ele.indiaChecklistScientificName;
+          const bird = ele.indiaChecklistScientificName;
+          const latestObservationDate = formatDate(maxObservationMap.get(bird).date);
+          const samplingEventIdentifier = maxObservationMap.get(bird).samplingEventIdentifier;
+
+        
           return {
             region: ele.iucnCategory,
             indiaChecklistScientificName: ele.indiaChecklistScientificName,
             indiaChecklistCommonName: ele.indiaChecklistCommonName,
             uniqueValue: ele.uniqueValue,
-            percentage: isNaN(
-              Math.round((scientificNameCounts[bird] / arr.length) * 100)
-            )
+            percentage: isNaN(Math.round((scientificNameCounts[bird] / arr.length) * 100))
               ? "0%"
-              : Math.round((scientificNameCounts[bird] / arr.length) * 100) +
-                "%",
+              : Math.round((scientificNameCounts[bird] / arr.length) * 100) + "%",
+            samplingEventIdentifier: samplingEventIdentifier,
+            observationDate: latestObservationDate,
           };
         });
+        
+        // Sort the array based on IUCN category and uniqueValue
         const sortedArray = newArray.sort((a, b) => {
           const iucnComparison = iucnOrder[a.region] - iucnOrder[b.region];
-
           if (iucnComparison !== 0) {
             return iucnComparison;
           }
           return parseInt(a.uniqueValue, 10) - parseInt(b.uniqueValue, 10);
         });
+        
         res.send(sortedArray);
       } else if (state && county) {
         const groupIdentifier = await Kinnaur.findAll({
@@ -891,6 +2867,8 @@ const UserController = {
             "indiaChecklistCommonName",
             "allSpeciesReported",
             "uniqueValue",
+            "samplingEventIdentifier",
+            "observationDate",
             [
               Sequelize.fn(
                 "count",
@@ -906,6 +2884,7 @@ const UserController = {
               ),
               "uniqueGroupCount",
             ],
+
           ],
           where: {
             iucnCategory: {
@@ -925,183 +2904,126 @@ const UserController = {
             "groupIdentifier",
             "allSpeciesReported",
             "uniqueValue",
+            "samplingEventIdentifier",
+            "observationDate",
           ],
           raw: true,
         });
         const scientificNameCounts = {};
-        const arr = [];
+        const maxObservationMap = new Map();
+        const latestObservationsMap = new Map();
         const uniqueMap = new Map();
-        groupIdentifier.map((result) => {
-          if (
-            !arr.includes(result.groupIdentifier) &&
-            result.allSpeciesReported == "1"
-          ) {
+        const arr = [];
+        function formatDate(date) {
+          const day = date.getDate().toString().padStart(2, '0');
+          const month = (date.getMonth() + 1).toString().padStart(2, '0');
+          const year = date.getFullYear();
+          return `${day}-${month}-${year}`;
+        }
+        
+        // Populate the arr with unique groupIdentifiers where allSpeciesReported == "1"
+        groupIdentifier.forEach((result) => {
+          if (!arr.includes(result.groupIdentifier) && result.allSpeciesReported == "1") {
             arr.push(result.groupIdentifier);
           }
         });
-        results.forEach((result) => {
-          const birdScientificName = result.indiaChecklistScientificName;
-          if (
-            scientificNameCounts.hasOwnProperty(birdScientificName) &&
-            result.allSpeciesReported == "1"
-          ) {
-            scientificNameCounts[birdScientificName]++;
-          } else if (result.allSpeciesReported == "1") {
-            scientificNameCounts[birdScientificName] = 1;
-          }
-          const key = result.uniqueValue;
-          if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, result);
+        
+        // Helper function to convert date strings to Date objects
+        function convertDateString(dateStr) {
+          const [day, month, year] = dateStr.split("-");
+          return new Date(`${year}-${month}-${day}`);
+        }
+        
+        // First pass: Find the maximum observation date for each scientific name
+        results.forEach((entry) => {
+          const currentDate = convertDateString(entry.observationDate);
+          const scientificName = entry.indiaChecklistScientificName;
+        
+          if (!maxObservationMap.has(scientificName) || currentDate > maxObservationMap.get(scientificName).date) {
+            maxObservationMap.set(scientificName, {
+              date: currentDate,
+              samplingEventIdentifier: entry.samplingEventIdentifier,
+              entry: { ...entry, date: currentDate },
+            });
           }
         });
-        const uniqueArray = [...uniqueMap.values()];
+        
+        // Second pass: Process entries and populate uniqueMap
+        results.forEach((entry) => {
+          const currentDate = convertDateString(entry.observationDate);
+          const key = `${entry.groupIdentifier}-${entry.indiaChecklistScientificName}`;
+        
+          if (
+            !latestObservationsMap.has(key) ||
+            (latestObservationsMap.has(key) && currentDate > latestObservationsMap.get(key).date)
+          ) {
+            latestObservationsMap.set(key, {
+              date: currentDate,
+              entry: { ...entry, date: currentDate },
+            });
+          }
+        });
+        
+        // Filter the array to keep only entries with the latest observation date and allSpeciesReported equal to 1
+        const filteredData = Array.from(latestObservationsMap.values()).map((obj) => obj.entry);
+        
+        filteredData.forEach((result) => {
+          const birdScientificName = result.indiaChecklistScientificName;
+        
+          // Count the scientific name only if allSpeciesReported is 1
+          if (result.allSpeciesReported == "1") {
+            if (scientificNameCounts.hasOwnProperty(birdScientificName)) {
+              scientificNameCounts[birdScientificName]++;
+            } else {
+              scientificNameCounts[birdScientificName] = 1;
+            }
+          }
+        
+          // Add the entry to uniqueMap
+          const key = result.uniqueValue;
+          if (!uniqueMap.has(key)) {
+            const latestObservationDate = maxObservationMap.get(birdScientificName).date;
+            uniqueMap.set(key, { ...result, latestObservationDate });
+          }
+        });
+        
+        // Prepare the output array
+        const uniqueArray = Array.from(uniqueMap.values());
         const newArray = uniqueArray.map((ele) => {
-          let bird = ele.indiaChecklistScientificName;
+          const bird = ele.indiaChecklistScientificName;
+          const latestObservationDate = formatDate(maxObservationMap.get(bird).date);
+          const samplingEventIdentifier = maxObservationMap.get(bird).samplingEventIdentifier;
+
+        
           return {
             region: ele.iucnCategory,
             indiaChecklistScientificName: ele.indiaChecklistScientificName,
             indiaChecklistCommonName: ele.indiaChecklistCommonName,
             uniqueValue: ele.uniqueValue,
-            percentage: isNaN(
-              Math.round((scientificNameCounts[bird] / arr.length) * 100)
-            )
+            percentage: isNaN(Math.round((scientificNameCounts[bird] / arr.length) * 100))
               ? "0%"
-              : Math.round((scientificNameCounts[bird] / arr.length) * 100) +
-                "%",
+              : Math.round((scientificNameCounts[bird] / arr.length) * 100) + "%",
+            samplingEventIdentifier: samplingEventIdentifier,
+            observationDate: latestObservationDate,
           };
         });
+        
+        // Sort the array based on IUCN category and uniqueValue
         const sortedArray = newArray.sort((a, b) => {
           const iucnComparison = iucnOrder[a.region] - iucnOrder[b.region];
-
           if (iucnComparison !== 0) {
             return iucnComparison;
           }
           return parseInt(a.uniqueValue, 10) - parseInt(b.uniqueValue, 10);
         });
+        
         res.send(sortedArray);
-      } else if (state) {
-        const groupIdentifier = await Kinnaur.findAll({
-          attributes: [
-            "allSpeciesReported",
-            [
-              Sequelize.fn(
-                "count",
-                Sequelize.col("indiaChecklistScientificName")
-              ),
-              "count",
-            ],
-            "groupIdentifier",
-            [
-              Sequelize.fn(
-                "COUNT",
-                Sequelize.fn("DISTINCT", Sequelize.col("groupIdentifier"))
-              ),
-              "uniqueGroupCount",
-            ],
-          ],
-          where: obj1,
-          group: ["groupIdentifier", "allSpeciesReported"],
-          raw: true,
-        });
 
-        const results = await Kinnaur.findAll({
-          attributes: [
-            "iucnCategory",
-            "indiaChecklistScientificName",
-            "indiaChecklistCommonName",
-            "allSpeciesReported",
-            "uniqueValue",
-            [
-              Sequelize.fn(
-                "count",
-                Sequelize.col("indiaChecklistScientificName")
-              ),
-              "count",
-            ],
-            "groupIdentifier",
-            [
-              Sequelize.fn(
-                "COUNT",
-                Sequelize.fn("DISTINCT", Sequelize.col("groupIdentifier"))
-              ),
-              "uniqueGroupCount",
-            ],
-          ],
-          where: {
-            iucnCategory: {
-              [Sequelize.Op.in]: [
-                "Vulnerable",
-                "Critically Endangered",
-                "Near Threatened",
-                "Endangered",
-              ],
-            },
-            ...obj1,
-          },
-          group: [
-            "iucnCategory",
-            "indiaChecklistScientificName",
-            "indiaChecklistCommonName",
-            "groupIdentifier",
-            "allSpeciesReported",
-            "uniqueValue",
-          ],
-          raw: true,
-        });
-        const scientificNameCounts = {};
-        const arr = [];
-        const uniqueMap = new Map();
-        groupIdentifier.map((result) => {
-          if (
-            !arr.includes(result.groupIdentifier) &&
-            result.allSpeciesReported == "1"
-          ) {
-            arr.push(result.groupIdentifier);
-          }
-        });
-        results.forEach((result) => {
-          const birdScientificName = result.indiaChecklistScientificName;
-          if (
-            scientificNameCounts.hasOwnProperty(birdScientificName) &&
-            result.allSpeciesReported == "1"
-          ) {
-            scientificNameCounts[birdScientificName]++;
-          } else if (result.allSpeciesReported == "1") {
-            scientificNameCounts[birdScientificName] = 1;
-          }
-          const key = result.uniqueValue;
-          if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, result);
-          }
-        });
-        const uniqueArray = [...uniqueMap.values()];
-        const newArray = uniqueArray.map((ele) => {
-          let bird = ele.indiaChecklistScientificName;
-          return {
-            region: ele.iucnCategory,
-            indiaChecklistScientificName: ele.indiaChecklistScientificName,
-            indiaChecklistCommonName: ele.indiaChecklistCommonName,
-            uniqueValue: ele.uniqueValue,
-            percentage: isNaN(
-              Math.round((scientificNameCounts[bird] / arr.length) * 100)
-            )
-              ? "0%"
-              : Math.round((scientificNameCounts[bird] / arr.length) * 100) +
-                "%",
-          };
-        });
-        const sortedArray = newArray.sort((a, b) => {
-          const iucnComparison = iucnOrder[a.region] - iucnOrder[b.region];
-
-          if (iucnComparison !== 0) {
-            return iucnComparison;
-          }
-          return parseInt(a.uniqueValue, 10) - parseInt(b.uniqueValue, 10);
-        });
-        res.send(sortedArray);
-      }
+      } 
     } catch (err) {
+      console.log(err);
       res.send({ error: err });
+
       console.error({ error: err });
     }
   },
@@ -1225,6 +3147,8 @@ const UserController = {
             "indiaChecklistCommonName",
             "allSpeciesReported",
             "uniqueValue",
+            "samplingEventIdentifier",
+            "observationDate",
             [
               Sequelize.fn(
                 "count",
@@ -1254,54 +3178,111 @@ const UserController = {
             "groupIdentifier",
             "allSpeciesReported",
             "uniqueValue",
+            "samplingEventIdentifier",
+            "observationDate",
           ],
           raw: true,
         });
-        const eBirdScientificNameCounts = {};
-        const arr = [];
+        const scientificNameCounts = {};
+        const maxObservationMap = new Map();
+        const latestObservationsMap = new Map();
         const uniqueMap = new Map();
-
-        groupIdentifier.map((result) => {
-          if (
-            !arr.includes(result.groupIdentifier) &&
-            result.allSpeciesReported == "1"
-          ) {
+        const arr = [];
+        function formatDate(date) {
+          const day = date.getDate().toString().padStart(2, '0');
+          const month = (date.getMonth() + 1).toString().padStart(2, '0');
+          const year = date.getFullYear();
+          return `${day}-${month}-${year}`;
+        }
+        
+        // Populate the arr with unique groupIdentifiers where allSpeciesReported == "1"
+        groupIdentifier.forEach((result) => {
+          if (!arr.includes(result.groupIdentifier) && result.allSpeciesReported == "1") {
             arr.push(result.groupIdentifier);
           }
         });
-
-        results.forEach((result) => {
-          const birdScientificName = result.indiaChecklistScientificName;
-          if (
-            eBirdScientificNameCounts.hasOwnProperty(birdScientificName) &&
-            result.allSpeciesReported == "1"
-          ) {
-            eBirdScientificNameCounts[birdScientificName]++;
-          } else if (result.allSpeciesReported == "1") {
-            eBirdScientificNameCounts[birdScientificName] = 1;
-          }
-          const key = result.uniqueValue;
-          if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, result);
+        
+        // Helper function to convert date strings to Date objects
+        function convertDateString(dateStr) {
+          const [day, month, year] = dateStr.split("-");
+          return new Date(`${year}-${month}-${day}`);
+        }
+        
+        // First pass: Find the maximum observation date for each scientific name
+        results.forEach((entry) => {
+          const currentDate = convertDateString(entry.observationDate);
+          const scientificName = entry.indiaChecklistScientificName;
+        
+          if (!maxObservationMap.has(scientificName) || currentDate > maxObservationMap.get(scientificName).date) {
+            maxObservationMap.set(scientificName, {
+              date: currentDate,
+              samplingEventIdentifier: entry.samplingEventIdentifier,
+              entry: { ...entry, date: currentDate },
+            });
           }
         });
-        const uniqueArray = [...uniqueMap.values()];
+        
+        // Second pass: Process entries and populate uniqueMap
+        results.forEach((entry) => {
+          const currentDate = convertDateString(entry.observationDate);
+          const key = `${entry.groupIdentifier}-${entry.indiaChecklistScientificName}`;
+        
+          if (
+            !latestObservationsMap.has(key) ||
+            (latestObservationsMap.has(key) && currentDate > latestObservationsMap.get(key).date)
+          ) {
+            latestObservationsMap.set(key, {
+              date: currentDate,
+              entry: { ...entry, date: currentDate },
+            });
+          }
+        });
+        
+        // Filter the array to keep only entries with the latest observation date and allSpeciesReported equal to 1
+        const filteredData = Array.from(latestObservationsMap.values()).map((obj) => obj.entry);
+        
+        filteredData.forEach((result) => {
+          const birdScientificName = result.indiaChecklistScientificName;
+        
+          // Count the scientific name only if allSpeciesReported is 1
+          if (result.allSpeciesReported == "1") {
+            if (scientificNameCounts.hasOwnProperty(birdScientificName)) {
+              scientificNameCounts[birdScientificName]++;
+            } else {
+              scientificNameCounts[birdScientificName] = 1;
+            }
+          }
+        
+          // Add the entry to uniqueMap
+          const key = result.uniqueValue;
+          if (!uniqueMap.has(key)) {
+            const latestObservationDate = maxObservationMap.get(birdScientificName).date;
+            uniqueMap.set(key, { ...result, latestObservationDate });
+          }
+        });
+        
+        // Prepare the output array
+        const uniqueArray = Array.from(uniqueMap.values());
         const newArray = uniqueArray.map((ele) => {
-          let bird = ele.indiaChecklistScientificName;
+          const bird = ele.indiaChecklistScientificName;
+          const latestObservationDate = formatDate(maxObservationMap.get(bird).date);
+          const samplingEventIdentifier = maxObservationMap.get(bird).samplingEventIdentifier;
+
+        
           return {
             region: ele.endemicRegion,
             indiaChecklistScientificName: ele.indiaChecklistScientificName,
             indiaChecklistCommonName: ele.indiaChecklistCommonName,
             uniqueValue: ele.uniqueValue,
-            percentage: isNaN(
-              Math.round((eBirdScientificNameCounts[bird] / arr.length) * 100)
-            )
+            percentage: isNaN(Math.round((scientificNameCounts[bird] / arr.length) * 100))
               ? "0%"
-              : Math.round(
-                  (eBirdScientificNameCounts[bird] / arr.length) * 100
-                ) + "%",
+              : Math.round((scientificNameCounts[bird] / arr.length) * 100) + "%",
+            samplingEventIdentifier: samplingEventIdentifier,
+            observationDate: latestObservationDate,
           };
         });
+        
+      
         const sortedArray = newArray.sort((a, b) => {
           const uniqueValueA = parseInt(a.uniqueValue, 10);
           const uniqueValueB = parseInt(b.uniqueValue, 10);
@@ -1313,7 +3294,8 @@ const UserController = {
             return 1;
           }
           return 0;
-        });
+        })
+        
         res.send(sortedArray);
       } else if (state && county) {
         const groupIdentifier = await Kinnaur.findAll({
@@ -1348,6 +3330,8 @@ const UserController = {
             "indiaChecklistCommonName",
             "allSpeciesReported",
             "uniqueValue",
+            "samplingEventIdentifier",
+            "observationDate",
             [
               Sequelize.fn(
                 "count",
@@ -1377,54 +3361,111 @@ const UserController = {
             "groupIdentifier",
             "allSpeciesReported",
             "uniqueValue",
+            "samplingEventIdentifier",
+            "observationDate",
           ],
           raw: true,
         });
-        const eBirdScientificNameCounts = {};
-        const arr = [];
+        const scientificNameCounts = {};
+        const maxObservationMap = new Map();
+        const latestObservationsMap = new Map();
         const uniqueMap = new Map();
-
-        groupIdentifier.map((result) => {
-          if (
-            !arr.includes(result.groupIdentifier) &&
-            result.allSpeciesReported == "1"
-          ) {
+        const arr = [];
+        function formatDate(date) {
+          const day = date.getDate().toString().padStart(2, '0');
+          const month = (date.getMonth() + 1).toString().padStart(2, '0');
+          const year = date.getFullYear();
+          return `${day}-${month}-${year}`;
+        }
+        
+        // Populate the arr with unique groupIdentifiers where allSpeciesReported == "1"
+        groupIdentifier.forEach((result) => {
+          if (!arr.includes(result.groupIdentifier) && result.allSpeciesReported == "1") {
             arr.push(result.groupIdentifier);
           }
         });
-
-        results.forEach((result) => {
-          const birdScientificName = result.indiaChecklistScientificName;
-          if (
-            eBirdScientificNameCounts.hasOwnProperty(birdScientificName) &&
-            result.allSpeciesReported == "1"
-          ) {
-            eBirdScientificNameCounts[birdScientificName]++;
-          } else if (result.allSpeciesReported == "1") {
-            eBirdScientificNameCounts[birdScientificName] = 1;
-          }
-          const key = result.uniqueValue;
-          if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, result);
+        
+        // Helper function to convert date strings to Date objects
+        function convertDateString(dateStr) {
+          const [day, month, year] = dateStr.split("-");
+          return new Date(`${year}-${month}-${day}`);
+        }
+        
+        // First pass: Find the maximum observation date for each scientific name
+        results.forEach((entry) => {
+          const currentDate = convertDateString(entry.observationDate);
+          const scientificName = entry.indiaChecklistScientificName;
+        
+          if (!maxObservationMap.has(scientificName) || currentDate > maxObservationMap.get(scientificName).date) {
+            maxObservationMap.set(scientificName, {
+              date: currentDate,
+              samplingEventIdentifier: entry.samplingEventIdentifier,
+              entry: { ...entry, date: currentDate },
+            });
           }
         });
-        const uniqueArray = [...uniqueMap.values()];
+        
+        // Second pass: Process entries and populate uniqueMap
+        results.forEach((entry) => {
+          const currentDate = convertDateString(entry.observationDate);
+          const key = `${entry.groupIdentifier}-${entry.indiaChecklistScientificName}`;
+        
+          if (
+            !latestObservationsMap.has(key) ||
+            (latestObservationsMap.has(key) && currentDate > latestObservationsMap.get(key).date)
+          ) {
+            latestObservationsMap.set(key, {
+              date: currentDate,
+              entry: { ...entry, date: currentDate },
+            });
+          }
+        });
+        
+        // Filter the array to keep only entries with the latest observation date and allSpeciesReported equal to 1
+        const filteredData = Array.from(latestObservationsMap.values()).map((obj) => obj.entry);
+        
+        filteredData.forEach((result) => {
+          const birdScientificName = result.indiaChecklistScientificName;
+        
+          // Count the scientific name only if allSpeciesReported is 1
+          if (result.allSpeciesReported == "1") {
+            if (scientificNameCounts.hasOwnProperty(birdScientificName)) {
+              scientificNameCounts[birdScientificName]++;
+            } else {
+              scientificNameCounts[birdScientificName] = 1;
+            }
+          }
+        
+          // Add the entry to uniqueMap
+          const key = result.uniqueValue;
+          if (!uniqueMap.has(key)) {
+            const latestObservationDate = maxObservationMap.get(birdScientificName).date;
+            uniqueMap.set(key, { ...result, latestObservationDate });
+          }
+        });
+        
+        // Prepare the output array
+        const uniqueArray = Array.from(uniqueMap.values());
         const newArray = uniqueArray.map((ele) => {
-          let bird = ele.indiaChecklistScientificName;
+          const bird = ele.indiaChecklistScientificName;
+          const latestObservationDate = formatDate(maxObservationMap.get(bird).date);
+          const samplingEventIdentifier = maxObservationMap.get(bird).samplingEventIdentifier;
+
+        
           return {
             region: ele.endemicRegion,
             indiaChecklistScientificName: ele.indiaChecklistScientificName,
             indiaChecklistCommonName: ele.indiaChecklistCommonName,
             uniqueValue: ele.uniqueValue,
-            percentage: isNaN(
-              Math.round((eBirdScientificNameCounts[bird] / arr.length) * 100)
-            )
+            percentage: isNaN(Math.round((scientificNameCounts[bird] / arr.length) * 100))
               ? "0%"
-              : Math.round(
-                  (eBirdScientificNameCounts[bird] / arr.length) * 100
-                ) + "%",
+              : Math.round((scientificNameCounts[bird] / arr.length) * 100) + "%",
+            samplingEventIdentifier: samplingEventIdentifier,
+            observationDate: latestObservationDate,
           };
         });
+        
+      
         const sortedArray = newArray.sort((a, b) => {
           const uniqueValueA = parseInt(a.uniqueValue, 10);
           const uniqueValueB = parseInt(b.uniqueValue, 10);
@@ -1436,132 +3477,9 @@ const UserController = {
             return 1;
           }
           return 0;
-        });
-        res.send(sortedArray);
-      } else if (state) {
-        const groupIdentifier = await Kinnaur.findAll({
-          attributes: [
-            "allSpeciesReported",
-            [
-              Sequelize.fn(
-                "count",
-                Sequelize.col("indiaChecklistScientificName")
-              ),
-              "count",
-            ],
-            "groupIdentifier",
-            [
-              Sequelize.fn(
-                "COUNT",
-                Sequelize.fn("DISTINCT", Sequelize.col("groupIdentifier"))
-              ),
-              "uniqueGroupCount",
-            ],
-          ],
-          where: {
-            ...obj1,
-          },
-          group: ["groupIdentifier", "allSpeciesReported"],
-          raw: true,
-        });
-        const results = await Kinnaur.findAll({
-          attributes: [
-            "endemicRegion",
-            "indiaChecklistScientificName",
-            "indiaChecklistCommonName",
-            "allSpeciesReported",
-            "uniqueValue",
-            [
-              Sequelize.fn(
-                "count",
-                Sequelize.col("indiaChecklistScientificName")
-              ),
-              "count",
-            ],
-            "groupIdentifier",
-            [
-              Sequelize.fn(
-                "COUNT",
-                Sequelize.fn("DISTINCT", Sequelize.col("groupIdentifier"))
-              ),
-              "uniqueGroupCount",
-            ],
-          ],
-          where: {
-            endemicRegion: {
-              [Sequelize.Op.in]: allowedRegions,
-            },
-            ...obj1,
-          },
-          group: [
-            "endemicRegion",
-            "indiaChecklistScientificName",
-            "indiaChecklistCommonName",
-            "groupIdentifier",
-            "allSpeciesReported",
-            "uniqueValue",
-          ],
-          raw: true,
-        });
-        const eBirdScientificNameCounts = {};
-        const arr = [];
-        const uniqueMap = new Map();
-
-        groupIdentifier.map((result) => {
-          if (
-            !arr.includes(result.groupIdentifier) &&
-            result.allSpeciesReported == "1"
-          ) {
-            arr.push(result.groupIdentifier);
-          }
-        });
-
-        results.forEach((result) => {
-          const birdScientificName = result.indiaChecklistScientificName;
-          if (
-            eBirdScientificNameCounts.hasOwnProperty(birdScientificName) &&
-            result.allSpeciesReported == "1"
-          ) {
-            eBirdScientificNameCounts[birdScientificName]++;
-          } else if (result.allSpeciesReported == "1") {
-            eBirdScientificNameCounts[birdScientificName] = 1;
-          }
-          const key = result.uniqueValue;
-          if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, result);
-          }
-        });
-        const uniqueArray = [...uniqueMap.values()];
-        const newArray = uniqueArray.map((ele) => {
-          let bird = ele.indiaChecklistScientificName;
-          return {
-            region: ele.endemicRegion,
-            indiaChecklistScientificName: ele.indiaChecklistScientificName,
-            indiaChecklistCommonName: ele.indiaChecklistCommonName,
-            uniqueValue: ele.uniqueValue,
-            percentage: isNaN(
-              Math.round((eBirdScientificNameCounts[bird] / arr.length) * 100)
-            )
-              ? "0%"
-              : Math.round(
-                  (eBirdScientificNameCounts[bird] / arr.length) * 100
-                ) + "%",
-          };
-        });
-        const sortedArray = newArray.sort((a, b) => {
-          const uniqueValueA = parseInt(a.uniqueValue, 10);
-          const uniqueValueB = parseInt(b.uniqueValue, 10);
-
-          if (uniqueValueA < uniqueValueB) {
-            return -1;
-          }
-          if (uniqueValueA > uniqueValueB) {
-            return 1;
-          }
-          return 0;
-        });
-        res.send(sortedArray);
-      }
+        })
+        
+        res.send(sortedArray);      } 
     } catch (err) {
       res.send({ error: err });
     }
@@ -3219,247 +5137,368 @@ const UserController = {
       res.send({ error: err });
     }
   },
+
+  // async waterBirdCongregations(req, res) {
+  //   const { state, county, locality } = req.query;
+  //   const start = req.query.start || false;
+  //   const end = req.query.end || false;
+  //   if (start && end && state && county && locality) {
+  //     var obj1 = {
+  //       state: state,
+  //       county: county,
+  //       locality: locality,
+  //       [Op.and]: [
+  //         Sequelize.where(
+  //           Sequelize.fn(
+  //             "TO_DATE",
+  //             Sequelize.col("observationDate"),
+  //             "DD-MM-YYYY"
+  //           ),
+  //           {
+  //             [Op.between]: [start, end], // Filter by date range
+  //           }
+  //         ),
+  //       ],
+  //     };
+  //   } else if (start && end && state && county) {
+  //     var obj1 = {
+  //       state: state,
+  //       county: county,
+  //       [Op.and]: [
+  //         Sequelize.where(
+  //           Sequelize.fn(
+  //             "TO_DATE",
+  //             Sequelize.col("observationDate"),
+  //             "DD-MM-YYYY"
+  //           ),
+  //           {
+  //             [Op.between]: [start, end], // Filter by date range
+  //           }
+  //         ),
+  //       ],
+  //     };
+  //   } else if (start && end && state) {
+  //     var obj1 = {
+  //       state: state,
+  //       [Op.and]: [
+  //         Sequelize.where(
+  //           Sequelize.fn(
+  //             "TO_DATE",
+  //             Sequelize.col("observationDate"),
+  //             "DD-MM-YYYY"
+  //           ),
+  //           {
+  //             [Op.between]: [start, end], // Filter by date range
+  //           }
+  //         ),
+  //       ],
+  //     };
+  //   } else if (state && county && locality) {
+  //     var obj1 = {
+  //       state: state,
+  //       county: county,
+  //       locality: locality,
+  //     };
+  //   } else if (state && county) {
+  //     var obj1 = {
+  //       state: state,
+  //       county: county,
+  //     };
+  //   } else if (state) {
+  //     var obj1 = {
+  //       state: state,
+  //     };
+  //   }
+  //   try {
+  //     if (state && county && locality) {
+  //       const highestObservations = await Kinnaur.findAll({
+  //         attributes: [
+  //           "indiaChecklistScientificName",
+  //           "onePercentEstimates",
+  //           "indiaChecklistCommonName",
+  //           [
+  //             Sequelize.literal('MAX("observationCount"::numeric)'), // Cast to numeric
+  //             "observationCount",
+  //           ],
+  //           "uniqueValue",
+  //           "samplingEventIdentifier",
+  //           "observationDate",
+  //         ],
+  //         where: {
+  //           onePercentEstimates: {
+  //             [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }],
+  //           },
+  //           observationCount: {
+  //             [Op.ne]: "X",
+  //           },
+  //           ...obj1,
+  //         },
+  //         group: [
+  //           "indiaChecklistScientificName",
+  //           "onePercentEstimates",
+  //           "indiaChecklistCommonName",
+  //           "uniqueValue",
+  //           "samplingEventIdentifier",
+  //           "observationDate",
+  //         ],
+  //         order: [[Sequelize.col("uniqueValue"), "ASC"]],
+  //         raw: true,
+  //       });
+  //       const filteredData = highestObservations.map((item) => {
+  //         const observationCount = parseInt(item.observationCount, 10); // Convert to integer
+  //         const onePercentEstimates = parseInt(item.onePercentEstimates, 10); // Convert to integer
+  //         if (observationCount > onePercentEstimates) {
+  //           const onePercentBiographicPopulation = Math.round(
+  //             observationCount / onePercentEstimates
+  //           );
+  //           return {
+  //             indiaChecklistCommonName: item.indiaChecklistCommonName,
+  //             indiaChecklistScientificName: item.indiaChecklistScientificName,
+  //             highestCongregation: item.observationCount,
+  //             maxObservationCount: onePercentBiographicPopulation,
+  //             onePercentBiographicPopulation: item.onePercentEstimates,
+  //             uniqueValue: item.uniqueValue,
+  //             samplingEventIdentifier:item.samplingEventIdentifier,
+  //             observationDate:item.observationDate
+  //           };
+  //         }
+  //       });
+  //       const filteredDataWithoutNull = filteredData.filter((item) => {
+  //         if (item != null) {
+  //           return item;
+  //         }
+  //       });
+
+  //       res.send({ data: filteredDataWithoutNull, success: true });
+  //     } else if (state && county) {
+  //       const highestObservations = await Kinnaur.findAll({
+  //         attributes: [
+  //           "indiaChecklistScientificName",
+  //           "onePercentEstimates",
+  //           "indiaChecklistCommonName",
+  //           [
+  //             Sequelize.literal('MAX("observationCount"::numeric)'), // Cast to numeric
+  //             "observationCount",
+  //           ],
+  //           "uniqueValue",
+  //           "samplingEventIdentifier",
+  //           "observationDate",
+  //         ],
+  //         where: {
+  //           onePercentEstimates: {
+  //             [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }],
+  //           },
+  //           observationCount: {
+  //             [Op.ne]: "X",
+  //           },
+  //           state: state,
+  //           county: county,
+  //           ...obj1,
+  //         },
+  //         group: [
+  //           "indiaChecklistScientificName",
+  //           "onePercentEstimates",
+  //           "indiaChecklistCommonName",
+  //           "uniqueValue",
+  //           "samplingEventIdentifier",
+  //           "observationDate",
+  //         ],
+  //         order: [[Sequelize.col("uniqueValue"), "ASC"]],
+  //         raw: true,
+  //       });
+  //       const filteredData = highestObservations.map((item) => {
+  //         const observationCount = parseInt(item.observationCount, 10); // Convert to integer
+  //         const onePercentEstimates = parseInt(item.onePercentEstimates, 10); // Convert to integer
+  //         if (observationCount > onePercentEstimates) {
+  //           const onePercentBiographicPopulation = Math.round(
+  //             observationCount / onePercentEstimates
+  //           );
+  //           return {
+  //             indiaChecklistCommonName: item.indiaChecklistCommonName,
+  //             indiaChecklistScientificName: item.indiaChecklistScientificName,
+  //             highestCongregation: item.observationCount,
+  //             maxObservationCount: onePercentBiographicPopulation,
+  //             onePercentBiographicPopulation: item.onePercentEstimates,
+  //             uniqueValue: item.uniqueValue,
+  //             samplingEventIdentifier:item.samplingEventIdentifier,
+  //             observationDate:item.observationDate,
+  //           };
+  //         }
+  //       });
+  //       const filteredDataWithoutNull = filteredData.filter((item) => {
+  //         if (item != null) {
+  //           return item;
+  //         }
+  //       });
+
+  //       res.send({ data: filteredDataWithoutNull, success: true });
+  //     } else if (state) {
+  //       const highestObservations = await Kinnaur.findAll({
+  //         attributes: [
+  //           "indiaChecklistScientificName",
+  //           "onePercentEstimates",
+  //           "indiaChecklistCommonName",
+  //           [
+  //             Sequelize.literal('MAX("observationCount"::numeric)'), // Cast to numeric
+  //             "observationCount",
+  //           ],
+  //           "uniqueValue",
+  //           "samplingEventIdentifier",
+  //           "observationDate",
+  //         ],
+  //         where: {
+  //           onePercentEstimates: {
+  //             [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }],
+  //           },
+  //           observationCount: {
+  //             [Op.ne]: "X",
+  //           },
+  //           ...obj1,
+  //         },
+  //         group: [
+  //           "indiaChecklistScientificName",
+  //           "onePercentEstimates",
+  //           "indiaChecklistCommonName",
+  //           "uniqueValue",
+  //           "samplingEventIdentifier",
+  //           "observationDate",
+  //         ],
+  //         order: [[Sequelize.col("uniqueValue"), "ASC"]],
+  //         raw: true,
+  //       });
+  //       const filteredData = highestObservations.map((item) => {
+  //         const observationCount = parseInt(item.observationCount, 10); // Convert to integer
+  //         const onePercentEstimates = parseInt(item.onePercentEstimates, 10); // Convert to integer
+  //         if (observationCount > onePercentEstimates) {
+  //           const onePercentBiographicPopulation = Math.round(
+  //             observationCount / onePercentEstimates
+  //           );
+  //           return {
+  //             indiaChecklistCommonName: item.indiaChecklistCommonName,
+  //             indiaChecklistScientificName: item.indiaChecklistScientificName,
+  //             highestCongregation: item.observationCount,
+  //             maxObservationCount: onePercentBiographicPopulation,
+  //             onePercentBiographicPopulation: item.onePercentEstimates,
+  //             uniqueValue: item.uniqueValue,
+  //             samplingEventIdentifier:item.samplingEventIdentifier,
+  //             observationDate:item.observationDate,
+  //           };
+  //         }
+  //       });
+  //       const filteredDataWithoutNull = filteredData.filter((item) => {
+  //         if (item != null) {
+  //           return item;
+  //         }
+  //       });
+
+  //       res.send({ data: filteredDataWithoutNull, success: true });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error:", error);
+  //   }
+  // },
+
   async waterBirdCongregations(req, res) {
     const { state, county, locality } = req.query;
     const start = req.query.start || false;
     const end = req.query.end || false;
-    if (start && end && state && county && locality) {
-      var obj1 = {
-        state: state,
-        county: county,
-        locality: locality,
-        [Op.and]: [
-          Sequelize.where(
-            Sequelize.fn(
-              "TO_DATE",
-              Sequelize.col("observationDate"),
-              "DD-MM-YYYY"
-            ),
-            {
-              [Op.between]: [start, end], // Filter by date range
-            }
+
+    let queryObj = {};
+    if (start && end) {
+      queryObj[Op.and] = [
+        { state },
+        county && { county },
+        locality && { locality },
+        Sequelize.where(
+          Sequelize.fn(
+            "TO_DATE",
+            Sequelize.col("observationDate"),
+            "DD-MM-YYYY"
           ),
-        ],
-      };
-    } else if (start && end && state && county) {
-      var obj1 = {
-        state: state,
-        county: county,
-        [Op.and]: [
-          Sequelize.where(
-            Sequelize.fn(
-              "TO_DATE",
-              Sequelize.col("observationDate"),
-              "DD-MM-YYYY"
-            ),
-            {
-              [Op.between]: [start, end], // Filter by date range
-            }
-          ),
-        ],
-      };
-    } else if (start && end && state) {
-      var obj1 = {
-        state: state,
-        [Op.and]: [
-          Sequelize.where(
-            Sequelize.fn(
-              "TO_DATE",
-              Sequelize.col("observationDate"),
-              "DD-MM-YYYY"
-            ),
-            {
-              [Op.between]: [start, end], // Filter by date range
-            }
-          ),
-        ],
-      };
-    } else if (state && county && locality) {
-      var obj1 = {
-        state: state,
-        county: county,
-        locality: locality,
-      };
-    } else if (state && county) {
-      var obj1 = {
-        state: state,
-        county: county,
-      };
-    } else if (state) {
-      var obj1 = {
-        state: state,
-      };
+          {
+            [Op.between]: [start, end],
+          }
+        ),
+      ].filter(Boolean);
+    } else {
+      if (state) queryObj.state = state;
+      if (county) queryObj.county = county;
+      if (locality) queryObj.locality = locality;
     }
+
     try {
-      if (state && county && locality) {
-        const highestObservations = await Kinnaur.findAll({
-          attributes: [
-            "indiaChecklistScientificName",
-            "onePercentEstimates",
-            "indiaChecklistCommonName",
-            [
-              Sequelize.literal('MAX("observationCount"::numeric)'), // Cast to numeric
-              "observationCount",
-            ],
-            "uniqueValue",
+      const highestObservations = await Kinnaur.findAll({
+        attributes: [
+          "indiaChecklistScientificName",
+          "onePercentEstimates",
+          "indiaChecklistCommonName",
+          [
+            Sequelize.literal('MAX("observationCount"::numeric)'),
+            "highestCongregation",
           ],
-          where: {
-            onePercentEstimates: {
-              [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }],
-            },
-            observationCount: {
-              [Op.ne]: "X",
-            },
-            ...obj1,
+          "uniqueValue",
+          "samplingEventIdentifier",
+          "observationDate",
+        ],
+        where: {
+          onePercentEstimates: {
+            [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }],
           },
-          group: [
-            "indiaChecklistScientificName",
-            "onePercentEstimates",
-            "indiaChecklistCommonName",
-            "uniqueValue",
-          ],
-          order: [[Sequelize.col("uniqueValue"), "ASC"]],
-          raw: true,
-        });
-        const filteredData = highestObservations.map((item) => {
-          const observationCount = parseInt(item.observationCount, 10); // Convert to integer
-          const onePercentEstimates = parseInt(item.onePercentEstimates, 10); // Convert to integer
-          if (observationCount > onePercentEstimates) {
-            const onePercentBiographicPopulation = Math.round(
-              observationCount / onePercentEstimates
-            );
-            return {
+          observationCount: {
+            [Op.ne]: "X",
+          },
+          ...queryObj,
+        },
+        group: [
+          "indiaChecklistScientificName",
+          "onePercentEstimates",
+          "indiaChecklistCommonName",
+          "uniqueValue",
+          "samplingEventIdentifier",
+          "observationDate",
+        ],
+        order: [[Sequelize.col("uniqueValue"), "ASC"]],
+        raw: true,
+      });
+
+      const aggregatedData = {};
+
+      highestObservations.forEach((item) => {
+        const observationCount = parseInt(item.highestCongregation, 10);
+        const onePercentEstimates = parseInt(item.onePercentEstimates, 10);
+        if (observationCount > onePercentEstimates) {
+          const onePercentBiographicPopulation = Math.round(
+            observationCount / onePercentEstimates
+          );
+
+          if (
+            !aggregatedData[item.indiaChecklistScientificName] ||
+            aggregatedData[item.indiaChecklistScientificName]
+              .highestCongregation < observationCount
+          ) {
+            aggregatedData[item.indiaChecklistScientificName] = {
               indiaChecklistCommonName: item.indiaChecklistCommonName,
               indiaChecklistScientificName: item.indiaChecklistScientificName,
-              highestCongregation: item.observationCount,
+              highestCongregation: item.highestCongregation,
               maxObservationCount: onePercentBiographicPopulation,
               onePercentBiographicPopulation: item.onePercentEstimates,
               uniqueValue: item.uniqueValue,
+              samplingEventIdentifier: item.samplingEventIdentifier,
+              observationDate: item.observationDate,
             };
           }
-        });
-        const filteredDataWithoutNull = filteredData.filter((item) => {
-          if (item != null) {
-            return item;
-          }
-        });
+        }
+      });
 
-        res.send({ data: filteredDataWithoutNull, success: true });
-      } else if (state && county) {
-        const highestObservations = await Kinnaur.findAll({
-          attributes: [
-            "indiaChecklistScientificName",
-            "onePercentEstimates",
-            "indiaChecklistCommonName",
-            [
-              Sequelize.literal('MAX("observationCount"::numeric)'), // Cast to numeric
-              "observationCount",
-            ],
-            "uniqueValue",
-          ],
-          where: {
-            onePercentEstimates: {
-              [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }],
-            },
-            observationCount: {
-              [Op.ne]: "X",
-            },
-            state: state,
-            county: county,
-            ...obj1,
-          },
-          group: [
-            "indiaChecklistScientificName",
-            "onePercentEstimates",
-            "indiaChecklistCommonName",
-            "uniqueValue",
-          ],
-          order: [[Sequelize.col("uniqueValue"), "ASC"]],
-          raw: true,
-        });
-        const filteredData = highestObservations.map((item) => {
-          const observationCount = parseInt(item.observationCount, 10); // Convert to integer
-          const onePercentEstimates = parseInt(item.onePercentEstimates, 10); // Convert to integer
-          if (observationCount > onePercentEstimates) {
-            const onePercentBiographicPopulation = Math.round(
-              observationCount / onePercentEstimates
-            );
-            return {
-              indiaChecklistCommonName: item.indiaChecklistCommonName,
-              indiaChecklistScientificName: item.indiaChecklistScientificName,
-              highestCongregation: item.observationCount,
-              maxObservationCount: onePercentBiographicPopulation,
-              onePercentBiographicPopulation: item.onePercentEstimates,
-              uniqueValue: item.uniqueValue,
-            };
-          }
-        });
-        const filteredDataWithoutNull = filteredData.filter((item) => {
-          if (item != null) {
-            return item;
-          }
-        });
+      const resultData = Object.values(aggregatedData);
 
-        res.send({ data: filteredDataWithoutNull, success: true });
-      } else if (state) {
-        const highestObservations = await Kinnaur.findAll({
-          attributes: [
-            "indiaChecklistScientificName",
-            "onePercentEstimates",
-            "indiaChecklistCommonName",
-            [
-              Sequelize.literal('MAX("observationCount"::numeric)'), // Cast to numeric
-              "observationCount",
-            ],
-            "uniqueValue",
-          ],
-          where: {
-            onePercentEstimates: {
-              [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }],
-            },
-            observationCount: {
-              [Op.ne]: "X",
-            },
-            ...obj1,
-          },
-          group: [
-            "indiaChecklistScientificName",
-            "onePercentEstimates",
-            "indiaChecklistCommonName",
-            "uniqueValue",
-          ],
-          order: [[Sequelize.col("uniqueValue"), "ASC"]],
-          raw: true,
-        });
-        const filteredData = highestObservations.map((item) => {
-          const observationCount = parseInt(item.observationCount, 10); // Convert to integer
-          const onePercentEstimates = parseInt(item.onePercentEstimates, 10); // Convert to integer
-          if (observationCount > onePercentEstimates) {
-            const onePercentBiographicPopulation = Math.round(
-              observationCount / onePercentEstimates
-            );
-            return {
-              indiaChecklistCommonName: item.indiaChecklistCommonName,
-              indiaChecklistScientificName: item.indiaChecklistScientificName,
-              highestCongregation: item.observationCount,
-              maxObservationCount: onePercentBiographicPopulation,
-              onePercentBiographicPopulation: item.onePercentEstimates,
-              uniqueValue: item.uniqueValue,
-            };
-          }
-        });
-        const filteredDataWithoutNull = filteredData.filter((item) => {
-          if (item != null) {
-            return item;
-          }
-        });
-
-        res.send({ data: filteredDataWithoutNull, success: true });
-      }
+      res.send({ data: resultData, success: true });
     } catch (error) {
       console.error("Error:", error);
+      res.status(500).send("An error occurred while processing the data");
     }
   },
+
   async effortsDetails(req, res) {
     const { state, county, locality } = req.query;
     const start = req.query.start || false;

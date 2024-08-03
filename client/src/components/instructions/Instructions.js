@@ -101,7 +101,7 @@ function Instructions() {
   return (
     <>
       <Navbar />
-      <div className="overflow-hidden bg-white py-16 md:py-12">
+      <div className="overflow-hidden bg-white py-16 md:py-12 gandhi-family">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 sm:gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-1">
             <div className="lg:pr-8 lg:pt-4">
@@ -109,7 +109,7 @@ function Instructions() {
                 <h2 className="text-base font-semibold leading-7 ">
                   Usage Instructions
                 </h2>
-                <p className="mt-2 text-3xl font-bold tracking-tight text-[#DAB830] sm:text-4xl">
+                <p className="mt-2 text-3xl font-bold tracking-tight gandhi-family-bold text-[#DAB830] sm:text-4xl">
                   Generating Report
                 </p>
                 <p className="mt-6 text-lg leading-8 text-gray-600">
@@ -153,7 +153,7 @@ function Instructions() {
                     </div>
                   ))}
                 </dl>
-                <p className="mt-12 text-3xl font-bold tracking-tight text-[#DAB830] sm:text-4xl">
+                <p className="mt-12 text-3xl font-bold tracking-tight gandhi-family-bold text-[#DAB830] sm:text-4xl">
                   Reading the Report
                 </p>
                 <p className="leading-6">
@@ -256,10 +256,8 @@ function Instructions() {
                     skipped.
                   </p>
                   <p>
-                    <span className="font-medium">IUCN RED LIST SPECIES & ENDEMIC SPECIES</span> tables also include
-                    frequency of reporting (i.e., how often a species is
-                    reported measured by the percentage of complete checklists
-                    reporting this species) apart from the values directly
+                    <span className="font-medium">SOIB HIGH PRIORITY SPECIES, IUCN RED LIST SPECIES & ENDEMIC SPECIES</span> tables also include year of latest report and frequency of reporting (i.e., how often a species is reported measured by the percentage of complete checklists reporting this species)
+                     apart from the values directly
                     obtained from <a href="https://stateofindiasbirds.in/#soib_report" target="_blank">SoIB data table.</a>
                   </p>
 
@@ -275,7 +273,7 @@ function Instructions() {
                     population (e.g. if the highest count for a Species A is
                     10,000, and the total biogeographic population in South Asia
                     is 1,00,000, then the count is equivalent to 10% of the
-                    total biogeographic population of that species.)
+                    total biogeographic population of that species.) The year when the largest congregation was reported is also included."
                   </p>
                   <p className="mt-3">
                     <span className="font-medium">MOST COMMON SPECIES</span> chart includes the top ten common
@@ -306,7 +304,7 @@ function Instructions() {
           </div>
         </div>
       </div>
-      <div className="pb-8 flex justify-center">
+      <div className="pb-8 flex justify-center gandhi-family">
         <Link to="/">
           <button className="p-2 rounded bg-[#DAB830] hover:bg-[#635b3a] text-slate-100     font-semibold">
             Start Using

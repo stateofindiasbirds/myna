@@ -7,6 +7,7 @@ import Datepicker from "../datepicker/Datepicker";
 import shp from "shpjs";
 import Reportmap from "./Reportmap";
 import logo from "../../assets/images/blackLog.png";
+// import districtBoundary from "./files/districtdata.json"
 import {
   Button,
   IconButton,
@@ -28,6 +29,7 @@ import Toolbar from "@mui/material/Toolbar";
 import AppBar from "@mui/material/AppBar";
 import { useState } from "react";
 import Report from "./Report";
+import Map from "./HMap";
 import { AiOutlineFileText } from "react-icons/ai";
 import kmlFileIcon from "../../../src/assets/images/kml.png";
 import { VscJson } from "react-icons/vsc";
@@ -43,6 +45,7 @@ import {
   GET_HOTSPOT_AREAS,
   GET_COMPLETE_LIST_OF_SPECIES,
   GET_ALL_EFFORT_DETAILS,
+  GET_SOIB_CONCERN_STATUS,
 } from "../../redux/action";
 import { connect } from "react-redux";
 import { useEffect } from "react";
@@ -56,7 +59,8 @@ import dayjs from 'dayjs';
 
 const drawerWidth = 360;
 const windowWidth = window.innerWidth;
-function Generatereportlayout(props) {
+function Main(props) {
+
   const {
     GET_COUNT_BY_SCIENTIFIC_NAME,
     GET_DATA_FOR_IUCN_REDLIST_TABLE,
@@ -67,6 +71,7 @@ function Generatereportlayout(props) {
     GET_COMPLETE_LIST_OF_SPECIES,
     GET_WATERBIRD_CONGREGATION_DATA,
     GET_ALL_EFFORT_DETAILS,
+    GET_SOIB_CONCERN_STATUS,
   } = props;
   const generateFileName = (name) => {
     const alias = name.split(".");
@@ -110,6 +115,7 @@ function Generatereportlayout(props) {
   const [value2, setValue2] = useState(dayjs('2023-05-31'));
   const [showdate, setShowdate] = useState(true);
   const [area, setArea] = useState(null)
+  const [boundary, setBoundary] = useState(null)
   const handleMouseLeave = () => {
     setAnchorEl(null);
   };
@@ -118,17 +124,24 @@ function Generatereportlayout(props) {
     setShowUploadFileComponent(payload);
   };
 
+  const [showHeatmap, setShowHeatmap] = useState(false);
+
   const [showreport, setShowreport] = useState(false);
   const handleSelectState = (e) => {
+    setBoundary(null)
     setSelectedState(e.target.value);
     setSelectedCounty("");
+
     setSelectedLocality("");
     const filteredState = district.find(
       (item) => item.state === e.target.value
     );
     setDistrictList(filteredState.districts);
   };
+
+
   const handleSelectCounty = (e) => {
+    setBoundary(null)
     setMediumForReport("districtR")
     const district = districtList.find(
       (item) => item.district === e.target.value
@@ -325,7 +338,23 @@ function Generatereportlayout(props) {
       formattedStartDate,
       formattedEndDate
     );
+
+    GET_SOIB_CONCERN_STATUS(
+      uploadedgeojson || newPolygon
+        ? formData
+        : {
+          state: selectedState,
+          county: selectedCounty,
+          locality: selectedLocality,
+          start: value,
+          end: value2,
+        },
+      uploadedgeojson || newPolygon ? true : false,
+      formattedStartDate,
+      formattedEndDate
+    );
   };
+
 
   const handleZipFile = (e) => {
     try {
@@ -445,6 +474,56 @@ function Generatereportlayout(props) {
     }
   }, []);
 
+  // useEffect(() => {
+  //   if (selectedState) {
+  //     const statesJsonData = stateBoundry.features.find(item => item.properties.stname.toLowerCase() == selectedState.toLowerCase())
+  //     // console.log(statesJsonData, 'state data')
+  //     if (statesJsonData) {
+  //       const toJson = {
+  //         "type": "FeatureCollection",
+  //         "features": [
+  //           {
+  //             "type": "Feature",
+  //             "properties": {},
+  //             "geometry": statesJsonData.geometry
+  //           }
+  //         ]
+  //       }
+  //       // console.log(toJson, 'stateconvdata')
+  //       setBoundary(toJson)
+  //     }
+  //     else {
+  //       toast.error("No such boundary exist")
+  //     }
+  //   }
+  // }, [selectedState])
+
+  // useEffect(() => {
+  //   if (selectedCounty) {
+  //     const districtJsonData = districtBoundary.features.find(item => item.properties.dtname.toLowerCase() == selectedCounty.toLowerCase())
+  //     // console.log(districtJsonData, 'distt data')
+  //     if (districtJsonData) {
+  //       const toJson = {
+  //         "type": "FeatureCollection",
+  //         "features": [
+  //           {
+  //             "type": "Feature",
+  //             "properties": {},
+  //             "geometry": districtJsonData.geometry
+  //           }
+  //         ]
+  //       }
+  //       // console.log(toJson, 'district data')
+  //       setBoundary(toJson)
+  //     }
+  //     else {
+  //       toast.error("No such boundary exist")
+  //     }
+  //   }
+  // }, [selectedCounty])
+
+
+
   const drawer = (
     <>
       <InstructionModal
@@ -469,7 +548,7 @@ function Generatereportlayout(props) {
                   )
                   : handleShowUploadFileComponent(!showUploadFileComponent)
               }
-              className={`text-white text-center  ${newPolygon
+              className={`text-white text-center gandhi-family ${newPolygon
                 ? "bg-[#948c8a] cursor-not-allowed"
                 : "bg-[#9A7269] hover:bg-[#955c4f] cursor-pointer"
                 } transition ease-linear hover: w-2/3 p-2 rounded`}
@@ -574,7 +653,7 @@ function Generatereportlayout(props) {
             </FormControl>
             <ToastContainer />
             <Typography variant="h6" component="h2">
-              Date
+             <span className="gandhi-family-bold"> Date</span>
             </Typography>
             <Datepicker
               value={value}
@@ -592,7 +671,7 @@ function Generatereportlayout(props) {
                   )
                   : handleGeographyClick("Geography Button")
               }
-              className={`text-white text-center break-keep  ${uploadedgeojson || newPolygon
+              className={`text-white text-center break-keep gandhi-family  ${uploadedgeojson || newPolygon
                 ? "bg-[#948c8a] cursor-not-allowed"
                 : "bg-[#9A7269] hover:bg-[#955c4f] cursor-pointer"
                 } transition ease-linear hover: w-2/3 p-2 rounded`}
@@ -707,7 +786,7 @@ function Generatereportlayout(props) {
                 style={{ backgroundColor: "#DAB830", color: "white" }}
                 variant="contained"
               >
-                Generate Report
+                <span className="gandhi-family-bold">Generate Report</span>
               </Button>
             </Tooltip>
             <span className="text-xs text-red-400">
@@ -715,8 +794,9 @@ function Generatereportlayout(props) {
             </span>
           </Stack>
         </div>
-        <div className="mt-10 p-4 text-sm text-gray-500 ">
+        <div className="mt-4 p-4 text-sm text-gray-500 gandhi-family">
           <Stack spacing={1}>
+            {/* <Link to="/heatmap">HeatMap</Link> */}
             <Link to="/about">About Myna</Link>
             <Link to="/instructions">Usage Instructions</Link>
           </Stack>
@@ -731,6 +811,8 @@ function Generatereportlayout(props) {
       {/* <ThemeProvider theme={themeOne}> */}
       {showreport ? (
         <Report
+          boundary={boundary}
+          setBoundary={setBoundary}
           selectedState={selectedState}
           reportName={reportName}
           setSelectedState={setSelectedState}
@@ -835,6 +917,8 @@ function Generatereportlayout(props) {
           >
             <Reportmap
               key={uploadedgeojson}
+              boundary={boundary}
+              setBoundary={setBoundary}
               selectedState={selectedState}
               newPolygon={newPolygon}
               setNewPolygon={setNewPolygon}
@@ -861,7 +945,7 @@ function Generatereportlayout(props) {
   );
 }
 
-Generatereportlayout.propTypes = {
+Main.propTypes = {
   window: PropTypes.func,
 };
 
@@ -882,4 +966,5 @@ export default connect(mapStateToProps, {
   GET_HOTSPOT_AREAS,
   GET_COMPLETE_LIST_OF_SPECIES,
   GET_ALL_EFFORT_DETAILS,
-})(Generatereportlayout);
+  GET_SOIB_CONCERN_STATUS,
+})(Main);

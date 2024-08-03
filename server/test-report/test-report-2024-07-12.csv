@@ -1,0 +1,13 @@
+Title,Test Suite,Test Case,Status,Duration (s),Date,Duration Comparison
+"(State,County) Location Name ID-T007",controller.test.js,T007/location_listing,passed,5.891,2024-07-12,Lower
+"(State,County) Species Details ID-T008",controller.test.js,T008/count_iucn_species,passed,1.874,2024-07-12,Lower
+"(State,County) Species Details ID-T0017",controller.test.js,T0017/count_appendix_species,passed,3.198,2024-07-12,Lower
+"(State,County) Species Details ID-T0018",controller.test.js,T0018/count_number_species,passed,4.869,2024-07-12,Lower
+"(State,County) IUCN Red List Species ID-T009",controller.test.js,T009/percentage_iucn_redList_species,failed,4.913,2024-07-12,Lower
+"(State,County) Endemic Species ID-T0010",controller.test.js,T0010/percentage_endemic_species,failed,5.760,2024-07-12,Higher
+"(State,County) Most Common Species ID-T011",controller.test.js,T011/pertcentage_most_common_species,passed,10.872,2024-07-12,Higher
+"(State,County) Seasonal Chart ID-T012",controller.test.js,T012/seasonal_chart_for_species,passed,3.860,2024-07-12,Lower
+"(State,County) Hotspots ID-T013",controller.test.js,T013/hotspot_area,passed,0.880,2024-07-12,Higher
+"(State,County) Complete List of Species ID-T014",controller.test.js,T014/complete_List_Of_Species,passed,1.379,2024-07-12,Lower
+"(State,County) Water Bird Congregations ID-T015",controller.test.js,T015/water_bird_congregation,passed,3.781,2024-07-12,Higher
+"(State,County) Data Contributions ID-T016",controller.test.js,T016/effortsDetails,passed,5.129,2024-07-12,Lower

@@ -1,4 +1,6 @@
-
+// import { jsPDF } from "jspdf";
+// const pdf = new jsPDF({ format: "a4" });
+// import html2pdf from 'html2pdf.js';
 const generateCorrectPerentage=(value)=>
 {
   const percentageValue=parseInt(value.slice(0,1))
@@ -7,6 +9,18 @@ const generateCorrectPerentage=(value)=>
   }
   return value
 }
+
+const getDate = (value)=>{
+  try {
+      var dateParts = value.split('-');
+      var date = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+      var year = String(date.getFullYear());
+      return year;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 export const generateIUCNData = (data) => {
   try {
     let array = [];
@@ -17,13 +31,45 @@ export const generateIUCNData = (data) => {
           item.indiaChecklistScientificName,
         item.region,
         generateCorrectPerentage(item.percentage),
+        // i have add this below line for extra column
+        // generateCorrectPerentage(item.percentage),
+         getDate(item.observationDate),
+         item.samplingEventIdentifier
+
       ]);
     });
     return array;
-  } catch {
+  } catch(err) {
+    console.log(err)
     return [["Some Error Occured"]];
   }
 };
+
+
+export const generateSOIBData = (data) => {
+  try {
+    let array = [];
+    data.map((item) => {
+      return array.push([
+        item.indiaChecklistCommonName +
+          "\n" +
+          item.indiaChecklistScientificName,
+        // item?.region,
+        generateCorrectPerentage(item.percentage),
+        // i have add this below line for extra column
+        // generateCorrectPerentage(item.percentage),
+       getDate(item.observationDate),
+       item.samplingEventIdentifier
+
+      ]);
+    });
+    return array;
+  } catch(err) {
+    console.log(err)
+    return [["Some Error Occured"]];
+  }
+};
+
 export const generateEndemicData = (data) => {
   try {
     let array = [];
@@ -34,10 +80,15 @@ export const generateEndemicData = (data) => {
           item.indiaChecklistScientificName,
         item.region,
         generateCorrectPerentage(item.percentage),
+        // generateCorrectPerentage(item.percentage),
+        getDate(item.observationDate),
+        item.samplingEventIdentifier
+
       ]);
     });
     return array;
-  } catch {
+  } catch(err) {
+    console.log(err)
     return [["Some Error Occured"]];
   }
 };
@@ -51,10 +102,14 @@ export const generateWaterBirdCongregationData = (data) => {
           item.indiaChecklistScientificName,
         item.highestCongregation+" ("+item.maxObservationCount+"%)",
         item.onePercentBiographicPopulation,
+        getDate(item.observationDate),
+        item.samplingEventIdentifier
+
       ]);
     });
     return array;
-  } catch {
+  } catch(err) {
+    console.log(err)
     return [["Some Error Occured"]];
   }
 };
@@ -68,7 +123,8 @@ export const generateObservationList=(data)=>{
     data?.totalNumberOfHours&& array.push(["Number of Hours of Birding",data.totalNumberOfHours])
     data?.totalNumberOfObservers&&  array.push(["Number of Observers",data.totalNumberOfObservers])
     return array;
-  } catch {
+  } catch(err) {
+    console.log(err)
     return [["Some Error Occured"]];
   }
 }
@@ -87,7 +143,8 @@ export const generateCompleteListOfSpeciesData = (data) => {
       ]);
     });
     return array;
-  } catch {
+  } catch(err) {
+    console.log(err)
     return [["Some Error Occured"]];
   }
 };
@@ -117,7 +174,8 @@ export const generateHotspotData = (data) => {
       return array.push([item.locality, item.count]);
     });
     return array;
-  } catch {
+  } catch(err) {
+    console.log(err)
     return [["Some Error Occured"]];
   }
 };
@@ -190,3 +248,44 @@ export const generateCustomFirstCellWithScientificName = (
     pdf.setFont("helvetica", "normal");
   }
 };
+
+
+export const createHyperlinkForYear = ( pdf, data,rowColors) => {
+  if (
+    data.section === "body" &&
+    data.column.index === 3 
+  ){
+    const { row } = data;
+    const fillColor = rowColors[row.index % 2];
+    if (fillColor && row.section !== "head") {
+      pdf.setFillColor(fillColor);
+    }
+    const cellValue=data.row?.raw[4]
+
+    const hyperlinkText = data.cell.text;
+    pdf.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, "F");
+    pdf.setTextColor(23, 118, 252);
+    pdf.textWithLink(hyperlinkText,data.cell.x + 3, data.cell.y + 7,{ url: `https://ebird.org/checklist/${cellValue}` });
+  }
+ 
+};
+export const createHyperlinkForYearSoib = ( pdf, data,rowColors) => {
+  if (
+    data.section === "body" &&
+    data.column.index === 2 
+  ){
+    const { row } = data;
+    const fillColor = rowColors[row.index % 2];
+    if (fillColor && row.section !== "head") {
+      pdf.setFillColor(fillColor);
+    }
+    const cellValue=data.row?.raw[3]
+
+    const hyperlinkText = data.cell.text;
+    pdf.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, "F");
+    pdf.setTextColor(23, 118, 252);
+    pdf.textWithLink(hyperlinkText,data.cell.x + 3, data.cell.y + 7,{ url: `https://ebird.org/checklist/${cellValue}` });
+  }
+ 
+};
+

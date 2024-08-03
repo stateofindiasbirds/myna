@@ -42,33 +42,75 @@ export const GET_LOCATION_BY_STATE_AND_COUNTY = (params) => {
   };
 };
 
+// export const GET_COUNT_BY_SCIENTIFIC_NAME = (data, isFormData, value, value2) => {
+//   return async (dispatch) => {
+//     try {
+//       if (isFormData) {
+//         let res = await api.post(`latlong/count_by_scientificName?start=${value}&end=${value2}`, data);
+//         if (res?.status === 200) {
+//           dispatch({
+//             type: "GET_COUNT_BY_SCIENTIFIC_NAME",
+//             payload: res?.data,
+//           });
+//         }
+//       } else {
+//         let res = await api.get(`users/count_by_scientificName`, {
+//           params: { ...data, start: value, end: value2 },
+//         });
+//         if (res?.status === 200) {
+//           dispatch({
+//             type: "GET_COUNT_BY_SCIENTIFIC_NAME",
+//             payload: res?.data,
+//           });
+//         }
+//       }
+//     } catch (error) {
+//       console.log(error);
+//     }
+//   };
+// };
+
 export const GET_COUNT_BY_SCIENTIFIC_NAME = (data, isFormData, value, value2) => {
   return async (dispatch) => {
     try {
+      let res1, res2, res3;
+
       if (isFormData) {
-        let res = await api.post(`latlong/count_by_scientificName?start=${value}&end=${value2}`, data);
-        if (res?.status === 200) {
-          dispatch({
-            type: "GET_COUNT_BY_SCIENTIFIC_NAME",
-            payload: res?.data,
-          });
-        }
+
+        res1 = await api.post(`latlong/count_iucn_species?start=${value}&end=${value2}`, data);
+        res2 = await api.post(`latlong/count_appendix_species?start=${value}&end=${value2}`, data);
+        res3 = await api.post(`latlong/count_number_species?start=${value}&end=${value2}`, data);
       } else {
-        let res = await api.get(`users/count_by_scientificName`, {
+        
+        res1 = await api.get(`users/count_iucn_species`, {
           params: { ...data, start: value, end: value2 },
         });
-        if (res?.status === 200) {
-          dispatch({
-            type: "GET_COUNT_BY_SCIENTIFIC_NAME",
-            payload: res?.data,
-          });
-        }
+        res2 = await api.get(`users/count_appendix_species`, {
+          params: { ...data, start: value, end: value2 },
+        });
+        res3 = await api.get(`users/count_number_species`, {
+          params: { ...data, start: value, end: value2 },
+        });
+      }
+
+      if (res1?.status === 200 && res2?.status === 200 && res3?.status === 200) {
+        const combinedData = {
+          ...res1?.data,
+          ...res2?.data,
+          ...res3?.data,
+        };
+
+        dispatch({
+          type: "GET_COUNT_BY_SCIENTIFIC_NAME",
+          payload: combinedData,
+        });
       }
     } catch (error) {
       console.log(error);
     }
   };
 };
+
 
 export const GET_DATA_FOR_IUCN_REDLIST_TABLE = (data, isFormData, value, value2) => {
   return async (dispatch) => {
@@ -268,7 +310,45 @@ export const GET_COMPLETE_LIST_OF_SPECIES = (data, isFormData, value, value2) =>
     }
   };
 };
+
+
+export const GET_SOIB_CONCERN_STATUS= (data, isFormData, value, value2) => {
+  return async (dispatch) => {
+    try {
+      if (isFormData) {
+        let res = await api.post(`latlong/soibConcernStatus?start=${value}&end=${value2}`, data);
+        if (res?.status === 200) {
+          dispatch({
+            type: "GET_SOIB_CONCERN_STATUS",
+            payload: res?.data,
+          });
+        }
+      } else {
+        let res = await api.get(`users/soibConcernStatus`, {
+          params: { ...data, start: value, end: value2 },
+        });
+        if (res?.status === 200) {
+          dispatch({
+            type: "GET_SOIB_CONCERN_STATUS",
+            payload: res?.data,
+          });
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+};
+
+
 export const GET_ALL_EFFORT_DETAILS = (data, isFormData, value, value2) => {
+  console.log(data)
+  console.log(isFormData)
+  console.log(value)
+  console.log(value2)
+
+
+
   return async (dispatch) => {
     try {
       if (isFormData) {

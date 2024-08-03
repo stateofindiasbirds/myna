@@ -11,6 +11,7 @@
     "@mui/icons-material": "^5.11.0",
     "@mui/material": "^5.11.2",
     "@mui/x-date-pickers": "^5.0.20",
+    "@react-google-maps/api": "^2.19.2",
     "@react-pdf/renderer": "^3.1.9",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -19,21 +20,28 @@
     "axios": "^1.4.0",
     "bootstrap": "^5.3.0",
     "buffer": "^6.0.3",
+    "caniuse-lite": "^1.0.30001642",
     "chart.js": "^4.2.0",
     "countries-and-states": "^1.0.6",
     "crypto-browserify": "^3.12.0",
     "dayjs": "^1.11.9",
     "dotenv": "^16.1.4",
+    "enzyme": "^3.11.0",
+    "enzyme-adapter-react-16": "^1.15.7",
     "faker": "^6.6.6",
     "file-saver": "^2.0.5",
-    "fs": "0.0.1-security",
+    "fs": "^0.0.1-security",
     "geojson-to-kml": "0.0.1",
     "geojson2kml": "^0.1.1",
     "geojson2shp": "^0.5.0",
     "geolib": "^3.3.4",
+    "google-maps-react": "^2.0.6",
     "html2canvas": "^1.4.1",
+    "html2pdf.js": "^0.10.1",
     "https-browserify": "^1.0.0",
     "iconv-lite": "^0.6.3",
+    "jest": "^27.5.1",
+    "jest-enzyme": "^7.1.2",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.5.28",
     "jszip": "^3.10.1",
@@ -43,6 +51,7 @@
     "mixpanel-browser": "^2.47.0",
     "moment": "^2.29.4",
     "os-browserify": "^0.3.0",
+    "pdfkit": "^0.15.0",
     "process": "^0.11.10",
     "react": "^18.2.0",
     "react-app-rewired": "^2.2.1",
@@ -51,6 +60,7 @@
     "react-icons": "^4.7.1",
     "react-leaflet": "^4.2.1",
     "react-leaflet-draw": "^0.20.4",
+    "react-leaflet-easyprint": "^2.0.0",
     "react-leaflet-geoman-v2": "^1.0.0",
     "react-leaflet-google-layer": "^2.2.0",
     "react-minimal-pie-chart": "^8.4.0",
@@ -70,6 +80,7 @@
     "shpjs": "^4.0.4",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
+    "styled-components": "^6.1.1",
     "togeojson": "^0.16.0",
     "tokml": "^0.4.0",
     "url": "^0.11.0",
@@ -78,8 +89,8 @@
   "scripts": {
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
-    "test": "react-app-rewired test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "test": "react-scripts test --transformIgnorePatterns \"node_modules/(?!your-module-name)/\""
   },
   "eslintConfig": {
     "extends": [
@@ -102,6 +113,7 @@
   "devDependencies": {
     "autoprefixer": "^10.4.13",
     "postcss": "^8.4.20",
+    "redux-mock-store": "^1.5.4",
     "tailwindcss": "^3.2.4"
   }
 }

@@ -1,3 +1,4 @@
+
 const UserController = require('./controllers/controller');
 const request = require('supertest');
 const express = require('express');
@@ -8,32 +9,36 @@ const app = express();
 
 app.use(bodyParser.json());
 
-app.get('/api/users/location_listing', UserController.locationName); 
-app.get('/api/users/count_by_scientificName', UserController.count); 
-app.get('/api/users/percentage_iucn_redList_species', UserController.iucnRedListSpeicies); 
-app.get('/api/users/percentage_endemic_species', UserController.endemincSpecies); 
-app.get('/api/users/pertcentage_most_common_species', UserController.mostCommonSpecies); 
-app.get('/api/users/seasonal_chart_for_species', UserController.seasonalChart); 
-app.get('/api/users/hotspot_area', UserController.hotspotArea); 
-app.get('/api/users/complete_List_Of_Species', UserController.completeListOfSpecies); 
-app.get('/api/users/water_bird_congregation', UserController.waterBirdCongregations); 
-app.get('/api/users/effortsDetails', UserController.effortsDetails); 
-// app.get("/api/users/soibConcernStatus",UserController.soibConcernStatus); 
+app.get('/api/users/location_listing', UserController.locationName); // Time 2m 1.20s
+app.get('/api/users/count_iucn_species', UserController.count1); 
+app.get('/api/users/count_appendix_species', UserController.count2); 
+app.get('/api/users/count_number_species', UserController.count3); 
+app.get('/api/users/percentage_iucn_redList_species', UserController.iucnRedListSpeicies); // Time 6 m 43.08 s
+app.get('/api/users/percentage_endemic_species', UserController.endemincSpecies); // Time 4 m 59.58 s
+app.get('/api/users/pertcentage_most_common_species', UserController.mostCommonSpecies); // Time 6 m 12.54 s
+app.get('/api/users/seasonal_chart_for_species', UserController.seasonalChart); // Time 3 m 27.60 s
+app.get('/api/users/hotspot_area', UserController.hotspotArea); //1 m 43.56 s
+app.get('/api/users/complete_List_Of_Species', UserController.completeListOfSpecies); // Time 1 m 50.10 s
+app.get('/api/users/water_bird_congregation', UserController.waterBirdCongregations); // Time 1 m 57.42 s
+app.get('/api/users/effortsDetails', UserController.effortsDetails); // Time 46 m 4.80 s
+app.get("/api/users/soibConcernStatus",UserController.soibConcernStatus); // 2 m 41.76 s
 
 
-jest.setTimeout(30000);
 
 
-describe('(State,County and Date) Location Name ID-T5008', () => {
+jest.setTimeout(90000);
+
+
+describe('(State,County and Date) Location Name ID-T5012', () => {
 
   //Controller locationName state and county
-  it('T5008/location_listing', async () => {
+  it('T5012/location_listing', async () => {
     const response = await request(app)
       .get('/api/users/location_listing')
       .query({
         state: 'Himachal Pradesh',
         county: 'Kangra',
-        start: '01-01-2000',
+        start:'01-01-2000',
         end: '05-31-2022'
       })
       .expect(200);
@@ -96,32 +101,46 @@ describe('(State,County and Date) Location Name ID-T5008', () => {
 })
 
 
-describe('(State,County and Date) Species Details ID-T5009', () => {
+describe('(State,County and Date) Species Details ID-T5013', () => {
 
-  it('T5009/count_by_scientificName', async () => {
+  it('T5013/count_iucn_species', async () => {
 
     const response = await request(app)
-      .get('/api/users/count_by_scientificName')
+      .get('/api/users/count_iucn_species')
       .query({
         state: 'Himachal Pradesh',
         county: 'Kangra',
-        start: '01-01-2000',
+        start:'01-01-2000',
         end: '05-31-2022'
       })
       .expect(200);
     expect(response.body).toEqual({
         "iucnRedListCategoriesCount": {
-            "Vulnerable": 8,
+            "Vulnerable": 8,   
             "Critically Endangered": 4,
             "Near Threatened": 18,
             "Endangered": 5
-        },
-        "total": 472,
-        "migrate": 177,
-        "iucnRedList": 17,
-        "soibHighPriority": 72,
-        "scheduleI": 55,
-        "indiaEndemic": 0,
+        }
+    })
+  })
+})
+
+//issue in alll values
+
+describe('(State,County and Date) Species Details ID-T5014', () => {
+
+  it('T5014/count_appendix_species', async () => {
+
+    const response = await request(app)
+      .get('/api/users/count_appendix_species')
+      .query({
+        state: 'Himachal Pradesh',
+        county: 'Kangra',
+        start:'01-01-2000',
+        end: '05-31-2022'
+      })
+      .expect(200);
+    expect(response.body).toEqual({
         "soibConservationConcernSpecies": [
             {
                 "species": "Moderate Priority",
@@ -156,698 +175,902 @@ describe('(State,County and Date) Species Details ID-T5009', () => {
   })
 })
 
+//issue in all values
+describe('(State,County and Date) Species Details ID-T5015', () => {
 
-describe('(State,County and Date) IUCN Red List Species ID-T5010', () => {
+  it('T5015/count_number_species', async () => {
 
-    it('T5010/percentage_iucn_redList_species', async () => {
+    const response = await request(app)
+      .get('/api/users/count_number_species')
+      .query({
+        state: 'Himachal Pradesh',
+        county: 'Kangra',
+        start:'01-01-2000',
+        end: '05-31-2022'
+      })
+      .expect(200);
+    expect(response.body).toEqual({
+        "total": 472,
+        "migrate": 177,
+        "iucnRedList": 17,
+        "soibHighPriority": 72,
+        "scheduleI": 55,
+        "indiaEndemic": 0
+    })
+  })
+})
   
-      const response = await request(app)
-        .get('/api/users/percentage_iucn_redList_species')
-        .query({
-            state: 'Himachal Pradesh',
-            county: 'Kangra',
-            start: '01-01-2000',
-            end: '05-31-2022'
-          })
-        .expect(200);
-        // console.log(response.body);
-      expect(response.body).toEqual([
+  describe('(State,County and Date) IUCN Red List Species ID-T5016', () => {
+
+  it('T5016/percentage_iucn_redList_species', async () => {
+
+    const response = await request(app)
+      .get('/api/users/percentage_iucn_redList_species')
+      .query({
+        state: 'Himachal Pradesh',
+        county: 'Kangra',
+        start:'01-01-2000',
+        end: '05-31-2022'
+      })
+      .expect(200);
+      // console.log(response.body);
+    expect(response.body).toEqual([
         {
             "region": "Critically Endangered",
             "indiaChecklistScientificName": "Sarcogyps calvus",
             "indiaChecklistCommonName": "Red-headed Vulture",
             "uniqueValue": 419,
-            "percentage": "1%"
+            "percentage": "1%",
+            "samplingEventIdentifier": "S79732647",
+            "observationDate": "31-12-2020"
         },
         {
             "region": "Critically Endangered",
             "indiaChecklistScientificName": "Gyps bengalensis",
             "indiaChecklistCommonName": "White-rumped Vulture",
             "uniqueValue": 421,
-            "percentage": "5%"
+            "percentage": "5%",
+            "samplingEventIdentifier": "S111393394",
+            "observationDate": "25-05-2022"
         },
         {
             "region": "Critically Endangered",
             "indiaChecklistScientificName": "Gyps indicus",
             "indiaChecklistCommonName": "Indian Vulture",
             "uniqueValue": 422,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S93625716",
+            "observationDate": "23-08-2021"
         },
         {
             "region": "Critically Endangered",
             "indiaChecklistScientificName": "Gyps tenuirostris",
             "indiaChecklistCommonName": "Slender-billed Vulture",
             "uniqueValue": 423,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S96912502",
+            "observationDate": "30-10-2021"
         },
         {
             "region": "Endangered",
             "indiaChecklistScientificName": "Calidris tenuirostris",
             "indiaChecklistCommonName": "Great Knot",
             "uniqueValue": 253,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S96359727",
+            "observationDate": "24-03-2013"
         },
         {
             "region": "Endangered",
             "indiaChecklistScientificName": "Sterna acuticauda",
             "indiaChecklistCommonName": "Black-bellied Tern",
             "uniqueValue": 336,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S63955438",
+            "observationDate": "31-01-2020"
         },
         {
             "region": "Endangered",
             "indiaChecklistScientificName": "Neophron percnopterus",
             "indiaChecklistCommonName": "Egyptian Vulture",
             "uniqueValue": 414,
-            "percentage": "19%"
+            "percentage": "18%",
+            "samplingEventIdentifier": "S110189683",
+            "observationDate": "15-05-2022"
         },
         {
             "region": "Endangered",
             "indiaChecklistScientificName": "Aquila nipalensis",
             "indiaChecklistCommonName": "Steppe Eagle",
             "uniqueValue": 439,
-            "percentage": "5%"
+            "percentage": "5%",
+            "samplingEventIdentifier": "S107543759",
+            "observationDate": "17-04-2022"
         },
         {
             "region": "Endangered",
             "indiaChecklistScientificName": "Haliaeetus leucoryphus",
             "indiaChecklistCommonName": "Pallas's Fish Eagle",
             "uniqueValue": 464,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S76318785",
+            "observationDate": "07-11-2020"
         },
         {
             "region": "Vulnerable",
             "indiaChecklistScientificName": "Anser erythropus",
             "indiaChecklistCommonName": "Lesser White-fronted Goose",
             "uniqueValue": 6,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S106243585",
+            "observationDate": "04-04-2022"
         },
         {
             "region": "Vulnerable",
             "indiaChecklistScientificName": "Branta ruficollis",
             "indiaChecklistCommonName": "Red-breasted Goose",
             "uniqueValue": 9,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S54002453",
+            "observationDate": "20-12-2014"
         },
         {
             "region": "Vulnerable",
             "indiaChecklistScientificName": "Aythya ferina",
             "indiaChecklistCommonName": "Common Pochard",
             "uniqueValue": 34,
-            "percentage": "11%"
+            "percentage": "11%",
+            "samplingEventIdentifier": "S108266140",
+            "observationDate": "27-04-2022"
         },
         {
             "region": "Vulnerable",
             "indiaChecklistScientificName": "Catreus wallichii",
             "indiaChecklistCommonName": "Cheer Pheasant",
             "uniqueValue": 61,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S60540482",
+            "observationDate": "12-10-2019"
         },
         {
             "region": "Vulnerable",
             "indiaChecklistScientificName": "Antigone antigone",
             "indiaChecklistCommonName": "Sarus Crane",
             "uniqueValue": 216,
-            "percentage": "1%"
+            "percentage": "1%",
+            "samplingEventIdentifier": "S107552792",
+            "observationDate": "20-04-2022"
         },
         {
             "region": "Vulnerable",
             "indiaChecklistScientificName": "Sterna aurantia",
             "indiaChecklistCommonName": "River Tern",
             "uniqueValue": 337,
-            "percentage": "17%"
+            "percentage": "17%",
+            "samplingEventIdentifier": "S111769804",
+            "observationDate": "31-05-2022"
         },
         {
             "region": "Vulnerable",
             "indiaChecklistScientificName": "Clanga hastata",
             "indiaChecklistCommonName": "Indian Spotted Eagle",
             "uniqueValue": 435,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S93568756",
+            "observationDate": "27-03-2021"
         },
         {
             "region": "Vulnerable",
             "indiaChecklistScientificName": "Aquila heliaca",
             "indiaChecklistCommonName": "Eastern Imperial Eagle",
             "uniqueValue": 440,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S97285643",
+            "observationDate": "08-11-2021"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Aythya nyroca",
             "indiaChecklistCommonName": "Ferruginous Duck",
             "uniqueValue": 35,
-            "percentage": "2%"
+            "percentage": "2%",
+            "samplingEventIdentifier": "S104600409",
+            "observationDate": "11-03-2022"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Esacus recurvirostris",
             "indiaChecklistCommonName": "Great Thick-knee",
             "uniqueValue": 220,
-            "percentage": "5%"
+            "percentage": "5%",
+            "samplingEventIdentifier": "S106243585",
+            "observationDate": "04-04-2022"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Haematopus ostralegus",
             "indiaChecklistCommonName": "Eurasian Oystercatcher",
             "uniqueValue": 225,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S97651419",
+            "observationDate": "16-11-2021"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Vanellus vanellus",
             "indiaChecklistCommonName": "Northern Lapwing",
             "uniqueValue": 230,
-            "percentage": "4%"
+            "percentage": "4%",
+            "samplingEventIdentifier": "S103950636",
+            "observationDate": "01-03-2022"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Vanellus duvaucelii",
             "indiaChecklistCommonName": "River Lapwing",
             "uniqueValue": 231,
-            "percentage": "15%"
+            "percentage": "15%",
+            "samplingEventIdentifier": "S110588716",
+            "observationDate": "16-05-2022"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Numenius arquata",
             "indiaChecklistCommonName": "Eurasian Curlew",
             "uniqueValue": 249,
-            "percentage": "1%"
+            "percentage": "1%",
+            "samplingEventIdentifier": "S102846834",
+            "observationDate": "18-02-2022"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Limosa limosa",
             "indiaChecklistCommonName": "Black-tailed Godwit",
             "uniqueValue": 251,
-            "percentage": "1%"
+            "percentage": "1%",
+            "samplingEventIdentifier": "S96972087",
+            "observationDate": "01-11-2021"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Calidris ferruginea",
             "indiaChecklistCommonName": "Curlew Sandpiper",
             "uniqueValue": 258,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S97098414",
+            "observationDate": "19-09-2021"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Ciconia episcopus",
             "indiaChecklistCommonName": "Woolly-necked Stork",
             "uniqueValue": 365,
-            "percentage": "3%"
+            "percentage": "3%",
+            "samplingEventIdentifier": "S106788956",
+            "observationDate": "09-04-2022"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Anhinga melanogaster",
             "indiaChecklistCommonName": "Oriental Darter",
             "uniqueValue": 377,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S102542956",
+            "observationDate": "13-02-2022"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Threskiornis melanocephalus",
             "indiaChecklistCommonName": "Black-headed Ibis",
             "uniqueValue": 408,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S73198464",
+            "observationDate": "05-09-2020"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Gypaetus barbatus",
             "indiaChecklistCommonName": "Bearded Vulture",
             "uniqueValue": 413,
-            "percentage": "2%"
+            "percentage": "2%",
+            "samplingEventIdentifier": "S107543969",
+            "observationDate": "19-04-2022"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Aegypius monachus",
             "indiaChecklistCommonName": "Cinereous Vulture",
             "uniqueValue": 420,
-            "percentage": "1%"
+            "percentage": "1%",
+            "samplingEventIdentifier": "S104600409",
+            "observationDate": "11-03-2022"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Gyps himalayensis",
             "indiaChecklistCommonName": "Himalayan Vulture",
             "uniqueValue": 424,
-            "percentage": "18%"
+            "percentage": "18%",
+            "samplingEventIdentifier": "S111380849",
+            "observationDate": "27-05-2022"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Nisaetus nipalensis",
             "indiaChecklistCommonName": "Mountain Hawk Eagle",
             "uniqueValue": 431,
-            "percentage": "2%"
+            "percentage": "2%",
+            "samplingEventIdentifier": "S108287648",
+            "observationDate": "28-04-2022"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Circus macrourus",
             "indiaChecklistCommonName": "Pallid Harrier",
             "uniqueValue": 449,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S43590666",
+            "observationDate": "10-03-2018"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Falco chicquera",
             "indiaChecklistCommonName": "Red-necked Falcon",
             "uniqueValue": 593,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S64479321",
+            "observationDate": "14-02-2020"
         },
         {
             "region": "Near Threatened",
             "indiaChecklistScientificName": "Psittacula eupatria",
             "indiaChecklistCommonName": "Alexandrine Parakeet",
             "uniqueValue": 602,
-            "percentage": "18%"
+            "percentage": "18%",
+            "samplingEventIdentifier": "S111769804",
+            "observationDate": "31-05-2022"
         }
     ])
-    })
   })
+})
 
+  describe('(State,County and Date) Endemic Species ID-T5017', () => {
+  it('T5017/percentage_endemic_species', async () => {
 
-  describe('(State,County and Date) Endemic Species ID-T5011', () => {
-    it('T5011/percentage_endemic_species', async () => {
-  
-      const response = await request(app)
-        .get('/api/users/percentage_endemic_species')
-        .query({
-            state: 'Himachal Pradesh',
-            county: 'Kangra',
-            start: '01-01-2000',
-            end: '05-31-2022'
-          })
-        .expect(200);
-        // console.log(response.body)
-      expect(response.body).toEqual([
+    const response = await request(app)
+      .get('/api/users/percentage_endemic_species')
+      .query({
+        state: 'Himachal Pradesh',
+        county: 'Kangra',
+        start:'01-01-2000',
+        end: '05-31-2022'
+      })
+      .expect(200);
+      // console.log(response.body)
+    expect(response.body).toEqual([
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Arborophila torqueola",
             "indiaChecklistCommonName": "Hill Partridge",
             "uniqueValue": 46,
-            "percentage": "2%"
+            "percentage": "2%",
+            "samplingEventIdentifier": "S109629433",
+            "observationDate": "08-05-2022"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Lophophorus impejanus",
             "indiaChecklistCommonName": "Himalayan Monal",
             "uniqueValue": 56,
-            "percentage": "1%"
+            "percentage": "1%",
+            "samplingEventIdentifier": "S110456470",
+            "observationDate": "14-05-2022"
         },
         {
             "region": "Western Himalayas",
             "indiaChecklistScientificName": "Catreus wallichii",
             "indiaChecklistCommonName": "Cheer Pheasant",
             "uniqueValue": 61,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S60540482",
+            "observationDate": "12-10-2019"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Pavo cristatus",
             "indiaChecklistCommonName": "Indian Peafowl",
             "uniqueValue": 63,
-            "percentage": "4%"
+            "percentage": "4%",
+            "samplingEventIdentifier": "S111769804",
+            "observationDate": "31-05-2022"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Tetraogallus himalayensis",
             "indiaChecklistCommonName": "Himalayan Snowcock",
             "uniqueValue": 77,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S75090724",
+            "observationDate": "13-10-2020"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Perdicula asiatica",
             "indiaChecklistCommonName": "Jungle Bush Quail",
             "uniqueValue": 83,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S103335587",
+            "observationDate": "21-02-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Taccocua leschenaultii",
             "indiaChecklistCommonName": "Sirkeer Malkoha",
             "uniqueValue": 144,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S102848463",
+            "observationDate": "18-02-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Cacomantis passerinus",
             "indiaChecklistCommonName": "Grey-bellied Cuckoo",
             "uniqueValue": 155,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S108444513",
+            "observationDate": "30-04-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Hierococcyx varius",
             "indiaChecklistCommonName": "Common Hawk Cuckoo",
             "uniqueValue": 159,
-            "percentage": "3%"
+            "percentage": "3%",
+            "samplingEventIdentifier": "S111160533",
+            "observationDate": "23-05-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Vanellus malabaricus",
             "indiaChecklistCommonName": "Yellow-wattled Lapwing",
             "uniqueValue": 232,
-            "percentage": "4%"
+            "percentage": "4%",
+            "samplingEventIdentifier": "S109076709",
+            "observationDate": "06-05-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Pseudibis papillosa",
             "indiaChecklistCommonName": "Red-naped Ibis",
             "uniqueValue": 409,
-            "percentage": "3%"
+            "percentage": "3%",
+            "samplingEventIdentifier": "S111769804",
+            "observationDate": "31-05-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Gyps indicus",
             "indiaChecklistCommonName": "Indian Vulture",
             "uniqueValue": 422,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S93625716",
+            "observationDate": "23-08-2021"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Otus bakkamoena",
             "indiaChecklistCommonName": "Indian Scops Owl",
             "uniqueValue": 480,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S23484013",
+            "observationDate": "17-05-2015"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Ocyceros birostris",
             "indiaChecklistCommonName": "Indian Grey Hornbill",
             "uniqueValue": 515,
-            "percentage": "14%"
+            "percentage": "14%",
+            "samplingEventIdentifier": "S111769804",
+            "observationDate": "31-05-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Psilopogon zeylanicus",
             "indiaChecklistCommonName": "Brown-headed Barbet",
             "uniqueValue": 551,
-            "percentage": "4%"
+            "percentage": "4%",
+            "samplingEventIdentifier": "S111769804",
+            "observationDate": "31-05-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Yungipicus nanus",
             "indiaChecklistCommonName": "Brown-capped Pygmy Woodpecker",
             "uniqueValue": 560,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S36256175",
+            "observationDate": "25-04-2017"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Dendrocoptes auriceps",
             "indiaChecklistCommonName": "Brown-fronted Woodpecker",
             "uniqueValue": 563,
-            "percentage": "7%"
+            "percentage": "7%",
+            "samplingEventIdentifier": "S110630395",
+            "observationDate": "19-05-2022"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Dendrocopos himalayensis",
             "indiaChecklistCommonName": "Himalayan Woodpecker",
             "uniqueValue": 570,
-            "percentage": "2%"
+            "percentage": "2%",
+            "samplingEventIdentifier": "S107601230",
+            "observationDate": "21-04-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Dinopium benghalense",
             "indiaChecklistCommonName": "Black-rumped Flameback",
             "uniqueValue": 580,
-            "percentage": "2%"
+            "percentage": "2%",
+            "samplingEventIdentifier": "S111769804",
+            "observationDate": "31-05-2022"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Picus squamatus",
             "indiaChecklistCommonName": "Scaly-bellied Woodpecker",
             "uniqueValue": 583,
-            "percentage": "2%"
+            "percentage": "2%",
+            "samplingEventIdentifier": "S111144659",
+            "observationDate": "24-05-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Psittacula himalayana",
             "indiaChecklistCommonName": "Slaty-headed Parakeet",
             "uniqueValue": 604,
-            "percentage": "5%"
+            "percentage": "5%",
+            "samplingEventIdentifier": "S111672241",
+            "observationDate": "30-05-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Psittacula cyanocephala",
             "indiaChecklistCommonName": "Plum-headed Parakeet",
             "uniqueValue": 606,
-            "percentage": "13%"
+            "percentage": "13%",
+            "samplingEventIdentifier": "S111769804",
+            "observationDate": "31-05-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Pitta brachyura",
             "indiaChecklistCommonName": "Indian Pitta",
             "uniqueValue": 618,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S111321367",
+            "observationDate": "26-05-2022"
         },
         {
             "region": "Western Himalayas",
             "indiaChecklistScientificName": "Garrulus lanceolatus",
             "indiaChecklistCommonName": "Black-headed Jay",
             "uniqueValue": 687,
-            "percentage": "8%"
+            "percentage": "8%",
+            "samplingEventIdentifier": "S111217347",
+            "observationDate": "25-05-2022"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Urocissa flavirostris",
             "indiaChecklistCommonName": "Yellow-billed Blue Magpie",
             "uniqueValue": 688,
-            "percentage": "19%"
+            "percentage": "19%",
+            "samplingEventIdentifier": "S111700746",
+            "observationDate": "30-05-2022"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Machlolophus xanthogenys",
             "indiaChecklistCommonName": "Himalayan Black-lored Tit",
             "uniqueValue": 724,
-            "percentage": "4%"
+            "percentage": "4%",
+            "samplingEventIdentifier": "S111144659",
+            "observationDate": "24-05-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Eremopterix griseus",
             "indiaChecklistCommonName": "Ashy-crowned Sparrow Lark",
             "uniqueValue": 732,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S101820211",
+            "observationDate": "16-01-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Prinia sylvatica",
             "indiaChecklistCommonName": "Jungle Prinia",
             "uniqueValue": 761,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S53662441",
+            "observationDate": "07-03-2019"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Prinia socialis",
             "indiaChecklistCommonName": "Ashy Prinia",
             "uniqueValue": 763,
-            "percentage": "9%"
+            "percentage": "9%",
+            "samplingEventIdentifier": "S111769804",
+            "observationDate": "31-05-2022"
         },
         {
             "region": "Western Himalayas",
             "indiaChecklistScientificName": "Locustella kashmirensis",
             "indiaChecklistCommonName": "West Himalayan Bush Warbler",
             "uniqueValue": 787,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S53662441",
+            "observationDate": "07-03-2019"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Pnoepyga immaculata",
             "indiaChecklistCommonName": "Nepal Wren Babbler",
             "uniqueValue": 794,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S38132465",
+            "observationDate": "01-11-2007"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Pycnonotus leucogenys",
             "indiaChecklistCommonName": "Himalayan Bulbul",
             "uniqueValue": 821,
-            "percentage": "50%"
+            "percentage": "50%",
+            "samplingEventIdentifier": "S111769804",
+            "observationDate": "31-05-2022"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Phylloscopus xanthoschistos",
             "indiaChecklistCommonName": "Grey-hooded Warbler",
             "uniqueValue": 871,
-            "percentage": "28%"
+            "percentage": "28%",
+            "samplingEventIdentifier": "S111700746",
+            "observationDate": "30-05-2022"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Cyanoderma pyrrhops",
             "indiaChecklistCommonName": "Black-chinned Babbler",
             "uniqueValue": 932,
-            "percentage": "6%"
+            "percentage": "6%",
+            "samplingEventIdentifier": "S110712475",
+            "observationDate": "20-05-2022"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Grammatoptila striata",
             "indiaChecklistCommonName": "Striated Laughingthrush",
             "uniqueValue": 973,
-            "percentage": "2%"
+            "percentage": "2%",
+            "samplingEventIdentifier": "S108271098",
+            "observationDate": "28-04-2022"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Trochalopteron lineatum",
             "indiaChecklistCommonName": "Streaked Laughingthrush",
             "uniqueValue": 978,
-            "percentage": "16%"
+            "percentage": "16%",
+            "samplingEventIdentifier": "S109662554",
+            "observationDate": "11-05-2022"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Trochalopteron variegatum",
             "indiaChecklistCommonName": "Variegated Laughingthrush",
             "uniqueValue": 981,
-            "percentage": "9%"
+            "percentage": "9%",
+            "samplingEventIdentifier": "S108093747",
+            "observationDate": "26-04-2022"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Trochalopteron erythrocephalum",
             "indiaChecklistCommonName": "Chestnut-crowned Laughingthrush",
             "uniqueValue": 984,
-            "percentage": "7%"
+            "percentage": "7%",
+            "samplingEventIdentifier": "S104980605",
+            "observationDate": "17-03-2022"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Heterophasia capistrata",
             "indiaChecklistCommonName": "Rufous Sibia",
             "uniqueValue": 991,
-            "percentage": "13%"
+            "percentage": "13%",
+            "samplingEventIdentifier": "S109171657",
+            "observationDate": "07-05-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Argya malcolmi",
             "indiaChecklistCommonName": "Large Grey Babbler",
             "uniqueValue": 1005,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S97235968",
+            "observationDate": "07-11-2021"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Argya striata",
             "indiaChecklistCommonName": "Jungle Babbler",
             "uniqueValue": 1008,
-            "percentage": "12%"
+            "percentage": "12%",
+            "samplingEventIdentifier": "S111769804",
+            "observationDate": "31-05-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Argya caudata",
             "indiaChecklistCommonName": "Common Babbler",
             "uniqueValue": 1010,
-            "percentage": "2%"
+            "percentage": "2%",
+            "samplingEventIdentifier": "S102849094",
+            "observationDate": "18-02-2022"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Sitta himalayensis",
             "indiaChecklistCommonName": "White-tailed Nuthatch",
             "uniqueValue": 1034,
-            "percentage": "2%"
+            "percentage": "2%",
+            "samplingEventIdentifier": "S110456470",
+            "observationDate": "14-05-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Acridotheres ginginianus",
             "indiaChecklistCommonName": "Bank Myna",
             "uniqueValue": 1066,
-            "percentage": "5%"
+            "percentage": "5%",
+            "samplingEventIdentifier": "S111139072",
+            "observationDate": "23-05-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Turdus unicolor",
             "indiaChecklistCommonName": "Tickell's Thrush",
             "uniqueValue": 1091,
-            "percentage": "1%"
+            "percentage": "1%",
+            "samplingEventIdentifier": "S108256085",
+            "observationDate": "28-04-2022"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Turdus albocinctus",
             "indiaChecklistCommonName": "White-collared Blackbird",
             "uniqueValue": 1098,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S104883641",
+            "observationDate": "15-03-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Copsychus fulicatus",
             "indiaChecklistCommonName": "Indian Robin",
             "uniqueValue": 1110,
-            "percentage": "6%"
+            "percentage": "6%",
+            "samplingEventIdentifier": "S111226096",
+            "observationDate": "25-05-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Oenanthe fusca",
             "indiaChecklistCommonName": "Brown Rock Chat",
             "uniqueValue": 1203,
-            "percentage": "2%"
+            "percentage": "2%",
+            "samplingEventIdentifier": "S110721696",
+            "observationDate": "20-05-2022"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Dicaeum erythrorhynchos",
             "indiaChecklistCommonName": "Pale-billed Flowerpecker",
             "uniqueValue": 1213,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S94204850",
+            "observationDate": "04-09-2021"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Ploceus benghalensis",
             "indiaChecklistCommonName": "Black-breasted Weaver",
             "uniqueValue": 1242,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S41174315",
+            "observationDate": "18-12-2017"
         },
         {
             "region": "Indus Plains",
             "indiaChecklistScientificName": "Passer pyrrhonotus",
             "indiaChecklistCommonName": "Sind Sparrow",
             "uniqueValue": 1260,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S64686702",
+            "observationDate": "16-02-2020"
         },
         {
             "region": "Indian Subcontinent",
             "indiaChecklistScientificName": "Motacilla maderaspatensis",
             "indiaChecklistCommonName": "White-browed Wagtail",
             "uniqueValue": 1275,
-            "percentage": "7%"
+            "percentage": "7%",
+            "samplingEventIdentifier": "S104781936",
+            "observationDate": "13-03-2022"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Carpodacus rodochroa",
             "indiaChecklistCommonName": "Pink-browed Rosefinch",
             "uniqueValue": 1304,
-            "percentage": "5%"
+            "percentage": "5%",
+            "samplingEventIdentifier": "S107365339",
+            "observationDate": "17-03-2022"
         },
         {
             "region": "Western Himalayas",
             "indiaChecklistScientificName": "Pyrrhula aurantiaca",
             "indiaChecklistCommonName": "Orange Bullfinch",
             "uniqueValue": 1317,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S36255966",
+            "observationDate": "25-04-2017"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Pyrrhula erythrocephala",
             "indiaChecklistCommonName": "Red-headed Bullfinch",
             "uniqueValue": 1318,
-            "percentage": "0%"
+            "percentage": "0%",
+            "samplingEventIdentifier": "S124811203",
+            "observationDate": "17-01-2021"
         },
         {
             "region": "Himalayas",
             "indiaChecklistScientificName": "Chloris spinoides",
             "indiaChecklistCommonName": "Yellow-breasted Greenfinch",
             "uniqueValue": 1330,
-            "percentage": "2%"
+            "percentage": "2%",
+            "samplingEventIdentifier": "S107259349",
+            "observationDate": "17-04-2022"
         }
     ])
-    })
   })
+})
 
 
+  describe('(State,County and Date) Most Common Species ID-T5018', () => {
+  it('T5018/pertcentage_most_common_species', async () => {
 
-  describe('(State,County and Date) Most Common Species ID-5012', () => {
-    it('/pertcentage_most_common_species', async () => {
-  
-      const response = await request(app)
-        .get('/api/users/pertcentage_most_common_species')
-        .query({
-            state: 'Himachal Pradesh',
-            county: 'Kangra',
-            start: '01-01-2000',
-            end: '05-31-2022'
-          })
-        .expect(200);
-          //  console.log(response.body)
-      expect(response.body).toEqual([
+    const response = await request(app)
+      .get('/api/users/pertcentage_most_common_species')
+      .query({
+        state: 'Himachal Pradesh',
+        county: 'Kangra',
+        start:'01-01-2000',
+        end: '05-31-2022'
+      })
+      .expect(200);
+        //  console.log(response.body)
+    expect(response.body).toEqual([
         {
             "indiaChecklistScientificName": "Pycnonotus leucogenys",
             "indiaChecklistCommonName": "Himalayan Bulbul",
@@ -909,22 +1132,24 @@ describe('(State,County and Date) IUCN Red List Species ID-T5010', () => {
             "percentage": 25
         }
     ])
-    }, 60000)
   })
+})
 
-  describe('(State,County and Date) Seasonal Chart ID-T5013', () => {
-    it('T5013/seasonal_chart_for_species', async () => {
-  
-      const response = await request(app)
-        .get('/api/users/seasonal_chart_for_species')
-        .query({
-            state: 'Himachal Pradesh',
-            county: 'Kangra',
-            start: '01-01-2000',
-            end: '05-31-2022'
-          })
-        .expect(200);
-      expect(response.body).toEqual([
+
+
+  describe('(State,County and Date) Seasonal Chart ID-T5019', () => {
+  it('T5019/seasonal_chart_for_species', async () => {
+
+    const response = await request(app)
+      .get('/api/users/seasonal_chart_for_species')
+      .query({
+        state: 'Himachal Pradesh',
+        county: 'Kangra',
+        start:'01-01-2000',
+        end: '05-31-2022'
+      })
+      .expect(200);
+    expect(response.body).toEqual([
         {
             "indiaChecklistScientificName": "Pycnonotus leucogenys",
             "indiaChecklistCommonName": "Himalayan Bulbul",
@@ -1586,24 +1811,24 @@ describe('(State,County and Date) IUCN Red List Species ID-T5010', () => {
             ]
         }
     ])
-    })
   })
+})
 
-  describe('(State,County and Date) Hotspots ID-T5014', () => {
+  describe('(State,County and Date) Hotspots ID-T5020', () => {
 
 
-    it('T5014/hotspot_area', async () => {
-  
-      const response = await request(app)
-        .get('/api/users/hotspot_area')
-        .query({
-            state: 'Himachal Pradesh',
-            county: 'Kangra',
-            start: '01-01-2000',
-            end: '05-31-2022'
-          })
-        .expect(200);
-      expect(response.body).toEqual([
+  it('T5020/hotspot_area', async () => {
+
+    const response = await request(app)
+      .get('/api/users/hotspot_area')
+      .query({
+        state: 'Himachal Pradesh',
+        county: 'Kangra',
+        start:'01-01-2000',
+        end: '05-31-2022'
+      })
+      .expect(200);
+    expect(response.body).toEqual([
         {
             "locality": "Pong Dam--Nagrota Surian",
             "localityId": "L3816878",
@@ -1640,24 +1865,24 @@ describe('(State,County and Date) IUCN Red List Species ID-T5010', () => {
             "count": "155"
         }
     ])
-    })
   })
+})
 
 
-  describe('(State,County and Date) Complete List of Species ID-T5015', () => {
+  describe('(State,County and Date) Complete List of Species ID-T5021', () => {
 
-    it('T5015/complete_List_Of_Species', async () => {
-  
-      const response = await request(app)
-        .get('/api/users/complete_List_Of_Species')
-        .query({
-            state: 'Himachal Pradesh',
-            county: 'Kangra',
-            start: '01-01-2000',
-            end: '05-31-2022'
-          })
-        .expect(200);
-      expect(response.body).toEqual([
+  it('T5021/complete_List_Of_Species', async () => {
+
+    const response = await request(app)
+      .get('/api/users/complete_List_Of_Species')
+      .query({
+        state: 'Himachal Pradesh',
+        county: 'Kangra',
+        start:'01-01-2000',
+        end: '05-31-2022'
+      })
+      .expect(200);
+    expect(response.body).toEqual([
         {
             "indiaChecklistScientificName": "Dendrocygna javanica",
             "migratoryStatusWithinIndia": "Resident",
@@ -6379,20 +6604,19 @@ describe('(State,County and Date) IUCN Red List Species ID-T5010', () => {
             "iucnCategory": "Least Concern"
         }
     ])
-    })
   })
+})
 
+  describe('(State,County and Date) Water Bird Congregations ID-T5022', () => {
 
-  describe('(State,County and Date) Water Bird Congregations ID-T5016', () => {
-
-  it('T5016/water_bird_congregation', async () => {
+  it('T5022/water_bird_congregation', async () => {
 
     const response = await request(app)
       .get('/api/users/water_bird_congregation')
       .query({
         state: 'Himachal Pradesh',
         county: 'Kangra',
-        start: '01-01-2000',
+        start:'01-01-2000',
         end: '05-31-2022'
       })
       .expect(200);
@@ -6404,7 +6628,9 @@ describe('(State,County and Date) IUCN Red List Species ID-T5010', () => {
                 "highestCongregation": "4000",
                 "maxObservationCount": 16,
                 "onePercentBiographicPopulation": "250",
-                "uniqueValue": 4
+                "uniqueValue": 4,
+                "samplingEventIdentifier": "S53016498",
+                "observationDate": "22-02-2019"
             },
             {
                 "indiaChecklistCommonName": "Ruddy Shelduck",
@@ -6412,7 +6638,9 @@ describe('(State,County and Date) IUCN Red List Species ID-T5010', () => {
                 "highestCongregation": "564",
                 "maxObservationCount": 1,
                 "onePercentBiographicPopulation": "500",
-                "uniqueValue": 14
+                "uniqueValue": 14,
+                "samplingEventIdentifier": "S62832938",
+                "observationDate": "01-01-2020"
             },
             {
                 "indiaChecklistCommonName": "Great Cormorant",
@@ -6420,7 +6648,9 @@ describe('(State,County and Date) IUCN Red List Species ID-T5010', () => {
                 "highestCongregation": "2456",
                 "maxObservationCount": 2,
                 "onePercentBiographicPopulation": "1000",
-                "uniqueValue": 379
+                "uniqueValue": 379,
+                "samplingEventIdentifier": "S64073719",
+                "observationDate": "03-02-2020"
             }
         ],
         "success": true
@@ -6428,21 +6658,20 @@ describe('(State,County and Date) IUCN Red List Species ID-T5010', () => {
   })
   })
 
+describe('(State,County and Date) Data Contributions ID-T5023', () => {
 
-  describe('(State,County and Date) Data Contributions ID-T5017', () => {
+  it('T5023/effortsDetails', async () => {
 
-    it('T5017/effortsDetails', async () => {
-  
-      const response = await request(app)
-        .get('/api/users/effortsDetails')
-        .query({
-            state: 'Himachal Pradesh',
-            county: 'Kangra',
-            start: '01-01-2000',
-            end: '05-31-2022'
-          })
-        .expect(200);
-      expect(response.body).toEqual({
+    const response = await request(app)
+      .get('/api/users/effortsDetails')
+      .query({
+        state: 'Himachal Pradesh',
+        county: 'Kangra',
+        start:'01-01-2000',
+        end: '05-31-2022'
+      })
+      .expect(200);
+    expect(response.body).toEqual({
         "data": {
             "numberOfObservations": 82203,
             "numberOfList": "4474",
@@ -6451,5 +6680,7 @@ describe('(State,County and Date) IUCN Red List Species ID-T5010', () => {
             "totalNumberOfObservers": 510
         }
     })
-    })
-  });
+  })
+});
+
+

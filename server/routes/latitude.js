@@ -9,12 +9,12 @@ router.use(bodyParser.json());
 // const upload = multer();
 const upload = multer();
 
-router.post(
-  "/count_by_scientificName",
-  upload.single("file"),
-  uploadToS3,
-  UserController.count
-);
+// router.post(
+//   "/count_by_scientificName",
+//   upload.single("file"),
+//   uploadToS3,
+//   UserController.count
+// );
 router.post(
   "/percentage_iucn_redList_species",
   upload.single("file"),
@@ -59,5 +59,33 @@ router.post(
   uploadToS3,
   UserController.effortsDetails
 );
+
+router.post(
+  "/soibConcernStatus",
+  upload.single("file"),
+  uploadToS3,
+  UserController.soibConcernStatus
+);
+
+router.post(
+  "/count_iucn_species",
+  upload.single("file"),
+  uploadToS3,
+  UserController.count1);
+
+
+  router.post("/count_appendix_species",
+  upload.single("file"),
+  uploadToS3,
+  UserController.count2);
+
+  router.post("/count_number_species",
+  upload.single("file"),
+  uploadToS3,
+  UserController.count3);
+
+
+
+
 
 module.exports = router;
