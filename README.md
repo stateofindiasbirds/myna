@@ -1,2 +1,14 @@
 # myna
 Mapping Your Neighbourhood Avifauna (MYNA) is a data exploration tool published by the State of India's Birds (SoIB) partnership to explore the underlying large-scale data used in the SoIB assessments. This data is based entirely on eBird data that was downloaded from www.ebird.org/india ,and includes public observations uploaded until [Date]. For the last date of data upload, please visit https://myna.stateofindiasbirds.in/
+
+# MYNA v1.01
+
+
+New Tables & Year of reporting.
+Release 1.1: Add SoIB table and provide a full testing report (Backend and Frontend).
+Release 1.2: Add year of reporting for Waterbird Congregations.
+Release 1.3: Add year of last report for IUCN IUCN REDLIST SPECIES and ENDEMIC SPECIES.
+Release 1.4: Add checklist link to all the YEARs.
+*Optimise the Species Detail Count Apis and seprated it 2 more apis.
+*Updated Instructions page info. 
+
