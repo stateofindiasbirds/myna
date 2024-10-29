@@ -233,3 +233,10 @@
     font-size: 1.2rem;
   }
 }
+
+/* google maps  */
+
+.gm-style a{
+  display: none !important;
+}
+/* *********************** */

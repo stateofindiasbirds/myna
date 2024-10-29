@@ -73,8 +73,6 @@ export const handleDownloadPdf = async (
   getSeasonalChartData,
 
 ) => {
-  console.log(otherScreen, 'helo')
-
   const shouldDrawTable = (data) => {
     return data.length > 0 ? true : false;
   };
@@ -93,7 +91,6 @@ export const handleDownloadPdf = async (
     useCORS: true,
     // proxy: "server.js",
   });
-  console.log(canvas2, 'canvas2');  // canvas2 object ko log karein
 
   setPdfDownloadStatus("Creating Tables...");
   const canvas3 = await html2canvas(mostCommonSpeciesDiv.current, {
@@ -113,7 +110,6 @@ export const handleDownloadPdf = async (
   });
   // Generating data for various tables
   const iucnData = generateIUCNData(getDataForIucnRedListTable);
-  console.log(iucnData);
 
   const soibData = generateSOIBData(getSoibConcernStatus);
   // const soibConcernData = genrateSoibConcernStatus(getSoibConcernStatus);
@@ -179,7 +175,7 @@ export const handleDownloadPdf = async (
 //  console.log(processedData);
   (soibData.length > 0 ||
     endemicData.length > 0 ||
-    waterBirdCongregationsData > 0) &&
+    waterBirdCongregationsData > 0 || iucnData.length > 0) &&
     pdf.addPage();
   if (shouldDrawTable(soibData)) {
     pdf.autoTable({
@@ -262,10 +258,10 @@ export const handleDownloadPdf = async (
     addPageIfLessSpaceLeft(pdf.previousAutoTable.finalY) && pdf.addPage();
   }
 
-  (iucnData.length > 0 ||
-    endemicData.length > 0 ||
-    waterBirdCongregationsData > 0) &&
-    pdf.addPage();
+  // (iucnData.length > 0 ||
+  //   endemicData.length > 0 ||
+  //   waterBirdCongregationsData > 0 || soibData.length > 0) &&
+  //   pdf.addPage();
   if (shouldDrawTable(iucnData)) {
     pdf.autoTable({
       headStyles: {
@@ -276,9 +272,11 @@ export const handleDownloadPdf = async (
         fontStyle: "bold",
       },
       head: [["IUCN RED LIST SPECIES"]],
-      margin: { top: 30 },
       body: [],
-      startY: 40,
+      startY: addPageIfLessSpaceLeft(
+        pdf.previousAutoTable.finalY,
+        "createMargin"
+      ),
       font: "GandhiSans-Regular",
       fontStyle: "normal",
       rowPageBreak: "avoid",
@@ -288,7 +286,6 @@ export const handleDownloadPdf = async (
     //tableStartPage and tableEndPage is repeated at start and end of table to know pagenumber on which repeater table title is required
     tableStartPage = pdf.internal.getNumberOfPages();
     pdf.autoTable({
-      margin: { top: 0 },
       body: iucnData,
       headStyles: {
         fillColor: [232, 232, 232],
@@ -547,21 +544,20 @@ export const handleDownloadPdf = async (
     "fast"
   );
   { getSeasonalChartData?.length && pdf.addPage(); }
-  const secondImg = canvas2.toDataURL("image/png");
-  console.log(secondImg, 'secnd img')
-  const hotspotImageProperties = pdf.getImageProperties(secondImg);
-  const hotspotImageHeight =
-    (hotspotImageProperties.height * 100) / hotspotImageProperties.width;
-  hotspotList[0] != 'No Data Available' && pdf.addImage(
-    secondImg,
-    "PNG",
-    15,
-    40,
-    100,
-    hotspotImageHeight,
-    "three",
-    "fast"
-  );
+    const secondImg = canvas2.toDataURL("image/png");
+    const hotspotImageProperties = pdf.getImageProperties(secondImg);
+    const hotspotImageHeight =
+      (hotspotImageProperties.height * 120) / hotspotImageProperties.width;
+     pdf.addImage(
+      secondImg,
+      "PNG",
+      15,
+      40,
+      100,
+      hotspotImageHeight,
+      "three",
+      "fast"
+    );
 
 // ye second map hai 
   // const secondImg2 = canvas2.toDataURL("image/png");
@@ -587,7 +583,7 @@ export const handleDownloadPdf = async (
   }
   pdf.setFillColor("#000000");
 
-  hotspotList[0] != 'No Data Available' && pdf.autoTable({
+   pdf.autoTable({
     body: hotspotList,
     headStyles: {
       fillColor: [154, 114, 105],
@@ -604,7 +600,7 @@ export const handleDownloadPdf = async (
     },
     rowPageBreak: "avoid",
     startY: 40,
-    margin: { top: 40, left: 116 },
+    margin: { top: 60, left: 116 },
     didParseCell: function (data) {
       const { row } = data;
       if (row.section !== "head") {
@@ -629,9 +625,10 @@ export const handleDownloadPdf = async (
       head: [["COMPLETE LIST OF SPECIES"]],
       body: [],
       font: "GandhiSans-Regular",
+      margin: { top: 60 },
       fontStyle: "normal",
       rowPageBreak: "avoid",
-      startY: hotspotList[0] != 'No Data Available' ? (isShiftingRequiredafterHotspot ? 130 : 110) : 40,
+      startY: hotspotList[0] != 'Null' ? (isShiftingRequiredafterHotspot ? 160 : 140) : 40,
       // startY: isShiftingRequiredafterHotspot ? 130 : 110,
     });
     tableStartPage = pdf.internal.getNumberOfPages();

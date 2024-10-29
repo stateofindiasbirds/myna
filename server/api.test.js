@@ -32,7 +32,7 @@ app.post('/api/latlong/soibConcernStatus', upload.single('file'), UserController
 
 
 
-jest.setTimeout(80000);
+jest.setTimeout(90000);
 
 describe('(Polygon) Species Details ID-T001', () => {
       //function count

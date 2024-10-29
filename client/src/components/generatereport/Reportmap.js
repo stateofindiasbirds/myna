@@ -9,7 +9,9 @@ import { AiOutlineFileText } from "react-icons/ai";
 import kmlFileIcon from "../../../src/assets/images/kml.png";
 import { VscJson } from "react-icons/vsc";
 import geojsonToKml from "geojson-to-kml";
-import shpwrite from "shp-write";
+// import shpwrite from "shp-write";
+import shpwrite from '@mapbox/shp-write';
+
 import ReactLeafletGoogleLayer from "react-leaflet-google-layer";
 import { formattedDate } from "./helpers/generateReportTableData";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
@@ -55,10 +57,39 @@ function Reportmap(props) {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleShapeFileDownload = async (e) => {
-    if (editedData) {
-      const coordinates = [editedData.map((point) => [point.lng, point.lat])];
+  // const handleShapeFileDownload = async (e) => {
+  //   if (editedData) {
+  //     const coordinates = [editedData.map((point) => [point.lng, point.lat])];
 
+  //     const feature = {
+  //       type: "Feature",
+  //       properties: {
+  //         "fill-opacity": 0,
+  //         stroke: "#ff0000",
+  //         "stroke-opacity": 1,
+  //       },
+  //       geometry: {
+  //         type: "Polygon",
+  //         coordinates: coordinates,
+  //       },
+  //     };
+
+  //     const featureCollection = {
+  //       type: "FeatureCollection",
+  //       features: [feature],
+  //     };
+  //     shpwrite.download(featureCollection);
+  //   } else {
+  //     shpwrite.download(props.data);
+  //   }
+  // };
+
+  const handleShapeFileDownload = async (e) => {
+    let featureCollection;
+  
+    if (editedData && editedData.length > 0) {
+      const coordinates = [editedData.map((point) => [point.lng, point.lat])];
+      console.log('coordinates', coordinates);
       const feature = {
         type: "Feature",
         properties: {
@@ -71,16 +102,55 @@ function Reportmap(props) {
           coordinates: coordinates,
         },
       };
-
-      const featureCollection = {
+      featureCollection = {
         type: "FeatureCollection",
         features: [feature],
       };
-      shpwrite.download(featureCollection);
+    } else if (props.data) {
+      featureCollection = props.data;
     } else {
-      shpwrite.download(props.data);
+      console.error("No valid data available for download.");
+      return;
+    }
+  
+    const baseFilename = `${props.reportName}_myna_${formattedDate()}.zip`;
+    const maxLength = 30;
+  
+    const filename = baseFilename.length > maxLength
+      ? `${baseFilename.substring(0, maxLength - 4)}.zip` 
+      : baseFilename;
+  
+    try {
+      const zipOptions = {
+        folder: 'shapes', 
+        outputType: 'blob', 
+        compression: 'DEFLATE',
+        types: {
+          point: 'points',
+          polygon: 'polygons',
+          polyline: 'lines',
+        },
+      };
+  
+      const zipDataPromise = shpwrite.zip(featureCollection, zipOptions);
+  
+      const zipData = await zipDataPromise;
+  
+      const url = URL.createObjectURL(zipData);
+  
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+  
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error during shapefile download:", error);
     }
   };
+
   const handleKmlDownload = (e) => {
     if (editedData) {
       const coordinates = [editedData.map((point) => [point.lng, point.lat])];
@@ -225,11 +295,11 @@ function Reportmap(props) {
             setArea={props.setArea}
           />
         )}
-
         {props.boundary &&
           <Boundary
             data={props.boundary}
-            setData={props.setBoudary}
+            setData={props.setBoundary}
+            isStateData={props.isStateData}
           />
         }
       </MapContainer>
@@ -252,7 +322,7 @@ function Reportmap(props) {
       >
         <MenuItem onClick={handleShapeFileDownload} sx={{ cursor: "pointer" }}>
           <AiOutlineFileText size="25" />
-          <span className="ml-1">Download in ShapeFile.zip</span>
+          <span style={{fontFamily:'Gandhi Sans Regular'}} className="ml-1">Download in ShapeFile.zip</span>
         </MenuItem>
         <MenuItem onClick={handleKmlDownload} sx={{ cursor: "pointer" }}>
           {" "}
@@ -263,12 +333,12 @@ function Reportmap(props) {
             height="20"
             width={20}
           />
-          <span className="ml-1">Download in .Kml</span>{" "}
+          <span style={{fontFamily:'Gandhi Sans Regular'}} className="ml-1">Download in .Kml</span>{" "}
         </MenuItem>
         <MenuItem onClick={handleGeoJSONDownload}>
           {" "}
           <VscJson size="25" />{" "}
-          <span className="ml-1">Download in .geojson</span>{" "}
+          <span  style={{fontFamily:'Gandhi Sans Regular'}} className="ml-1">Download in .geojson</span>{" "}
         </MenuItem>
       </Menu>
     </div>

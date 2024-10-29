@@ -66,31 +66,27 @@ function TableCard(props) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {tabledata?.map((row, i) => (
-              <StyledTableRow key={i} hover>
-                <StyledTableCell
-                  style={{ width: 100, fontSize: "20px" }}
-                  scope="row"
-                >
-                  <span className="gandhi-family">
-                  {row?.locality}
-                  </span>
-                </StyledTableCell>
-                <StyledTableCell
-                  style={{ width: 100, fontSize: "20px" }}
-
-                >
-                  <span className="gandhi-family">{row?.count}</span>
-                </StyledTableCell>
-              </StyledTableRow>
-            ))}
-
-            {/* {emptyRows > 0 && (
-                <TableRow style={{ height: 53 * emptyRows }}>
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )} */}
-          </TableBody>
+  {tabledata && tabledata.length > 0 ? (
+    tabledata.map((row, i) => (
+      <StyledTableRow key={i} hover>
+        <StyledTableCell style={{ width: 100, fontSize: "20px" }} scope="row">
+          <span className="gandhi-family">{row?.locality}</span>
+        </StyledTableCell>
+        <StyledTableCell style={{ width: 100, fontSize: "20px" }}>
+          <span className="gandhi-family">{row?.count}</span>
+        </StyledTableCell>
+      </StyledTableRow>
+    ))
+  ) : (
+    <StyledTableRow>
+      <StyledTableCell  colSpan={2} style={{ textAlign: "center", fontSize: "20px" }}>
+        <span className="gandhi-family">        
+          No Data Available
+        </span>
+      </StyledTableCell>
+    </StyledTableRow>
+  )}
+</TableBody>
           <TableFooter>
             <TableRow>
               {/* <TablePagination

@@ -7,7 +7,7 @@ import Datepicker from "../datepicker/Datepicker";
 import shp from "shpjs";
 import Reportmap from "./Reportmap";
 import logo from "../../assets/images/blackLog.png";
-// import districtBoundary from "./files/districtdata.json"
+import axios from "axios";
 import {
   Button,
   IconButton,
@@ -46,6 +46,7 @@ import {
   GET_COMPLETE_LIST_OF_SPECIES,
   GET_ALL_EFFORT_DETAILS,
   GET_SOIB_CONCERN_STATUS,
+  GET_COMPLETE_LIST_OF_SPECIES_GI,
 } from "../../redux/action";
 import { connect } from "react-redux";
 import { useEffect } from "react";
@@ -56,6 +57,9 @@ import { CloseOutlined } from "@mui/icons-material";
 import { district, statesList } from "./staticLists/staticLists";
 import { createTrack } from "./helpers/helperFunctions";
 import dayjs from 'dayjs';
+import { getAreaOfPolygon } from 'geolib';
+import { open, openDbf, openShp, read } from 'shapefile';
+import api from "../../redux/api";
 
 const drawerWidth = 360;
 const windowWidth = window.innerWidth;
@@ -72,6 +76,7 @@ function Main(props) {
     GET_WATERBIRD_CONGREGATION_DATA,
     GET_ALL_EFFORT_DETAILS,
     GET_SOIB_CONCERN_STATUS,
+    GET_COMPLETE_LIST_OF_SPECIES_GI,
   } = props;
   const generateFileName = (name) => {
     const alias = name.split(".");
@@ -115,7 +120,12 @@ function Main(props) {
   const [value2, setValue2] = useState(dayjs('2023-05-31'));
   const [showdate, setShowdate] = useState(true);
   const [area, setArea] = useState(null)
-  const [boundary, setBoundary] = useState(null)
+  const [boundary, setBoundary] = useState(null);
+  const [stateBoundary, setStateBoundary] = useState(null);
+  // const [districtBoundary, setDistrictBoundary] = useState(null);
+  const [isStateData, setIsStateData] = useState(false);
+  const [statesJsonData,setStatesJsonData] = useState({});
+  const [districtJsonData,setDistrictJsonData] = useState({});
   const handleMouseLeave = () => {
     setAnchorEl(null);
   };
@@ -123,10 +133,11 @@ function Main(props) {
     handleGeographyClick("Upload Button");
     setShowUploadFileComponent(payload);
   };
-
+console.log('uploadedFileNameuploadedFileName',uploadedFileName);
   const [showHeatmap, setShowHeatmap] = useState(false);
 
   const [showreport, setShowreport] = useState(false);
+
   const handleSelectState = (e) => {
     setBoundary(null)
     setSelectedState(e.target.value);
@@ -139,6 +150,8 @@ function Main(props) {
     setDistrictList(filteredState.districts);
   };
 
+
+  console.log('selectedState',selectedState)
 
   const handleSelectCounty = (e) => {
     setBoundary(null)
@@ -177,6 +190,7 @@ function Main(props) {
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+  console.log('uploadedgeojson',uploadedgeojson);
 
   const formattedStartDate = formatDateToMMDDYYYY(value);
   const formattedEndDate = formatDateToMMDDYYYY(value2);
@@ -324,6 +338,20 @@ function Main(props) {
       formattedStartDate,
       formattedEndDate
     );
+    GET_COMPLETE_LIST_OF_SPECIES_GI(
+      uploadedgeojson || newPolygon
+        ? formData
+        : {
+          state: selectedState,
+          county: selectedCounty,
+          locality: selectedLocality,
+          start: value,
+          end: value2,
+        },
+      uploadedgeojson || newPolygon ? true : false,
+      formattedStartDate,
+      formattedEndDate
+    );
     GET_ALL_EFFORT_DETAILS(
       uploadedgeojson || newPolygon
         ? formData
@@ -422,7 +450,6 @@ function Main(props) {
     }
   };
   const handleGeographyClick = (emitter) => {
-    setArea(null)
     setUploadedFileName(null);
     if (showGeographySign) {
       setSelectedState("");
@@ -474,34 +501,204 @@ function Main(props) {
     }
   }, []);
 
+
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        const response = await api.get('users/geojson/states', {
+          params: {
+            state: selectedState
+          }
+        });
+        console.log(response.data);
+        setStatesJsonData(response.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+  
+    if (selectedState) {
+      getData();
+    }
+  }, [selectedState]);
+
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        const response =  await api.get('users/geojson/districts', {
+          params: {
+            county: selectedCounty,
+            state: selectedState
+          }
+        });
+        console.log(response.data);
+        setDistrictJsonData(response.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    if (selectedCounty) {
+      getData();
+    }
+  }, [selectedCounty]);
+
+ console.log('statesJsonData',statesJsonData)
+
+
+  useEffect(() => {
+    console.log('statesJsonData updated:', statesJsonData);
+
+    try {
+      if (selectedState && statesJsonData && Object.keys(statesJsonData).length > 0) {
+        setIsStateData(true); 
+        
+        console.log('Processed statesJsonData:', statesJsonData);
+        
+        const toJson = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": statesJsonData.type,
+              "properties": statesJsonData.properties,
+              "geometry": statesJsonData.geometry,
+            }
+          ]
+        };
+
+        setBoundary(toJson);
+      }
+    } catch (error) {
+      console.error('Error processing state boundary:', error);
+    }
+  }, [statesJsonData]);
+
+
+  useEffect(() => {
+    console.log('district updated:', districtJsonData);
+    try {
+      if (selectedCounty && districtJsonData && Object.keys(districtJsonData).length > 0) {
+        setIsStateData(false); 
+        let totalArea = 0;
+      if (districtJsonData) {
+        const geometry = districtJsonData.geometry;
+        if (geometry.type === "Polygon") {
+          totalArea = getAreaOfPolygon(geometry.coordinates[0]) / 1000000;
+        } else if (geometry.type === "MultiPolygon") {
+          geometry.coordinates.forEach((polygon) => {
+            totalArea += getAreaOfPolygon(polygon[0]) / 1000000; 
+          });
+        }
+      }
+        setArea(totalArea);
+
+        const toJson = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": districtJsonData.type,
+              "properties": districtJsonData.properties,
+              "geometry": districtJsonData.geometry,
+            }
+          ]
+        };
+        setBoundary(toJson);
+      } 
+    } catch (error) {
+      console.error('Error processing state boundary:', error);
+    }
+  }, [districtJsonData]);
+
+
+
+
+
+
+
+
   // useEffect(() => {
-  //   if (selectedState) {
-  //     const statesJsonData = stateBoundry.features.find(item => item.properties.stname.toLowerCase() == selectedState.toLowerCase())
-  //     // console.log(statesJsonData, 'state data')
-  //     if (statesJsonData) {
+  //   try {
+  //     if (selectedState) {
+  //       setIsStateData(true);
+  //       const statesJsonData = stateBoundry.features.find(item => 
+  //         item?.properties?.STATE_NAME && 
+  //         selectedState &&
+  //         item?.properties?.STATE_NAME?.toLowerCase() === selectedState.toLowerCase()
+  //       );
+  //             console.log(statesJsonData, 'state data')
+  //       if (statesJsonData) {
+  //         const toJson = {
+  //           "type": "FeatureCollection",
+  //           "features": [
+  //             {
+  //               "type": "Feature",
+  //               "properties": {},
+  //               "geometry": statesJsonData.geometry
+  //             }
+  //           ]
+  //         }
+  //         // console.log(toJson, 'stateconvdata')
+  //         setBoundary(toJson)
+  //       }
+  //       else {
+  //         toast.error("No such boundary exist")
+  //       }
+  //     }
+  //   } catch (error) {
+  //      console.log(error)
+  //   }
+
+  // }, [selectedState])
+  // useEffect(() => {
+
+  //   console.log(selectedCounty)
+  //   if (selectedCounty) {
+  //     setIsStateData(false);
+  //     console.log('districtBoundary',districtBoundary)
+  //     const districtJsonData = districtBoundary.features.find(item => item?.properties?.DISTRIC?.toLowerCase() == selectedCounty?.toLowerCase())
+  //     let totalArea = 0;
+  //     if (districtJsonData) {
+  //       const geometry = districtJsonData.geometry;
+  //       if (geometry.type === "Polygon") {
+  //         totalArea = getAreaOfPolygon(geometry.coordinates[0]) / 1000000;
+  //       } else if (geometry.type === "MultiPolygon") {
+  //         geometry.coordinates.forEach((polygon) => {
+  //           totalArea += getAreaOfPolygon(polygon[0]) / 1000000; 
+  //         });
+  //       }
+  //     }
+  //       setArea(totalArea);
+  //       console.log('districtJsonData', districtJsonData);
+  //     if (districtJsonData) {
   //       const toJson = {
   //         "type": "FeatureCollection",
   //         "features": [
   //           {
   //             "type": "Feature",
   //             "properties": {},
-  //             "geometry": statesJsonData.geometry
+  //             "geometry": districtJsonData.geometry
   //           }
   //         ]
   //       }
-  //       // console.log(toJson, 'stateconvdata')
   //       setBoundary(toJson)
   //     }
   //     else {
   //       toast.error("No such boundary exist")
   //     }
   //   }
-  // }, [selectedState])
+  // }, [selectedCounty])
 
   // useEffect(() => {
+
+  //   console.log(selectedCounty)
   //   if (selectedCounty) {
-  //     const districtJsonData = districtBoundary.features.find(item => item.properties.dtname.toLowerCase() == selectedCounty.toLowerCase())
-  //     // console.log(districtJsonData, 'distt data')
+  //     setIsStateData(false);
+  //     const districtJsonData = districtBoundary.features.find(item => item?.properties?.DISTRIC?.toLowerCase() == selectedCounty?.toLowerCase())
+  //     const polygonCoordinates = districtJsonData?.geometry?.coordinates;
+  //     console.log("polygonCoordinates",districtJsonData)
+
+  //     console.log("polygonCoordinates",polygonCoordinates)
+  //     const area = getAreaOfPolygon(polygonCoordinates[0])/1000000;
+  //     setArea(area)
   //     if (districtJsonData) {
   //       const toJson = {
   //         "type": "FeatureCollection",
@@ -522,6 +719,176 @@ function Main(props) {
   //   }
   // }, [selectedCounty])
 
+  // useEffect(() => {
+   
+  //   shapefile
+  //     .open('../../../public/states_sf_admin_mapped/states_sf_admin_mapped/states_sf_admin_mapped.shp')
+  //     .then(source => source.read().then(function log(result) {
+  //       if (result.done) return;
+  //       setStateBoundary(result.value);  
+  //       return source.read().then(log);
+  //     }))
+  //     .catch(error => console.error(error));
+    
+  //   // Load the district shapefile
+  //   shapefile
+  //     .open('../../../public/dists_sf_admin_mapped/dists_sf_admin_mapped/dists_sf_admin_mapped.shp')
+  //     .then(source => source.read().then(function log(result) {
+  //       if (result.done) return;
+  //       setDistrictBoundary(result.value);  
+  //       return source.read().then(log);
+  //     }))
+  //     .catch(error => console.error(error));
+  // }, []);
+
+  // useEffect(() => {
+  //   if (selectedState && stateBoundary) {
+  //     const statesJsonData = stateBoundary.features.find(
+  //       item => item.properties.stname.toLowerCase() === selectedState.toLowerCase()
+  //     );
+
+  //     if (statesJsonData) {
+  //       const toJson = {
+  //         type: 'FeatureCollection',
+  //         features: [
+  //           {
+  //             type: 'Feature',
+  //             properties: {},
+  //             geometry: statesJsonData.geometry,
+  //           },
+  //         ],
+  //       };
+  //       setBoundary(toJson);
+  //     } else {
+  //       toast.error('No such boundary exists');
+  //     }
+  //   }
+  // }, [selectedState, stateBoundary]);
+  //  console.log('boundaryboundary',boundary);
+  // useEffect(() => {
+  //   if (selectedCounty && districtBoundary) {
+  //     const districtJsonData = districtBoundary.features.find(
+  //       item => item.properties.dtname.toLowerCase() === selectedCounty.toLowerCase()
+  //     );
+
+  //     if (districtJsonData) {
+  //       const toJson = {
+  //         type: 'FeatureCollection',
+  //         features: [
+  //           {
+  //             type: 'Feature',
+  //             properties: {},
+  //             geometry: districtJsonData.geometry,
+  //           },
+  //         ],
+  //       };
+  //       setBoundary(toJson);
+  //     } else {
+  //       toast.error('No such boundary exists');
+  //     }
+  //   }
+  // }, [selectedCounty, districtBoundary]);
+
+
+  // useEffect(() => {
+  //   // Load the state shapefile
+  //   const loadStateShapefile = async () => {
+  //     try {
+  //       const source = await open('../../../public/states_sf_admin_mapped/states_sf_admin_mapped/states_sf_admin_mapped.shp');
+  //       let result = await source.read();
+  //     //   if (result.done) {
+  //     //     console.log('Shapefile is empty or could not be read.');
+  //     // }
+      
+  //     // Check the geometry type
+  //     const geometryType = result.value.geometry.type;
+  //     console.log('Geometry Type:', geometryType);
+  //       const features = [];
+  //       while (!result.done) {
+  //         features.push(result.value);
+  //         result = await source.read();
+  //       }
+  //       setStateBoundary({ type: 'FeatureCollection', features });
+  //     } catch (error) {
+  //       console.error('Error loading state shapefile:', error);
+  //     }
+  //   };
+  
+  //   // Load the district shapefile
+  //   const loadDistrictShapefile = async () => {
+  //     try {
+  //       const source = await open('../../../public/dists_sf_admin_mapped/dists_sf_admin_mapped/dists_sf_admin_mapped.shp');
+  //       let result = await source.read();
+  //       if (result.done) {
+  //         console.log('Shapefile is empty or could not be read.');
+  //     }
+      
+  //     // Check the geometry type
+  //     const geometryType = result.value.geometry.type;
+  //     console.log('Geometry Type:', geometryType);
+  //       const features = [];
+  //       while (!result.done) {
+  //         features.push(result.value);
+  //         result = await source.read();
+  //       }
+  //       setDistrictBoundary({ type: 'FeatureCollection', features });
+  //     } catch (error) {
+  //       console.error('Error loading district shapefile:', error);
+  //     }
+  //   };
+  
+  //   loadStateShapefile();
+  //   loadDistrictShapefile();
+  // }, []);
+  
+  // useEffect(() => {
+  //   if (selectedState && stateBoundary) {
+  //     const statesJsonData = stateBoundary.features.find(
+  //       item => item.properties.stname.toLowerCase() === selectedState.toLowerCase()
+  //     );
+  
+  //     if (statesJsonData) {
+  //       const toJson = {
+  //         type: 'FeatureCollection',
+  //         features: [
+  //           {
+  //             type: 'Feature',
+  //             properties: {},
+  //             geometry: statesJsonData.geometry,
+  //           },
+  //         ],
+  //       };
+  //       setBoundary(toJson);
+  //     } else {
+  //       toast.error('No such boundary exists');
+  //     }
+  //   }
+  // }, [selectedState, stateBoundary]);
+  
+  // useEffect(() => {
+  //   if (selectedCounty && districtBoundary) {
+  //     const districtJsonData = districtBoundary.features.find(
+  //       item => item.properties.dtname.toLowerCase() === selectedCounty.toLowerCase()
+  //     );
+  
+  //     if (districtJsonData) {
+  //       const toJson = {
+  //         type: 'FeatureCollection',
+  //         features: [
+  //           {
+  //             type: 'Feature',
+  //             properties: {},
+  //             geometry: districtJsonData.geometry,
+  //           },
+  //         ],
+  //       };
+  //       setBoundary(toJson);
+  //     } else {
+  //       toast.error('No such boundary exists');
+  //     }
+  //   }
+  // }, [selectedCounty, districtBoundary]);
+
 
 
   const drawer = (
@@ -540,7 +907,7 @@ function Main(props) {
       <form onSubmit={handleSubmit}>
         <div className="p-4">
           <Stack spacing={3}>
-            <div
+            {/* <div
               onClick={() =>
                 newPolygon
                   ? toast.error(
@@ -548,13 +915,35 @@ function Main(props) {
                   )
                   : handleShowUploadFileComponent(!showUploadFileComponent)
               }
-              className={`text-white text-center gandhi-family ${newPolygon
+              className={`text-white text-center gandhi-family ${newPolygon 
                 ? "bg-[#948c8a] cursor-not-allowed"
                 : "bg-[#9A7269] hover:bg-[#955c4f] cursor-pointer"
                 } transition ease-linear hover: w-2/3 p-2 rounded`}
             >
-              UPLOAD FILE
-            </div>
+              UPLOAD FILE kjhjh
+            </div> */}
+              <div
+                  onClick={() => {
+                    if (selectedState) {
+                      setBoundary(null);
+                      setSelectedState("");
+                      setSelectedCounty("");
+                      setSelectedLocality("");
+                    }
+
+                    if (newPolygon) {
+                      toast.error("Please clear polygon before using this feature");
+                    } else {
+                      handleShowUploadFileComponent(!showUploadFileComponent);
+                    }
+                  }}
+                  className={`text-white text-center gandhi-family ${newPolygon 
+                    ? "bg-[#948c8a] cursor-not-allowed"
+                    : "bg-[#9A7269] hover:bg-[#955c4f] cursor-pointer"
+                  } transition ease-linear hover: w-2/3 p-2 rounded`}
+                  >
+                  UPLOAD FILE
+                </div>
             {showUploadFileComponent && (
               <FormControl fullWidth>
                 {uploadedgeojson ? (
@@ -648,7 +1037,17 @@ function Main(props) {
                 label="Name of Report *"
                 variant="outlined"
                 value={reportName ? reportName : ""}
-                onChange={(e) => setReportName(e.target.value)}
+                // onChange={(e) => setReportName(e.target.value)}
+                onChange={(e) => {
+                  const inputValue = e.target.value;
+                  if (inputValue.length <= 36) {
+                    setReportName(inputValue);
+                  }
+                }}
+                error={reportName.length > 35} // Show error if length exceeds 35
+                helperText={
+                  reportName.length > 35 ? "Report name cannot exceed 35 characters." : null
+                } // Only show error message
               />
             </FormControl>
             <ToastContainer />
@@ -916,6 +1315,7 @@ function Main(props) {
             }}
           >
             <Reportmap
+              isStateData={isStateData}
               key={uploadedgeojson}
               boundary={boundary}
               setBoundary={setBoundary}
@@ -965,6 +1365,7 @@ export default connect(mapStateToProps, {
   GET_SEASONAL_CHAT_DATA,
   GET_HOTSPOT_AREAS,
   GET_COMPLETE_LIST_OF_SPECIES,
+  GET_COMPLETE_LIST_OF_SPECIES_GI,
   GET_ALL_EFFORT_DETAILS,
   GET_SOIB_CONCERN_STATUS,
 })(Main);

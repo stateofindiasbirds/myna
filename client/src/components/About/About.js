@@ -47,7 +47,8 @@ function About() {
         For more details on State of India's Birds write to{" "}
         <a href="mailto:contact@stateofindiasbirds.in">
           contact@stateofindiasbirds.in
-        </a>
+        </a>.
+        {" "}MYNA is hosted in Amazon Web Services (AWS) and Microsoft Azure cloud platforms and we are thankful for their respective free credits programs for supporting MYNA.
       </div>
     </>
   );

@@ -284,6 +284,8 @@ export const GET_HOTSPOT_AREAS = (data, isFormData, value, value2) => {
 };
 
 export const GET_COMPLETE_LIST_OF_SPECIES = (data, isFormData, value, value2) => {
+  console.log('dataGET_complete_list_of_species',data)
+  console.log('values',value, value2);
   return async (dispatch) => {
     try {
       if (isFormData) {
@@ -301,6 +303,34 @@ export const GET_COMPLETE_LIST_OF_SPECIES = (data, isFormData, value, value2) =>
         if (res?.status === 200) {
           dispatch({
             type: "GET_COMPLETE_LIST_OF_SPECIES",
+            payload: res?.data,
+          });
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+};
+
+export const GET_COMPLETE_LIST_OF_SPECIES_GI = (data, isFormData, value, value2) => {
+  return async (dispatch) => {
+    try {
+      if (isFormData) {
+        let res = await api.post(`latlong/complete_List_Of_Species_gi?start=${value}&end=${value2}`, data);
+        if (res?.status === 200) {
+          dispatch({
+            type: "GET_COMPLETE_LIST_OF_SPECIES_GI",
+            payload: res?.data,
+          });
+        }
+      } else {
+        let res = await api.get(`users/complete_List_Of_Species_gi`, {
+          params: { ...data, start: value, end: value2 },
+        });
+        if (res?.status === 200) {
+          dispatch({
+            type: "GET_COMPLETE_LIST_OF_SPECIES_GI",
             payload: res?.data,
           });
         }

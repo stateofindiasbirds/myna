@@ -7,16 +7,30 @@ import {
 } from "./helpers/helperFunctions";
 import {  getAreaOfPolygon } from "geolib";
 
-function Ziptogeojson(props) {
+function  Ziptogeojson(props) {
   let featureCollection=null
   try {
     const map = useMap();
     if (props.isZoomRequired) {
       map.invalidateSize();
-      const arrayOfCords = props.data.features[0].geometry.coordinates[0];
+      const geometry = props.data.features[0].geometry;
+      const geoType = geometry.type;
+
+      let arrayOfCords;
+      if (geoType === 'Polygon') {
+        // For Polygon, use coordinates[0]
+        arrayOfCords = geometry.coordinates[0];
+      } else if (geoType === 'MultiPolygon') {
+        // For MultiPolygon, use coordinates[0][0]
+        arrayOfCords = geometry.coordinates[0][0];
+      } else {
+        console.error("Unsupported GeoJSON type:", geoType);
+      } 
       const centroid = calculateCentroid(arrayOfCords);
       const zoom = calculateZoom(arrayOfCords);
       const area =getAreaOfPolygon(arrayOfCords)/1000000
+      console.log(">>>>",area)
+
       props.setArea(area)
       if(area>50000)
       {
@@ -26,23 +40,48 @@ function Ziptogeojson(props) {
       props.setIsZoomRequired(false);
     }
 
+    // if (props.editedData) {
+    //   const coordinates = [props.editedData.map((point) => [point.lng, point.lat])];
+
+    //   const feature = {
+    //     type: "Feature",
+    //     properties: {},
+    //     geometry: {
+    //       type: "Polygon",
+    //       coordinates: coordinates,
+    //     },
+    //   };
+
+    //    featureCollection = {
+    //     type: "FeatureCollection",
+    //     features: [feature],
+    //   }
+    // } 
     if (props.editedData) {
-      const coordinates = [props.editedData.map((point) => [point.lng, point.lat])];
+      // Handle edited data coordinates
+      let editedCoordinates;
+
+      if (props.editedData[0].type === 'Polygon') {
+        editedCoordinates = [props.editedData.map((point) => [point.lng, point.lat])];
+      } else if (props.editedData[0].type === 'MultiPolygon') {
+        editedCoordinates = [props.editedData[0][0].map((point) => [point.lng, point.lat])];
+      }
 
       const feature = {
         type: "Feature",
         properties: {},
         geometry: {
-          type: "Polygon",
-          coordinates: coordinates,
+          type: "Polygon", // Assuming it's a Polygon type after edit
+          coordinates: editedCoordinates,
         },
       };
 
-       featureCollection = {
+      featureCollection = {
         type: "FeatureCollection",
         features: [feature],
-      }
-    } 
+      };
+    }
+
 
     return (
       <GeoJSON
@@ -60,7 +99,7 @@ function Ziptogeojson(props) {
       />
     );
   } catch (error) {
-    props.toast.error("format Not Supported");
+    props.toast.error("format Not Supported ??????????????/");
     return props.setData(null);
   }
 }

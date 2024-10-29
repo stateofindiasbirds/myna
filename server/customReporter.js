@@ -252,8 +252,8 @@ class CustomReporter {
     return path.join(__dirname, 'test-report', `test-report-${date}.csv`);
   }
 
-  _getCsvFilePath(date) {  
-    return path.join(__dirname, 'test-report', `custom-file-${date}.csv`);
+  _getCsvFilePath() {  
+    return path.join(__dirname, 'test-report', `custom-file.csv`);
   }
 
   _setupCSVFile(filePath) {
@@ -328,18 +328,18 @@ class CustomReporter {
     let foundPrevious = false;
     const maxDaysBack = 7; // Define how many days back you want to search
 
-    for (let i = 1; i <= maxDaysBack; i++) {
-        const previousDate = new Date(Date.now() - i * 864e5).toISOString().split('T')[0]; // Calculate previous date
-        const previousCsvFilePath = this._getCsvFilePath(previousDate);
+    // for (let i = 1; i <= maxDaysBack; i++) {
+        // const previousDate = new Date(Date.now() - i * 864e5).toISOString().split('T')[0]; // Calculate previous date
+        const previousCsvFilePath = this._getCsvFilePath();
 
         if (fs.existsSync(previousCsvFilePath)) {
             const previousContent = fs.readFileSync(previousCsvFilePath, 'utf8');
             previousData = this._parseCSVContent(previousContent);
             foundPrevious = true;
             console.log(`Found previous CSV file at: ${previousCsvFilePath}`);
-            break;
+            // break;
         }
-    }
+    // }
 
     if (!foundPrevious) {
         console.log('No previous CSV file found within the last 7 days.');

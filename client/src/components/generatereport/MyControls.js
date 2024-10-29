@@ -11,6 +11,7 @@ function MyControls({_onCreate,_onDeleted,data,newPolygon,setArea,uploadedgeojso
         coordinates[0].map((point) => [point.lng, point.lat]),
       ];
       const area = getAreaOfPolygon(coordinatesForFile[0]) / 1000000;
+      console.log(area)
       setArea(area)
       if (area > 50000) {
         toast.error("Selected Area should be less than 50,000 Square Kilometers")

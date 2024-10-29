@@ -34,6 +34,7 @@ app.use("/api/latLong", latLong);
 app.use("/kml", kml);
 app.use("/shape", shape);
 
+
 db.sync().then(() => {
   app.listen(3001, () => {
     console.log("Server running on port 3001");

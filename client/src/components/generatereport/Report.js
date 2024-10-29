@@ -1,6 +1,5 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState,useRef, useCallback, useMemo } from "react";
 import { Map, Marker, GoogleApiWrapper, Polygon, InfoWindow } from 'google-maps-react';
-import { useRef } from "react";
 import Table2X2 from "./reportcomponents/Table2X2";
 import Table3XN from "./reportcomponents/Table3XN";
 import ProgressChart from "./reportcomponents/ProgressChart";
@@ -33,14 +32,14 @@ import ReoprtSkeleton from "./ReoprtSkeleton";
 import TableForEffortVariables from "./reportcomponents/TableForEffortVariables";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import { calculateCentroid, calculateZoom, createTrackMiddlewareForPdfGenerate } from "./helpers/helperFunctions";
-
+// import CustomHeatMap from '../HeatMap';
+// import { position } from "html2canvas/dist/types/css/property-descriptors/position";
 function Report(props) {
   const {
     boundary,
     setBoundary,
     dataForMap,
     selectedState,
-    
     selectedCounty,
     uploadedgeojson,
     getCountByScientificName,
@@ -94,7 +93,11 @@ function Report(props) {
   const [pdfDownloadStatus, setPdfDownloadStatus] = useState("Download Pdf");
   const [changeLayoutForReport, setChangeLayoutForReport] = useState(false);
   const [activeMarker, setActiveMarker] = useState(null);
+  const [center, setCenter] = useState(null);
   const [showInfoWindow, setShowInfoWindow] = useState(false);
+  const [newZoom,setNewZoom] = useState(null);
+  const [gridBounds, setGridBounds] = useState({ latMin: 0, latMax: 0, lngMin: 0, lngMax: 0 });
+  const [polygonData, setPolygonData] = useState([]);;
   const downloadPdfProgress = {
     "Download Pdf": "w-[0%]",
     "Creating Layout..": "w-[20%]",
@@ -148,51 +151,267 @@ function Report(props) {
     setShowreport(null);
   };
 
+  // const convertedData = dataForMap?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }));
+  // const boundaryData = (boundary?.features[0]?.geometry.type == 'Polygon' 
+  //                      && boundary?.features[0]?.geometry.coordinates.length == 1
+  //                      && boundary?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng })));
+  //                     //  || (boundary?.features[0]?.geometry.type == 'MultiPolygon' 
+  //                     //  && boundary?.features[0]?.geometry.coordinates.length == 2
+  //                     //  && boundary?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng })))
+
+  // const newData = boundary?.features[0]?.geometry?.type == 'MultiPolygon' 
+  //                 // && boundary?.features[0]?.geometry?.coordinates.length > 2
+  //                 && boundary?.features[0]?.geometry?.coordinates;
+  // const formattedData = newData && newData?.map(polygon => polygon[0]?.map(([lng, lat]) => ({ lat, lng })));
+
+  // const convertedData = dataForMap?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }));
+  // const boundaryData = boundary?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }));
+
   const convertedData = dataForMap?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }));
-  const boundaryData = boundary?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }));
+  const boundaryData = boundary?.features[0]?.geometry.type == 'Polygon' 
+                       && boundary?.features[0]?.geometry.coordinates.length == 1
+                       && boundary?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }))
+                       || (boundary?.features[0]?.geometry.type == 'Polygon' 
+                      //  && boundary?.features[0]?.geometry.coordinates.length == 2
+                       && boundary?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng })))
 
-  const getPolygonCenter = (polygon) => {
-    if (polygon && polygon.length > 0) {
-      const totalPoints = polygon.length;
-      const latSum = polygon.reduce((sum, point) => sum + point.lat, 0);
-      const lngSum = polygon.reduce((sum, point) => sum + point.lng, 0);
-      const center = {
-        lat: latSum / totalPoints,
-        lng: lngSum / totalPoints,
+  const newData = boundary?.features[0]?.geometry?.type == 'MultiPolygon' 
+                  // && boundary?.features[0]?.geometry?.coordinates.length > 2
+                  && boundary?.features[0]?.geometry?.coordinates
+                
+  const formattedData = newData && newData?.map(polygon => polygon[0]?.map(([lng, lat]) => ({ lat, lng })));
+
+  useEffect(()=>{
+    if(getHotspotAreas.length>0 && polygonData.length === 0){
+      setPolygonData(getHotspotAreas);
+    }
+  },[getHotspotAreas])
+ 
+
+  // const getPolygonCenter = (polygon) => {
+  //   if (polygon && polygon.length > 0) {
+  //     const totalPoints = polygon.length;
+  //     const latSum = polygon.reduce((sum, point) => sum + point.lat, 0);
+  //     const lngSum = polygon.reduce((sum, point) => sum + point.lng, 0); 
+  //     const center = {
+  //       // lat: (latSum-offset)  / totalPoints,
+
+  //       lat: (latSum ) / totalPoints,
+  //       lng: lngSum / totalPoints,
+  //     };
+  //     return center;
+  //   }
+  // }
+  // const getPolygonCenter = (polygon, google) => {
+  //   console.log('polygon',polygon)
+  //   try {
+  //     if (polygon && polygon.length > 0 && google) {
+  //       console.log('polygon',polygon)
+  //       const bounds = new google.maps.LatLngBounds();
+  
+  //       try {
+  //         // Extend the bounds to include each point in the polygon
+  //         if (Array.isArray(polygon[0][0])) {
+  //           polygon.forEach((polygonPart) => {
+  //             polygonPart.forEach((point) => {
+  //               try {
+  //                 if (isFinite(point.lat) && isFinite(point.lng)) {
+  //                   bounds.extend(new google.maps.LatLng(point.lat, point.lng));
+  //                 } else {
+  //                   console.warn("Invalid coordinates detected:", point);
+  //                 }
+  //               } catch (error) {
+  //                 console.error("Error extending bounds with point:", point, error);
+  //               }
+  //             });
+  //           });
+  //         } else {
+  //           polygon.forEach((point) => {
+  //             try {
+  //               if (isFinite(point.lat) && isFinite(point.lng)) {
+  //                 bounds.extend(new google.maps.LatLng(point.lat, point.lng));
+  //               } else {
+  //                 console.warn("Invalid coordinates detected:", point);
+  //               }
+  //             } catch (error) {
+  //               console.error("Error extending bounds with point:", point, error);
+  //             }
+  //           });
+  //         }
+  //       } catch (error) {
+  //         console.error("Error processing polygon parts:", error);
+  //       }
+  
+  //       try {
+  //         console.log(bounds);
+  //         const center = bounds.getCenter();
+  //         console.log("center", center);
+  
+  //         const centerLat = center.lat();
+  //         const centerLng = center.lng();
+  
+  //         // If the center returns NaN, use the manual fallback logic
+  //         if (isNaN(centerLat) || isNaN(centerLng)) {
+  //           console.warn("Bounds returned NaN for center, using manual calculation.");
+  
+  //           const totalPoints = polygon.length;
+  //           const latSum = polygon.reduce((sum, point) => sum + point.lat, 0);
+  //           const lngSum = polygon.reduce((sum, point) => sum + point.lng, 0);
+  //           const manualCenter = {
+  //             lat: latSum / totalPoints,
+  //             lng: lngSum / totalPoints,
+  //           };
+  //           console.log('manualCenter',manualCenter);
+  //           return manualCenter;
+  //         }
+  
+  //         // Return the bounds center if valid
+  //         console.log({ lat: centerLat, lng: centerLng });
+  //         return { lat: centerLat, lng: centerLng };
+  //       } catch (error) {
+  //         console.error("Error getting center of bounds:", error);
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error("Error in getPolygonCenter function:", error);
+  //   }
+  
+  //   // Fallback in case polygon is empty
+  //   console.log("Fallback - polygon is empty or not provided");
+  //   return { lat: 25.21, lng: 79.32 };
+  // };
+//  console.log("???????????/",props.google.maps.LatLngBounds()) 
+  const getPolygonCenter = (polygon, google) => {
+    // console.log('polygon',polygon)
+    if (polygon && polygon.length > 0 && google) {
+      const bounds = new google.maps.LatLngBounds();
+  
+      const flattenPolygon = (polygon) => {
+        return polygon.flatMap((part) => {
+          if (Array.isArray(part[0])) {
+            return flattenPolygon(part);
+          }
+          return part;
+        });
       };
-      return center;
+  
+      const flattenedPolygon = flattenPolygon(polygon);
+  
+      flattenedPolygon.forEach((point) => {
+        if (isFinite(point.lat) && isFinite(point.lng)) {
+          bounds.extend(new google.maps.LatLng(point.lat, point.lng));
+        } else {
+        }
+      });
+  
+      const center = bounds.getCenter();
+  
+      const centerLat = center.lat();
+      const centerLng = center.lng();
+  
+      if (isNaN(centerLat) || isNaN(centerLng)) {  
+        const totalPoints = flattenedPolygon.length;
+        const latSum = flattenedPolygon.reduce((sum, point) => sum + point.lat, 0);
+        const lngSum = flattenedPolygon.reduce((sum, point) => sum + point.lng, 0);
+        const manualCenter = {
+          lat: latSum / totalPoints,
+          lng: lngSum / totalPoints,
+        };
+  
+        return manualCenter;
+      }
+  
+      return { lat: centerLat, lng: centerLng };
     }
-  }
-
-  const handleMarkerClick = (marker) => {
-    setActiveMarker(marker);
-    setShowInfoWindow(true);
+  
+    return { lat: 25.21, lng: 79.32 };
   };
+  
+  
 
-  const [capturedMarkers, setCapturedMarkers] = useState([]);
+  // const memoizedData = useMemo(() => {
+  //   return [convertedData, boundaryData, formattedData].find((d) => d && d !== false);
+  // }, [convertedData, boundaryData, formattedData]);
+  
+  // useEffect(() => {
+  //   try {
+  //     if (memoizedData && memoizedData.length > 0) {
+  //       console.log('memoizedData',memoizedData);
+  //       // Flatten the nested multipolygon array
+  //       const flattenCoordinates = (coordinates) => {
+  //         return coordinates.flatMap((coord) => {
+  //           if (Array.isArray(coord)) {
+  //             return flattenCoordinates(coord);
+  //           }
+  //           return coord;
+  //         });
+  //       };
+  
+  //       const flattenedData = flattenCoordinates(memoizedData);
+  
+  //       const latitudes = flattenedData.map((p) => p.lat);
+  //       const longitudes = flattenedData.map((p) => p.lng);
+  
+  //       const latMin = Math.min(...latitudes);
+  //       const latMax = Math.max(...latitudes);
+  //       const lngMin = Math.min(...longitudes);
+  //       const lngMax = Math.max(...longitudes);
+  
+  //       setGridBounds((prevBounds) => {
+  //         const newBounds = { latMin, latMax, lngMin, lngMax };
+  //         if (
+  //           prevBounds.latMin !== newBounds.latMin ||
+  //           prevBounds.latMax !== newBounds.latMax ||
+  //           prevBounds.lngMin !== newBounds.lngMin ||
+  //           prevBounds.lngMax !== newBounds.lngMax
+  //         ) {
+  //           return newBounds;
+  //         }
+  //         return prevBounds;
+  //       });
+  //     }
+  //   } catch (e) {
+  //     console.log('error', e);
+  //   }
+  // }, [memoizedData]);
+  
+  
+  
+    // Calculate the center of the polygon
+    // const polygonCenter = getPolygonCenter(polygonData, props.google);
+
+      const mapRef = useRef(null);
+    
+      // This function will calculate and return the bounds for the boundary data
+      const getBoundsForPolygon = (boundaryData) => {
+        const bounds = new props.google.maps.LatLngBounds();
+        boundaryData.forEach(coord => {
+          bounds.extend(new props.google.maps.LatLng(coord.lat, coord.lng));
+        });
+        return bounds;
+      };
+    
+      // This will be triggered when the map is loaded
+      const onMapReady = (mapProps, map) => {
+        const dataToUse = boundaryData || convertedData || editedData;
+
+        if (dataToUse ) {
+          console.log("//////////////",dataToUse)
+          const bounds = getBoundsForPolygon(dataToUse);
+          map.fitBounds(bounds); 
+        }
+      };
+
+
+
+
   useEffect(() => {
-    if (changeLayoutForReport) {
-      const mapMarkers = getHotspotAreas.map(marker => ({
-        id: marker.localityId,
-        position: { lat: marker.latitude, lng: marker.longitude },
-        onMouseover: () => handleMarkerClick(marker),
-        onMouseout: () => setShowInfoWindow(false),
-      }));
-      setCapturedMarkers(mapMarkers);
-    } else {
-      setCapturedMarkers(getHotspotAreas.map(marker => ({
-        id: marker.localityId,
-        position: { lat: marker.latitude, lng: marker.longitude },
-        onMouseover: () => handleMarkerClick(marker),
-        onMouseout: () => setShowInfoWindow(false),
-      })));
-    }
-  }, [changeLayoutForReport, getHotspotAreas]);
+    let delayTimeout;
 
-
-  useEffect(() => {
     if (changeLayoutForReport) {
+      delayTimeout = setTimeout(() => {
       createTrackMiddlewareForPdfGenerate(mediumForReport)
+
       handleDownloadPdf(
         PrintScreen,
         otherScreen,
@@ -252,13 +471,21 @@ function Report(props) {
         endDate,
         getSeasonalChartData
       );
+    },3000);
     }
-  }, [changeLayoutForReport]);
+    return () => {
+      // Clear the timeout if the component is unmounted or changeLayoutForReport changes
+      if (delayTimeout) {
+        clearTimeout(delayTimeout);
+      }
+    };
+  }, [changeLayoutForReport,otherScreen]);
 
 
   const [initialCenter, setInitialCenter] = useState({ lat: 25.21, lng: 79.32 });
   const [zoom, setZoom] = useState(9);
   const [gridPolygonsDataForMap, setGridPolygonsDataForMap] = useState([]);
+  const [isRendered, setIsRendered] = useState(false);
 
   // const getPolygonCenter = (polygon) => {
   //   const totalPoints = polygon.length;
@@ -288,7 +515,6 @@ function Report(props) {
 
   const getBoundingBox = (coordinates) => {
     if (!Array.isArray(coordinates)) {
-      console.error("Invalid coordinates:", coordinates);
       return { minLat: 0, maxLat: 0, minLng: 0, maxLng: 0 };
     }
 
@@ -338,12 +564,46 @@ function Report(props) {
   }, [editedData]);
 
   useEffect(() => {
+    if (changeLayoutForReport) {
+      const style = document.createElement('style');
+      style.innerHTML = `
+        .gm-style a {
+          display: none !important;
+        }
+        button.gm-control-active.gm-fullscreen-control {
+          display: none;
+        }
+        .gmnoprint {
+          display: none;
+        }
+        .gm-style-iw-t {
+         display: none;
+       }
+      `;
+      style.id = "customMapStyles"; // Give the style a unique ID
+      document.head.appendChild(style);
+    } else {
+      const existingStyle = document.getElementById("customMapStyles");
+      if (existingStyle) {
+        existingStyle.remove();
+      }    
+    }
+    return () => {
+      const existingStyle = document.getElementById("customMapStyles");
+      if (existingStyle) {
+        existingStyle.remove();
+      }
+    };
+  }, [changeLayoutForReport, boundaryData]);
+
+  useEffect(() => {
     if (boundary) {
       const boundaryBoundingBox = getBoundingBox(boundary.features[0].geometry.coordinates[0]);
       const boundaryGrid = generateGrid(boundaryBoundingBox);
       setGridPolygonsDataForMap(boundaryGrid);
+
     }
-  }, [boundary]);
+  }, [changeLayoutForReport,boundary]);
 
   useEffect(() => {
     if (dataForMap && dataForMap.features && dataForMap.features.length > 0) {
@@ -360,11 +620,120 @@ function Report(props) {
   }, [dataForMap]);
 
 
+   const handleZoomChange =() => {
+    setNewZoom(7);
+   }
+
+   const [downloadTriggered, setDownloadTriggered] = useState(false);
+
+  const handleDownloadClick = () => {
+    if (otherScreen.current) {
+      otherScreen.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      setTimeout(() => {
+        triggerDownload(true);
+      }, 1000); 
+    } else {
+      triggerDownload(false);
+    }
+  };
+
+  const triggerDownload = (value) => {
+    setDownloadTriggered(value);
+    console.log('Initiating PDF download...');
+    setChangeLayoutForReport(value);
+    setTimeout(() => {
+      scrollToTop();
+    }, 1000);   };
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+ 
+  const timeoutRef = useRef(null);
+
+  // const handleMouseOver = (marker) => {
+  //   // clearTimeout(timeoutRef.current);
+  //   // timeoutRef.current = setTimeout(() => {
+  //     // Only update state if a different marker is hovered
+  //     // if (!activeMarker || activeMarker.localityId !== marker.localityId) {
+  //       // setActiveMarker(marker);
+  //       // setShowInfoWindow(true);
+  //     // }
+  //   // }, 100); 
+  //   console.log('data', marker)
+  // }
+  // const handleMouseOver = (marker) => {
+  //   // debugger;
+  //   // clearTimeout(timeoutRef.current);
+    
+  //   // Debounce the state update to prevent flickering on rapid hover
+  //   // timeoutRef.current = setTimeout(() => {
+  //     // Update the state only if the hovered marker is different
+  //     // if (!activeMarker || activeMarker.localityId !== marker.localityId) {
+  //       setActiveMarker(marker);
+  //       setShowInfoWindow(true);
+  //     // }
+  //   // }, 100); // You can adjust the delay
+  // };
+
+  // // Memoized mouseout handler
+  // const handleMouseOut = () => {
+  //   // clearTimeout(timeoutRef.current);
+  //   // timeoutRef.current = setTimeout(() => {
+  //     // setActiveMarker(null);
+  //     // setShowInfoWindow(false);
+  //   // }, 100); // Debouncing mouseout as well
+  // }
+
+
+  
+    
+  const MemoizedPolygonCenter = useMemo(() => {
+    return {
+      convertedData: convertedData && getPolygonCenter(convertedData, props.google),
+      editedData: editedData && getPolygonCenter(editedData, props.google),
+      boundaryData: boundaryData && getPolygonCenter(boundaryData, props.google),
+      formattedData: formattedData && getPolygonCenter(formattedData, props.google)
+    };
+  }, [convertedData, editedData, boundaryData, formattedData, props.google]);
+
+  
+
+  
+  
+  const handleMarkerClick = (marker) => {
+    setActiveMarker(marker);
+    setShowInfoWindow(true);
+  };
+  const [capturedMarkers, setCapturedMarkers] = useState([]);
+  useEffect(() => {
+    if (changeLayoutForReport) {
+      const mapMarkers = getHotspotAreas.map(marker => ({
+        id: marker.localityId,
+        position: { lat: marker.latitude, lng: marker.longitude },
+        onMouseover: () => handleMarkerClick(marker),
+        onMouseout: () => setShowInfoWindow(false),
+      }));
+      setCapturedMarkers(mapMarkers);
+    } else {
+      setCapturedMarkers(getHotspotAreas?.map(marker => ({
+        id: marker.localityId,
+        position: { lat: marker.latitude, lng: marker.longitude },
+        onMouseover: () => handleMarkerClick(marker),
+        onMouseout: () => setShowInfoWindow(false),
+      })));
+    }
+  }, [changeLayoutForReport, getHotspotAreas]);
+
+
+  
+
   return (
     <Fragment>
       <div style={{ backgroundColor: "#ffffff00" }}>
-        <div ref={header}>
-          <Card
+      <div ref={header} style={{ opacity: getCountByScientificName?.total !== undefined && completeListOfSpeciesFetchSuccessFully ? 1 : 0.4 }}>
+      <Card
             className={changeLayoutForReport && "p-8"}
             style={{ borderRadius: "0 0 0 0", backgroundColor: "#DAB830" }}
           >
@@ -417,11 +786,13 @@ function Report(props) {
                           title="Download"
                           className={changeLayoutForReport && "invisible"}
                         >
-                          <FileDownloadOutlinedIcon
-                            onClick={() => setChangeLayoutForReport(true)}
-                            style={{ cursor: 'pointer' }}
-                          />
-                        </Tooltip>
+                           {getCountByScientificName?.total &&
+                              <FileDownloadOutlinedIcon
+                                onClick={() => handleDownloadClick(true)}
+                                style={{ cursor: 'pointer'}}
+                              />
+                            }
+                       </Tooltip>
                       </div>
                       <div>
                         <Tooltip
@@ -690,100 +1061,126 @@ function Report(props) {
               )}
             </div>
 
-            <div className="mb-16 py-4" style={{ height: "70vh" }}>
-              <div className="p-2 grid grid-cols-1 md:grid-cols-3  mx-20">
-                <div className="grid col-span-2" ref={otherScreen}>
-                  <Map
-                    className="w-auto"
-                    style={{ height: "70vh", width: '58vw' }}
-                    google={props.google}
-                    mapTypeControl={false}
-                    scaleControl={false}
-                    streetViewControl={false}
-                    panControl={false}
-                    rotateControl={false}
-                    zoom={
-                      editedData ? 9 :
-                        convertedData ? 10.5 :
-                          boundaryData ? 9 : 10.5
-                    }
-                    initialCenter={(convertedData && getPolygonCenter(convertedData)) || (editedData && getPolygonCenter(editedData)) || boundaryData && getPolygonCenter(boundaryData) || { lat: 25.21, lng: 79.32 }}
-                  >
-                    {props.data && props.data.features && props.data.features.length > 0 && (
-                      <Polygon
-                        paths={[props.data.features[0].geometry.coordinates[0]]}
-                        strokeColor="#0000FF"
-                        strokeOpacity={0.8}
-                        strokeWeight={2.5}
-                        fillOpacity={0}
-                      />
-                    )}
-
-                    {editedData && (
-                      <Polygon
-                        paths={editedData}
-                        strokeColor="#0000FF"
-                        strokeOpacity={0.8}
-                        strokeWeight={2.5}
-                        fillOpacity={0}
-                      />
-                    )}
-
-                    {convertedData && (
-                      <Polygon
-                        paths={convertedData}
-                        strokeColor="#0000FF"
-                        strokeOpacity={0.8}
-                        strokeWeight={2.5}
-                        fillOpacity={0}
-                      />
-                    )}
-
-                    {boundaryData && (
-                      <Polygon
-                        paths={boundaryData}
-                        strokeColor="#0000FF"
-                        strokeOpacity={0.8}
-                        strokeWeight={2.5}
-                        fillOpacity={0}
-                      />
-                    )}
-                    {(capturedMarkers?.length > 0 ? capturedMarkers : getHotspotAreas).map((marker) => (
-                      <Marker
-                        key={marker.id}
-                        position={marker.position}
-                        onMouseover={marker.onMouseover}
-                        onMouseout={marker.onMouseout}
-                      />
-                    ))}
-
-                    {getHotspotAreas && getHotspotAreas?.map(marker => (
-                      <Marker
-                        key={marker.localityId}
-                        position={{ lat: marker.latitude, lng: marker.longitude }}
-                        onMouseover={() => handleMarkerClick(marker)}
-                        onMouseout={() => setShowInfoWindow(false)}
-                      />
-                    ))}
-
-                    {getHotspotAreas && getHotspotAreas?.map(marker => (
-                      <InfoWindow
-                        key={marker.localityId}
-                        position={{ lat: marker.latitude, lng: marker.longitude }}
-                        visible={showInfoWindow && activeMarker === marker}
-                        onMouseover={() => setShowInfoWindow(true)}
-                        onMouseout={() => setShowInfoWindow(false)}
+            <div className="mb-16 py-4" style={{ height:"70vh" }}>
+              <div className="p-2 grid grid-cols-1 md:grid-cols-3  mx-20 mb-16" style={{ height:"70vh" }}>
+              <div className="grid col-span-2"  ref={otherScreen} >
+                    <Map
+                        ref={mapRef}
+                        className="w-auto"
+                        style={{
+                          height: "58vh",
+                          width: '58vw',
+                        }}
+                        google={props.google}
+                        mapTypeControl={false}
+                        scaleControl={false}
+                        streetViewControl={false}
+                        panControl={false}
+                        rotateControl={false}
+                        // zoom={ newZoom ||
+                        //   editedData ? 9 :
+                        //     convertedData ? 10.5 :
+                        //       boundaryData ? 9 : 10.5
+                        // }
+                        zoom={changeLayoutForReport ? 8.2 : 8.2}
+                        onReady={onMapReady} 
+                        // initialCenter={{
+                        //   lat: (gridBounds.latMin + gridBounds.latMax) / 2,
+                        //   lng: (gridBounds.lngMin + gridBounds.lngMax) / 2
+                        // }}
+                        // initialCenter={iCenter}
+                        // initialCenter={(convertedData && getPolygonCenter(convertedData,props.google)) || (editedData && getPolygonCenter(editedData,props.google)) || boundaryData && (changeLayoutForReport ? getPolygonCenter(boundaryData,props.google) : getPolygonCenter(boundaryData,props.google)) || formattedData && (changeLayoutForReport ? getPolygonCenter(formattedData,props.google) : getPolygonCenter(formattedData,props.google)) ||{ lat: 25.21, lng: 79.32 }}
+                        initialCenter={
+                          MemoizedPolygonCenter.convertedData ||
+                          MemoizedPolygonCenter.editedData ||
+                          MemoizedPolygonCenter.boundaryData ||
+                          MemoizedPolygonCenter.formattedData || 
+                          { lat: 25.21, lng: 79.32 }  // Default center
+                        }
                       >
-                        <div>
-                          <p>{marker.locality}</p>
-                        </div>
-                      </InfoWindow>
-                    ))}
-                  </Map>
+                        {props.data && props.data.features && props.data.features.length > 0 && (
+                          <Polygon
+                            paths={[props.data.features[0].geometry.coordinates[0]]}
+                            strokeColor="#0000FF"
+                            strokeOpacity={0.8}
+                            strokeWeight={2.5}
+                            fillOpacity={0}
+                          />
+                        )}
+
+                        {editedData && (
+                          <Polygon
+                            paths={editedData}
+                            strokeColor="#0000FF"
+                            strokeOpacity={0.8}
+                            strokeWeight={2.5}
+                            fillOpacity={0}
+                          />
+                        )}
+
+                        {convertedData && (
+                          <Polygon
+                            paths={convertedData}
+                            strokeColor="#0000FF"
+                            strokeOpacity={0.8}
+                            strokeWeight={2.5}
+                            fillOpacity={0}
+                          />
+                        )}
+
+                        {boundaryData && (
+                          <Polygon
+                            paths={boundaryData}
+                            strokeColor="#0000FF"
+                            strokeOpacity={0.8}
+                            strokeWeight={2.5}
+                            fillOpacity={0}
+                          />
+                        )}
+                          {formattedData && (
+                          <Polygon
+                            paths={formattedData}
+                            strokeColor="#0000FF"
+                            strokeOpacity={0.8}
+                            strokeWeight={2.5}
+                            fillOpacity={0}
+                          />
+                        )}
+                        {(capturedMarkers?.length > 0 ? capturedMarkers : getHotspotAreas).map((marker) => (
+                          <Marker
+                            key={marker.id}
+                            position={marker.position}
+                            onMouseover={marker.onMouseover}
+                          />
+                        ))}
+
+                        {getHotspotAreas && getHotspotAreas?.map(marker => (
+                          <Marker
+                            key={marker.localityId}
+                            position={{ lat: marker.latitude, lng: marker.longitude }}
+                            onMouseover={() => handleMarkerClick(marker)}
+                            onMouseout={() => setShowInfoWindow(false)}
+                          />
+                        ))}
+
+                        {getHotspotAreas && activeMarker && getHotspotAreas?.map(marker => (
+                          <InfoWindow
+                            key={marker.localityId}
+                            position={{ lat: activeMarker.latitude, lng: marker.longitude }}
+                            visible={showInfoWindow && activeMarker === marker}
+                            zIndex={10000}
+                          >
+                            <div style={{zIndex:'1000'}}>
+                              <p>{marker.locality}</p>
+                            </div>
+                          </InfoWindow>
+                        ))}
+                    </Map>
                   {area != null ? (
-                    <span className="bg-[#F3EDE8] text-gray-800 h-[75vh] p-1 gandhi-family rounded-b-xl" style={{ display: 'flex', alignItems: 'end' }}>
+                    <span   className={`bg-[#F3EDE8] text-gray-800 h-[64vh] p-2 pb-4 gandhi-family rounded-b-xl`}
+                    style={{ display: 'flex', alignItems: 'end',letterSpacing: '0.05em',fontFamily:'"Gandhi Sans Regular"' }}>
                       {" "}
-                      {"Area: "}{parseFloat(area).toFixed(2)} sq. km
+                      {"Area: "}{parseFloat(area)} square kilometers
                     </span>
                   ) : (
                     ""
@@ -795,6 +1192,11 @@ function Report(props) {
                 </div>
               </div>
             </div>
+
+            {/* <div style={{display:'flex', justifyContent:'center', alignItems:'center', height:'100%', marginLeft:'12rem'}}>
+            <CustomHeatMap paths={editedData || convertedData || boundaryData} />
+            </div> */}
+           
 
 
             {/* <div className=" grid grid-cols-3 px-20 ">
@@ -887,13 +1289,17 @@ function Report(props) {
         )}
       </div>
 
+
       <div className={"grid grid-cols-2  py-3 px-8"}>
         <div className="text-left"> </div>
 
         <div className="px-4 text-right gandhi-family">
           <button
             disabled={getCountByScientificName?.total ? false : true}
-            onClick={() => setChangeLayoutForReport(true)}
+            onClick={() => {
+              // handleZoomChange();
+              setChangeLayoutForReport(true);
+            }}
             className=" text-right mt-4  px-4 py-2 bg-white-50 outline-none border border-indigo-100 rounded text-indigo-500 font-medium hover:bg-[#DAB830] hover:text-white transition-colors duration-200"
           >
             {pdfDownloadStatus}
@@ -911,7 +1317,7 @@ function Report(props) {
           }`}
       >
         <div className="col-span-2 text-right me-4 gandhi-family">
-          Generated from myna.stateofindiasbirds.in v.1.01 on {formattedDate}
+          Generated from myna.stateofindiasbirds.in v.1.02 on {formattedDate}
         </div>
         <div
           className={`${changeLayoutForReport && "invisible"
