@@ -12,3 +12,10 @@ Release 1.4: Add checklist link to all the YEARs.
 *Optimise the Species Detail Count Apis and seprated it 2 more apis.
 *Updated Instructions page info. 
 
+# MYNA v1.02
+Enhanced Mapping Support - Phase 1
+Release 2.1a: Added Boundary in Web and report for polygon and files + all pending issues on map(area calculation difference). Updated all English fonts to  Gandhi-Sans font.
+Release 2.1b: Added Boubdary in the Report & PDF even for Geography. 
+
+
+
