@@ -17,5 +17,10 @@ Enhanced Mapping Support - Phase 1
 Release 2.1a: Added Boundary in Web and report for polygon and files + all pending issues on map(area calculation difference). Updated all English fonts to  Gandhi-Sans font.
 Release 2.1b: Added Boubdary in the Report & PDF even for Geography. 
 
+# MYNA v2.0
+Updated Database to year 2024.
+Release 2.0a: Updated Category of some species and removed some 2023 old data and inserted updated one with update of data till 31st May 2024.
+Release 2.0b: Frontend update - added footer to about and instruction Page. Extended date year till 31st may 2024
+
 
 
