@@ -1,0 +1,83 @@
+Title,Test Suite,Test Case,Status,Duration (s),Date,Duration Comparison
+"(State,County,Locality) Location Name ID-T5024",controllerLocality.test.js,T5024/location_listing,passed,5.784,2025-01-31,N/A
+"(State,County,Locality) Species Details ID-T5025",controllerLocality.test.js,T5025/count_iucn_species,passed,1.330,2025-01-31,N/A
+"(State,County,Locality) Species Details ID-T5026",controllerLocality.test.js,T5026/count_appendix_species,passed,1.625,2025-01-31,N/A
+"(State,County,Locality) Species Details ID-T5027",controllerLocality.test.js,T5027/count_number_species,passed,2.593,2025-01-31,N/A
+"(State,County,Locality) IUCN Red List Species ID-T5028",controllerLocality.test.js,T5028/percentage_iucn_redList_species,passed,0.581,2025-01-31,N/A
+"(State,County,Locality) Endemic Species ID-T5029",controllerLocality.test.js,T5029/percentage_endemic_species,passed,0.509,2025-01-31,N/A
+"(State,County,Locality) Most Common Species ID-T5030",controllerLocality.test.js,T5030/pertcentage_most_common_species,passed,0.516,2025-01-31,N/A
+"(State,County,Locality) Seasonal Chart ID-T5031",controllerLocality.test.js,T5031/seasonal_chart_for_species,passed,0.513,2025-01-31,N/A
+"(State,County,Locality) Hotspots ID-T5032",controllerLocality.test.js,T5032/hotspot_area,passed,0.266,2025-01-31,N/A
+"(State,County,Locality) Complete List of Species ID-T5033",controllerLocality.test.js,T5033/complete_List_Of_Species,passed,0.245,2025-01-31,N/A
+"(State,County,Locality) Water Bird Congregations ID-T5034",controllerLocality.test.js,T5034/    ,passed,0.302,2025-01-31,N/A
+"(State,County,Locality) Data Contributions ID-T5035",controllerLocality.test.js,T5035/effortsDetails,passed,1.334,2025-01-31,N/A
+"(State,County, Locality and Date) Location Name ID-T5036",controllerLocalityDate.test.js,T5036/location_listing,passed,5.768,2025-01-31,N/A
+"(State,County, Locality and Date) Species Details ID-T5037",controllerLocalityDate.test.js,T5037/count_iucn_species,passed,1.325,2025-01-31,N/A
+"(State,County, Locality and Date) Species Details ID-T5038",controllerLocalityDate.test.js,T5038/count_appendix_species,passed,1.636,2025-01-31,N/A
+"(State,County, Locality and Date) Species Details ID-T5039",controllerLocalityDate.test.js,T5039/count_number_species,passed,2.595,2025-01-31,N/A
+"(State,County, Locality and Date) IUCN Red List Species ID-T5040",controllerLocalityDate.test.js,T5040/percentage_iucn_redList_species,passed,0.592,2025-01-31,N/A
+"(State,County, Locality and Date) Endemic Species ID-T5041",controllerLocalityDate.test.js,T5041/percentage_endemic_species,passed,0.505,2025-01-31,N/A
+"(State,County, Locality and Date) Most Common Species ID-T5042",controllerLocalityDate.test.js,T5042/pertcentage_most_common_species,passed,0.507,2025-01-31,N/A
+"(State,County, Locality and Date) Seasonal Chart ID-T5043",controllerLocalityDate.test.js,T5043/seasonal_chart_for_species,passed,0.521,2025-01-31,N/A
+"(State,County, Locality and Date) Hotspots ID-T5044",controllerLocalityDate.test.js,T5044/hotspot_area,passed,0.268,2025-01-31,N/A
+"(State,County, Locality and Date) Complete List of Species ID-T5045",controllerLocalityDate.test.js,T5045/complete_List_Of_Species,passed,0.269,2025-01-31,N/A
+"(State,County, Locality and Date) Water Bird Congregations ID-T5046",controllerLocalityDate.test.js,T5046/water_bird_congregation,passed,0.268,2025-01-31,N/A
+"(State,County, Locality and Date) Data Contributions ID-T5047",controllerLocalityDate.test.js,T5047/effortsDetails,passed,1.334,2025-01-31,N/A
+"(State,County and Date) Location Name ID-T5012",controllerDate.test.js,T5012/location_listing,passed,5.854,2025-01-31,N/A
+"(State,County and Date) Species Details ID-T5013",controllerDate.test.js,T5013/count_iucn_species,passed,1.924,2025-01-31,N/A
+"(State,County and Date) Species Details ID-T5014",controllerDate.test.js,T5014/count_appendix_species,passed,4.337,2025-01-31,N/A
+"(State,County and Date) Species Details ID-T5015",controllerDate.test.js,T5015/count_number_species,passed,3.946,2025-01-31,N/A
+"(State,County and Date) IUCN Red List Species ID-T5016",controllerDate.test.js,T5016/percentage_iucn_redList_species,passed,1.771,2025-01-31,N/A
+"(State,County and Date) Endemic Species ID-T5017",controllerDate.test.js,T5017/percentage_endemic_species,passed,1.465,2025-01-31,N/A
+"(State,County and Date) Most Common Species ID-T5018",controllerDate.test.js,T5018/pertcentage_most_common_species,passed,2.343,2025-01-31,N/A
+"(State,County and Date) Hotspots ID-T5020",controllerDate.test.js,T5020/hotspot_area,passed,1.456,2025-01-31,N/A
+"(State,County and Date) Complete List of Species ID-T5021",controllerDate.test.js,T5021/complete_List_Of_Species,passed,0.432,2025-01-31,N/A
+"(State,County and Date) Water Bird Congregations ID-T5022",controllerDate.test.js,T5022/water_bird_congregation,passed,0.986,2025-01-31,N/A
+"(State,County and Date) Data Contributions ID-T5023",controllerDate.test.js,T5023/effortsDetails,passed,2.226,2025-01-31,N/A
+"(State,County) Location Name ID-T007",controller.test.js,T007/location_listing,passed,5.725,2025-01-31,N/A
+"(State,County) Species Details ID-T008",controller.test.js,T008/count_iucn_species,passed,1.897,2025-01-31,N/A
+"(State,County) Species Details ID-T0017",controller.test.js,T0017/count_appendix_species,passed,4.006,2025-01-31,N/A
+"(State,County) Species Details ID-T0018",controller.test.js,T0018/count_number_species,passed,3.961,2025-01-31,N/A
+"(State,County) IUCN Red List Species ID-T009",controller.test.js,T009/percentage_iucn_redList_species,passed,2.114,2025-01-31,N/A
+"(State,County) Endemic Species ID-T0010",controller.test.js,T0010/percentage_endemic_species,passed,4.758,2025-01-31,N/A
+"(State,County) Most Common Species ID-T011",controller.test.js,T011/pertcentage_most_common_species,passed,2.623,2025-01-31,N/A
+"(State,County) Seasonal Chart ID-T012",controller.test.js,T012/seasonal_chart_for_species,passed,1.169,2025-01-31,N/A
+"(State,County) Hotspots ID-T013",controller.test.js,T013/hotspot_area,passed,1.582,2025-01-31,N/A
+"(State,County) Complete List of Species ID-T014",controller.test.js,T014/complete_List_Of_Species,passed,0.316,2025-01-31,N/A
+"(State,County) Water Bird Congregations ID-T015",controller.test.js,T015/water_bird_congregation,passed,1.666,2025-01-31,N/A
+"(State,County) Data Contributions ID-T016",controller.test.js,T016/effortsDetails,passed,2.656,2025-01-31,N/A
+(Polygon and Date) Species Details ID-T5000,apiDate.test.js,T5000/count_iucn_species,passed,10.915,2025-01-31,N/A
+(Polygon and Date) Species Details ID-T5001,apiDate.test.js,T5001/count_appendix_species,passed,10.709,2025-01-31,N/A
+(Polygon and Date) Species Details ID-T5002,apiDate.test.js,T5002/count_number_species,passed,4.332,2025-01-31,N/A
+(Polygon and Date) IUCN Red List Speicies ID-T5003,apiDate.test.js,T5003/percentage_iucn_redList_species,passed,3.801,2025-01-31,N/A
+(Polygon and Date) Most Common species ID-T5005,apiDate.test.js,T5005/pertcentage_most_common_species,passed,5.517,2025-01-31,N/A
+(Polygon and Date) Seasonal Chart ID-T5006,apiDate.test.js,T5006/seasonal_chart_for_species,passed,9.451,2025-01-31,N/A
+(Polygon and Date) Hotspots ID-T5007,apiDate.test.js,T5007/hotspot_area,passed,3.154,2025-01-31,N/A
+(Polygon and Date) waterBirdCongregations ID-T5008,apiDate.test.js,T5008/water_bird_congregation,passed,5.537,2025-01-31,N/A
+(Polygon and Date) Species Details ID-T05009,apiDate.test.js,T05009/complete_List_Of_Species,passed,1.986,2025-01-31,N/A
+(Polygon and Date) Efforts Details ID-T5010,apiDate.test.js,T5010/effortsDetails,passed,7.530,2025-01-31,N/A
+(Polygon and Date) SOIB Concern Status ID-T5011,apiDate.test.js,T5011/soibConcernStatus,passed,2.971,2025-01-31,N/A
+(Polygon) Species Details ID-T001,api.test.js,T001/count_iucn_species,passed,11.050,2025-01-31,N/A
+(Polygon) Species Details ID-T007,api.test.js,T007/count_appendix_species,passed,9.619,2025-01-31,N/A
+(Polygon) Species Details ID-T100,api.test.js,T100/count_number_species,passed,4.686,2025-01-31,N/A
+(Polygon) IUCN Red List Speicies ID-T002,api.test.js,T002/percentage_iucn_redList_species,passed,4.746,2025-01-31,N/A
+(Polygon) Endemic Species ID-T003,api.test.js,T003/percentage_endemic_species,passed,7.068,2025-01-31,N/A
+(Polygon) Most Common species ID-T004,api.test.js,T004/pertcentage_most_common_species,passed,6.686,2025-01-31,N/A
+(Polygon) Seasonal Chart ID-T005,api.test.js,T005/seasonal_chart_for_species,passed,6.949,2025-01-31,N/A
+(Polygon) Hotspots ID-T006,api.test.js,T006/hotspot_area,passed,3.248,2025-01-31,N/A
+(Polygon) waterBirdCongregations ID-T300,api.test.js,T300/water_bird_congregation,passed,2.471,2025-01-31,N/A
+(Polygon) Species Details ID-T0415,api.test.js,T0415/complete_List_Of_Species,passed,1.878,2025-01-31,N/A
+(Polygon) Efforts Details ID-T0421,api.test.js,T0421/effortsDetails,passed,7.069,2025-01-31,N/A
+(Polygon) SOIB Concern Status ID-T0431,api.test.js,T0431/soibConcernStatus,passed,2.615,2025-01-31,N/A
+
+
+
+
+
+
+
+
+
+
+
+

@@ -748,6 +748,9 @@ const UserController = {
           col: "eBirdScientificName",
           where: {
             category: ["species", "issf", "domestic"],
+            eBirdScientificName: {
+              [Op.not]: null,
+            },
             ...obj1,
           },
         });
@@ -786,7 +789,7 @@ const UserController = {
           where: {
             category: ["species", "domestic", "issf"],
             eBirdScientificName: {
-              [Op.not]: null, // Use [Op.not] to check for non-null values
+              [Op.not]: null,
             },
             ...obj1,
           },
@@ -825,6 +828,9 @@ const UserController = {
           col: "eBirdScientificName",
           where: {
             category: ["species", "issf", "domestic"],
+            eBirdScientificName: {
+              [Op.not]: null,
+            },
             ...obj1,
           },
         });
@@ -1194,15 +1200,19 @@ const UserController = {
               "DD-MM-YYYY"
             ),
             {
-              [Op.between]: [start, end], // Filter by date range
+              [Op.between]: [start, end], 
             }
           ),
         ],
       };
-    } else if (start && end && state && county) {
+   
+    }else if (start && end && state && county) {
       var obj1 = {
         state: state,
         county: county,
+        observationCount: {
+          [Op.not]: null,
+        },
         [Op.and]: [
           Sequelize.where(
             Sequelize.fn(
@@ -1273,6 +1283,13 @@ const UserController = {
           ],
           where: {
             ...obj1,
+            category: ["species", "issf", "domestic"],
+            eBirdScientificName: {
+              [Op.not]: null,
+            },
+            migratoryStatusWithinIndia: {
+              [Op.notRegexp]: '(Resident|Uncertain)',
+            },
           },
           raw: true,
         });
@@ -1287,6 +1304,10 @@ const UserController = {
           where: {
             soibConcernStatus: "High",
             ...obj1,
+            category: ["species", "issf", "domestic"],
+            eBirdScientificName: {
+              [Op.not]: null,
+            },
           },
         });
 
@@ -1296,6 +1317,10 @@ const UserController = {
           where: {
             wpaSchedule: "Schedule-I",
             ...obj1,
+            category: ["species", "issf", "domestic"],
+            eBirdScientificName: {
+              [Op.not]: null,
+            },
           },
         });
 
@@ -1305,7 +1330,15 @@ const UserController = {
           where: {
             indiaEndemic: "Yes",
             ...obj1,
+            category: ["species", "issf", "domestic"],
+            eBirdScientificName: {
+              [Op.not]: null,
+            },
+            observationCount: {
+              [Op.not]: null,
+            },
           },
+         
         });
 
         for (const category of categories) {
@@ -1343,98 +1376,7 @@ const UserController = {
         obj["indiaEndemic"] = indiaEndemic;
         res.json(obj);
       } else if (state && county) {
-        // const counts = {};
-        // const obj = {};
-        // const count = await Kinnaur.count({
-        //   distinct: true,
-        //   col: "eBirdScientificName",
-        //   where: {
-        //     category: ["species", "domestic", "issf"],
-        //     eBirdScientificName: {
-        //       [Op.not]: null,
-        //     },
-        //     ...obj1,
-        //   },
-        // });
-        // const migrate = await Kinnaur.findAll({
-        //   attributes: [
-        //     [
-        //       Sequelize.fn("DISTINCT", Sequelize.col("eBirdScientificName")),
-        //       "eBirdScientificName",
-        //     ],
-        //     "migratoryStatusWithinIndia",
-        //   ],
-        //   where: {
-        //     ...obj1,
-        //   },
-        //   raw: true,
-        // });
-        // const migrateCount = migrate.filter((ele) => {
-        //   const pattern = /^(?!.*(Resident|Uncertain)).*$/;
-        //   return pattern.test(ele.migratoryStatusWithinIndia);
-        // });
-        // const soib = await Kinnaur.count({
-        //   distinct: true,
-        //   col: "eBirdScientificName",
-        //   where: {
-        //     soibConcernStatus: "High",
-        //     ...obj1,
-        //   },
-        // });
-        // const scheduleI = await Kinnaur.count({
-        //   distinct: true,
-        //   col: "eBirdScientificName",
-        //   where: {
-        //     wpaSchedule: "Schedule-I",
-        //     ...obj1,
-        //   },
-        // });
-        // const indiaEndemic = await Kinnaur.count({
-        //   distinct: true,
-        //   col: "eBirdScientificName",
-        //   where: {
-        //     indiaEndemic: "Yes",
-        //     ...obj1,
-        //   },
-        // });
-        // for (const category of categories) {
-        //   const count = await Kinnaur.count({
-        //     distinct: true,
-        //     col: "eBirdScientificName",
-        //     where: {
-        //       iucnCategory: category,
-        //       // category: ["species","issf"],
-        //       ...obj1,
-        //       eBirdScientificName: Sequelize.where(
-        //         Sequelize.fn(
-        //           "regexp_replace",
-        //           Sequelize.col("eBirdScientificName"),
-        //           "\\d+",
-        //           "",
-        //           "g"
-        //         ),
-        //         "=",
-        //         Sequelize.col("eBirdScientificName")
-        //       ),
-        //     },
-        //   });
-        //   counts[category] = count;
-        // }
-        // console.log('migrateCount',migrateCount);
-        // console.log('migrateCount.length',migrateCount.length);
-        // obj["total"] = count;
-        // obj["migrate"] = migrateCount.length;
-
-        // obj["iucnRedList"] =
-        //   counts["Vulnerable"] +
-        //   counts["Critically Endangered"] +
-        //   counts["Endangered"];
-        // obj["soibHighPriority"] = soib;
-        // obj["scheduleI"] = scheduleI;
-        // obj["indiaEndemic"] = indiaEndemic;
-        // res.json(obj);
-
-
+       
         const counts = {};
         const obj = {};
       
@@ -1443,7 +1385,8 @@ const UserController = {
           distinct: true,
           col: "eBirdScientificName",
           where: {
-            category: ["species", "domestic", "issf"],
+            // added
+            category: ["species", "issf", "domestic"],
             eBirdScientificName: {
               [Op.not]: null,
             },
@@ -1457,6 +1400,10 @@ const UserController = {
           distinct: true,
           col: "eBirdScientificName",
           where: {
+             category: ["species", "issf", "domestic"],
+             eBirdScientificName: {
+               [Op.not]: null,
+             },
             migratoryStatusWithinIndia: {
               [Op.notRegexp]: '(Resident|Uncertain)',
             },
@@ -1473,6 +1420,11 @@ const UserController = {
             soibConcernStatus: "High",
             state: state,
             county: county,
+            category: ["species", "issf", "domestic"],
+            eBirdScientificName: {
+              [Op.not]: null,
+            },
+           
           },
         });
       
@@ -1481,6 +1433,10 @@ const UserController = {
           distinct: true,
           col: "eBirdScientificName",
           where: {
+             category: ["species", "issf", "domestic"],
+             eBirdScientificName: {
+               [Op.not]: null,
+             },
             wpaSchedule: "Schedule-I",
             state: state,
             county: county,
@@ -1492,6 +1448,13 @@ const UserController = {
           distinct: true,
           col: "eBirdScientificName",
           where: {
+             category: ["species", "issf", "domestic"],
+             eBirdScientificName: {
+               [Op.not]: null,
+             },
+             observationCount: {
+               [Op.not]: null,
+             },
             indiaEndemic: "Yes",
             state: state,
             county: county,
@@ -1504,6 +1467,15 @@ const UserController = {
             distinct: true,
             col: "eBirdScientificName",
             where: {
+               // added
+            category: ["species"],
+            eBirdScientificName: {
+              [Op.not]: null,
+            },
+            // observationCount: {
+            //   [Op.not]: null,
+            // },
+            //
               iucnCategory: category,
               state: state,
               county: county,
@@ -1523,7 +1495,6 @@ const UserController = {
           counts[category] = count;
         }
       
-        console.log('migrateCount', migrateCount);
       
         obj["total"] = count;
         obj["migrate"] = migrateCount;
@@ -1531,6 +1502,7 @@ const UserController = {
           counts["Vulnerable"] +
           counts["Critically Endangered"] +
           counts["Endangered"];
+          // counts["Near Threatened"];
         obj["soibHighPriority"] = soib;
         obj["scheduleI"] = scheduleI;
         obj["indiaEndemic"] = indiaEndemic;
@@ -1545,6 +1517,9 @@ const UserController = {
           where: {
             category: ["species", "issf", "domestic"],
             ...obj1,
+            eBirdScientificName: {
+              [Op.not]: null,
+            },
           },
         });
 
@@ -1570,6 +1545,10 @@ const UserController = {
               },
             ],
             ...obj1,
+            category: ["species", "issf", "domestic"],
+            eBirdScientificName: {
+              [Op.not]: null,
+            },
           },
           raw: true,
         });
@@ -1580,6 +1559,10 @@ const UserController = {
           where: {
             soibConcernStatus: "High",
             ...obj1,
+            category: ["species", "issf", "domestic"],
+            eBirdScientificName: {
+              [Op.not]: null,
+            },
           },
         });
         const scheduleI = await Kinnaur.count({
@@ -1588,6 +1571,10 @@ const UserController = {
           where: {
             wpaSchedule: "Schedule-I",
             ...obj1,
+            category: ["species", "issf", "domestic"],
+            eBirdScientificName: {
+              [Op.not]: null,
+            },
           },
         });
 
@@ -1597,6 +1584,13 @@ const UserController = {
           where: {
             indiaEndemic: "Yes",
             ...obj1,
+            category: ["species", "issf", "domestic"],
+            eBirdScientificName: {
+              [Op.not]: null,
+            },
+            observationCount: {
+              [Op.not]: null,
+            },
           },
         });
 
@@ -1640,9 +1634,83 @@ const UserController = {
     }
   },
 
+  async count4(req, res) {
+    const { state, county, locality } = req.query;
+    const start = req.query.start || false;
+    const end = req.query.end || false;
+  
+    const startYear = new Date(start);
+    const endYear = new Date(end);
+  
+    let years = Array.from(
+      { length: endYear.getFullYear() - startYear.getFullYear() + 1 },
+      (_, i) => startYear.getFullYear() + i
+    );
+  
+    // console.log("Initial years", years);
+    const results = {};
+  
+    try { 
+      for (let i = 0; i < years.length; i++) {
+        const currentYear = years[i];
+  
+        const upToCurrentYear = years.slice(0, i + 1);
+  
+        const yearConditions = upToCurrentYear.map(year => `%${year}%`);
+  
+        const data = await Kinnaur.findAll({
+          attributes: [
+            [Sequelize.fn('DISTINCT', Sequelize.col('eBirdScientificName')), 'eBirdScientificName']
+          ],
+          where: {
+            state,
+            county,
+            category: ["species", "issf", "domestic"],
+            eBirdScientificName: { 
+              [Sequelize.Op.not]: null,
+            },
+            [Sequelize.Op.or]: yearConditions.map(year => ({
+              observationDate: {
+                [Sequelize.Op.like]: year, 
+              },
+            })),
+          },
+          raw: true,
+        });
+  
+    
+        const count = data.length;
+        if (count === 0) {
+  
+          years = years.filter(year => year !== currentYear);
+          i--; 
+        } else if (count > 0) {
+          const added =  Object.values(results).includes(count);
+          if(added){
+            years = years.filter(year => year !== currentYear);
+          i--; 
+          } else if(!added){
+            results[currentYear] = count; 
+
+          }
+        }
+      }
+  
+      res.json(results);
+    } catch (error) {
+      console.error("Error fetching species count by year:", error);
+      res.status(500).send("Error fetching data.");
+    }
+  },
+  
+  
+  
+  
+  
+
   // async count(req, res) {
   //   const categories = [
-  //     "Vulnerable",
+  //     "Vulnerable",  
   //     "Critically Endangered",
   //     "Near Threatened",
   //     "Endangered",
@@ -2300,7 +2368,29 @@ const UserController = {
               ),
               "count",
             ],
-            "groupIdentifier",
+            [
+              Sequelize.literal(`
+                CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+                END
+              `),
+              "groupIdentifier", 
+            ],
+            [
+              Sequelize.fn(
+                "COUNT",
+                Sequelize.literal(`
+                  CASE
+                    WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                    THEN "samplingEventIdentifier"
+                    ELSE "groupIdentifier"
+                  END
+                `)
+              ),
+              "uniqueGroupCount",
+            ],
             "allSpeciesReported",
             [
               Sequelize.fn(
@@ -2311,7 +2401,17 @@ const UserController = {
             ],
           ],
           where: obj1,
-          group: ["groupIdentifier", "soibConcernStatus","allSpeciesReported"],
+          group: [
+            Sequelize.literal(`
+              CASE
+                WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                THEN "samplingEventIdentifier"
+                ELSE "groupIdentifier"
+              END
+            `),
+            "soibConcernStatus",
+            "allSpeciesReported"
+          ],
           raw: true,
         });
 
@@ -2331,7 +2431,16 @@ const UserController = {
               ),
               "count",
             ],
-            "groupIdentifier",
+            [
+              Sequelize.literal(`
+                CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+                END
+              `),
+              "groupIdentifier",
+            ],
             [
               Sequelize.fn(
                 "COUNT",
@@ -2357,7 +2466,13 @@ const UserController = {
           group: [
             "indiaChecklistScientificName",
             "indiaChecklistCommonName",
-            "groupIdentifier",
+            Sequelize.literal(`
+              CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+              END
+            `),
             "soibConcernStatus",
             "uniqueValue",
             "samplingEventIdentifier",
@@ -2485,54 +2600,74 @@ const UserController = {
           attributes: [
             "soibConcernStatus",
             "allSpeciesReported",
-
             [
-              Sequelize.fn(
-                "count",
-                Sequelize.col("indiaChecklistScientificName")
-              ),
-              "count",
+              Sequelize.literal(`
+                CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+                END
+              `),
+              "groupIdentifier", 
             ],
-            "groupIdentifier",
             [
               Sequelize.fn(
                 "COUNT",
-                Sequelize.fn("DISTINCT", Sequelize.col("groupIdentifier"))
+                Sequelize.literal(`
+                  CASE
+                    WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                    THEN "samplingEventIdentifier"
+                    ELSE "groupIdentifier"
+                  END
+                `)
               ),
               "uniqueGroupCount",
             ],
           ],
           where: obj1,
-          group: ["groupIdentifier", "soibConcernStatus","allSpeciesReported"],
+          group: [
+            Sequelize.literal(`
+              CASE
+                WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                THEN "samplingEventIdentifier"
+                ELSE "groupIdentifier"
+              END
+            `),
+            "soibConcernStatus",
+            "allSpeciesReported",
+          ],
           raw: true,
         });
-
+        
         const results = await Kinnaur.findAll({
           attributes: [
+            [
+              Sequelize.literal(`
+                CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+                END
+              `),
+              "groupIdentifier",
+            ],
+            "samplingEventIdentifier",
+            "iucnCategory",
             "indiaChecklistScientificName",
             "indiaChecklistCommonName",
-            "soibConcernStatus",
-            "uniqueValue",
-            "samplingEventIdentifier",
             "observationDate",
             "allSpeciesReported",
+            "uniqueValue",
+            "soibConcernStatus",
             [
               Sequelize.fn(
-                "count",
-                Sequelize.col("indiaChecklistScientificName")
+                "STRING_AGG",
+                Sequelize.col("samplingEventIdentifier"),
+                ', '
               ),
-              "count",
-            ],
-            "groupIdentifier",
-            [
-              Sequelize.fn(
-                "COUNT",
-                Sequelize.fn("DISTINCT", Sequelize.col("groupIdentifier"))
-              ),
-              "uniqueGroupCount",
+              "samplingEventIdentifiers",
             ],
           ],
-
           where: {
             iucnCategory: {
               [Sequelize.Op.in]: [
@@ -2544,18 +2679,25 @@ const UserController = {
               ],
             },
             ...obj1,
+            // allSpeciesReported: "1",
             soibConcernStatus: "High",
           },
           group: [
+            Sequelize.literal(`
+              CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+              END
+            `),
+            "samplingEventIdentifier",
+            "iucnCategory",
             "indiaChecklistScientificName",
             "indiaChecklistCommonName",
-            "groupIdentifier",
-            "soibConcernStatus",
+            "allSpeciesReported",
             "uniqueValue",
-            "samplingEventIdentifier",
             "observationDate",
-            "allSpeciesReported"
-
+            "soibConcernStatus"
           ],
           raw: true,
         });
@@ -2646,7 +2788,7 @@ const UserController = {
 
         
           return {
-            region: ele.iucnCategory,
+            // region: ele.iucnCategory,
             indiaChecklistScientificName: ele.indiaChecklistScientificName,
             indiaChecklistCommonName: ele.indiaChecklistCommonName,
             uniqueValue: ele.uniqueValue,
@@ -2761,6 +2903,7 @@ const UserController = {
       if (state && county && locality) {
         const groupIdentifier = await Kinnaur.findAll({
           attributes: [
+            "soibConcernStatus",
             "allSpeciesReported",
             [
               Sequelize.fn(
@@ -2769,7 +2912,29 @@ const UserController = {
               ),
               "count",
             ],
-            "groupIdentifier",
+            [
+              Sequelize.literal(`
+                CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+                END
+              `),
+              "groupIdentifier", 
+            ],
+            [
+              Sequelize.fn(
+                "COUNT",
+                Sequelize.literal(`
+                  CASE
+                    WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                    THEN "samplingEventIdentifier"
+                    ELSE "groupIdentifier"
+                  END
+                `)
+              ),
+              "uniqueGroupCount",
+            ],
             [
               Sequelize.fn(
                 "COUNT",
@@ -2779,7 +2944,18 @@ const UserController = {
             ],
           ],
           where: obj1,
-          group: ["groupIdentifier", "allSpeciesReported"],
+          group: [
+            Sequelize.literal(`
+              CASE
+                WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                THEN "samplingEventIdentifier"
+                ELSE "groupIdentifier"
+              END
+            `),
+            "allSpeciesReported",
+            "soibConcernStatus",
+          ],
+            
           raw: true,
         });
 
@@ -2799,7 +2975,16 @@ const UserController = {
               ),
               "count",
             ],
-            "groupIdentifier",
+            [
+              Sequelize.literal(`
+                CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+                END
+              `),
+              "groupIdentifier",
+            ],
             [
               Sequelize.fn(
                 "COUNT",
@@ -2811,8 +2996,8 @@ const UserController = {
           where: {
             iucnCategory: {
               [Sequelize.Op.in]: [
-                "Vulnerable",
                 "Critically Endangered",
+                "Vulnerable",
                 "Near Threatened",
                 "Endangered",
               ],
@@ -2823,7 +3008,13 @@ const UserController = {
             "iucnCategory",
             "indiaChecklistScientificName",
             "indiaChecklistCommonName",
-            "groupIdentifier",
+            Sequelize.literal(`
+              CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+              END
+            `),
             "allSpeciesReported",
             "uniqueValue",
             "samplingEventIdentifier",
@@ -2845,7 +3036,7 @@ const UserController = {
         
         // Populate the arr with unique groupIdentifiers where allSpeciesReported == "1"
         groupIdentifier.forEach((result) => {
-          if (!arr.includes(result.groupIdentifier) && result.allSpeciesReported == "1") {
+          if (!arr.includes(result.groupIdentifier)) {
             arr.push(result.groupIdentifier);
           }
         });
@@ -2853,14 +3044,19 @@ const UserController = {
         // Helper function to convert date strings to Date objects
         function convertDateString(dateStr) {
           const [day, month, year] = dateStr.split("-");
-          return new Date(`${year}-${month}-${day}`);
+          const date = new Date(`${year}-${month}-${day}`);
+          if (isNaN(date.getTime())) {
+            throw new Error(`Invalid date: ${dateStr}`);
+          }
+          return date;
         }
+        
         
         // First pass: Find the maximum observation date for each scientific name
         results.forEach((entry) => {
           const currentDate = convertDateString(entry.observationDate);
           const scientificName = entry.indiaChecklistScientificName;
-        
+
           if (!maxObservationMap.has(scientificName) || currentDate > maxObservationMap.get(scientificName).date) {
             maxObservationMap.set(scientificName, {
               date: currentDate,
@@ -2940,80 +3136,109 @@ const UserController = {
         });
         
         res.send(sortedArray);
-      } else if (state && county) {
+
+}   else if (state && county) {
         const groupIdentifier = await Kinnaur.findAll({
           attributes: [
-            "allSpeciesReported",
+              "allSpeciesReported",
             [
-              Sequelize.fn(
-                "count",
-                Sequelize.col("indiaChecklistScientificName")
-              ),
-              "count",
+              Sequelize.literal(`
+                CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+                END
+              `),
+              "groupIdentifier", 
             ],
-            "groupIdentifier",
             [
               Sequelize.fn(
                 "COUNT",
-                Sequelize.fn("DISTINCT", Sequelize.col("groupIdentifier"))
+                Sequelize.literal(`
+                  CASE
+                    WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                    THEN "samplingEventIdentifier"
+                    ELSE "groupIdentifier"
+                  END
+                `)
               ),
               "uniqueGroupCount",
             ],
           ],
           where: obj1,
-          group: ["groupIdentifier", "allSpeciesReported"],
+          group: [
+            Sequelize.literal(`
+              CASE
+                WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                THEN "samplingEventIdentifier"
+                ELSE "groupIdentifier"
+              END
+            `),
+            "allSpeciesReported",
+          ],
           raw: true,
         });
-
+        
         const results = await Kinnaur.findAll({
           attributes: [
+            [
+              Sequelize.literal(`
+                CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+                END
+              `),
+              "groupIdentifier",
+            ],
+            "samplingEventIdentifier",
             "iucnCategory",
             "indiaChecklistScientificName",
             "indiaChecklistCommonName",
+            "observationDate",
             "allSpeciesReported",
             "uniqueValue",
-            "samplingEventIdentifier",
-            "observationDate",
             [
               Sequelize.fn(
-                "count",
-                Sequelize.col("indiaChecklistScientificName")
+                "STRING_AGG",
+                Sequelize.col("samplingEventIdentifier"),
+                ', '
               ),
-              "count",
+              "samplingEventIdentifiers",
             ],
-            "groupIdentifier",
-            [
-              Sequelize.fn(
-                "COUNT",
-                Sequelize.fn("DISTINCT", Sequelize.col("groupIdentifier"))
-              ),
-              "uniqueGroupCount",
-            ],
-
           ],
           where: {
             iucnCategory: {
               [Sequelize.Op.in]: [
-                "Vulnerable",
                 "Critically Endangered",
+                "Vulnerable",
                 "Near Threatened",
                 "Endangered",
               ],
             },
             ...obj1,
+            // allSpeciesReported: "1",
           },
           group: [
+            Sequelize.literal(`
+              CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+              END
+            `),
+            "samplingEventIdentifier",
             "iucnCategory",
             "indiaChecklistScientificName",
             "indiaChecklistCommonName",
-            "groupIdentifier",
             "allSpeciesReported",
             "uniqueValue",
-            "samplingEventIdentifier",
             "observationDate",
           ],
           raw: true,
         });
+
+        
         const scientificNameCounts = {};
         const maxObservationMap = new Map();
         const latestObservationsMap = new Map();
@@ -3032,19 +3257,17 @@ const UserController = {
             arr.push(result.groupIdentifier);
           }
         });
-        
         // Helper function to convert date strings to Date objects
         function convertDateString(dateStr) {
           const [day, month, year] = dateStr.split("-");
           return new Date(`${year}-${month}-${day}`);
         }
-        
         // First pass: Find the maximum observation date for each scientific name
         results.forEach((entry) => {
           const currentDate = convertDateString(entry.observationDate);
           const scientificName = entry.indiaChecklistScientificName;
         
-          if (!maxObservationMap.has(scientificName) || currentDate > maxObservationMap.get(scientificName).date) {
+          if (!maxObservationMap.has(scientificName) || currentDate > maxObservationMap.get(scientificName).date ) {
             maxObservationMap.set(scientificName, {
               date: currentDate,
               samplingEventIdentifier: entry.samplingEventIdentifier,
@@ -3112,19 +3335,31 @@ const UserController = {
             observationDate: latestObservationDate,
           };
         });
-        
-        // Sort the array based on IUCN category and uniqueValue
-        const sortedArray = newArray.sort((a, b) => {
-          const iucnComparison = iucnOrder[a.region] - iucnOrder[b.region];
-          if (iucnComparison !== 0) {
-            return iucnComparison;
-          }
-          return parseInt(a.uniqueValue, 10) - parseInt(b.uniqueValue, 10);
-        });
-        
-        res.send(sortedArray);
+        // const sortedArray = newArray.sort((a, b) => {
+        //   const uniqueValueA = parseInt(a.uniqueValue, 10);
+        //   const uniqueValueB = parseInt(b.uniqueValue, 10);
 
-      } 
+        //   if (uniqueValueA < uniqueValueB) {
+        //     return -1;
+        //   }
+        //   if (uniqueValueA > uniqueValueB) {
+        //     return 1;
+        //   }
+        //   return 0;
+        // });
+
+        // res.send(sortedArray);
+          // Sort the array based on IUCN category and uniqueValue
+          const sortedArray = newArray.sort((a, b) => {
+            const iucnComparison = iucnOrder[a.region] - iucnOrder[b.region];
+            if (iucnComparison !== 0) {
+              return iucnComparison;
+            }
+            return parseInt(a.uniqueValue, 10) - parseInt(b.uniqueValue, 10);
+          });
+          
+          res.send(sortedArray);
+      }
     } catch (err) {
       console.log(err);
       res.send({ error: err });
@@ -3232,7 +3467,16 @@ const UserController = {
               ),
               "count",
             ],
-            "groupIdentifier",
+            [
+              Sequelize.literal(`
+                CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+                END
+              `),
+              "groupIdentifier", 
+            ],
             [
               Sequelize.fn(
                 "COUNT",
@@ -3242,7 +3486,15 @@ const UserController = {
             ],
           ],
           where: obj1,
-          group: ["groupIdentifier", "allSpeciesReported"],
+          group: [
+            Sequelize.literal(`
+              CASE
+                WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                THEN "samplingEventIdentifier"
+                ELSE "groupIdentifier"
+              END
+            `),
+            "allSpeciesReported"],
           raw: true,
         });
         const results = await Kinnaur.findAll({
@@ -3261,7 +3513,16 @@ const UserController = {
               ),
               "count",
             ],
-            "groupIdentifier",
+            [
+              Sequelize.literal(`
+                CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+                END
+              `),
+              "groupIdentifier",
+            ],
             [
               Sequelize.fn(
                 "COUNT",
@@ -3280,7 +3541,13 @@ const UserController = {
             "endemicRegion",
             "indiaChecklistScientificName",
             "indiaChecklistCommonName",
-            "groupIdentifier",
+            Sequelize.literal(`
+              CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+              END
+            `),
             "allSpeciesReported",
             "uniqueValue",
             "samplingEventIdentifier",
@@ -3413,7 +3680,16 @@ const UserController = {
               ),
               "count",
             ],
-            "groupIdentifier",
+            [
+              Sequelize.literal(`
+                CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+                END
+              `),
+              "groupIdentifier", 
+            ],
             [
               Sequelize.fn(
                 "COUNT",
@@ -3425,7 +3701,15 @@ const UserController = {
           where: {
             ...obj1,
           },
-          group: ["groupIdentifier", "allSpeciesReported"],
+          group: [
+            Sequelize.literal(`
+              CASE
+                WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                THEN "samplingEventIdentifier"
+                ELSE "groupIdentifier"
+              END
+            `),
+             "allSpeciesReported"],
           raw: true,
         });
         const results = await Kinnaur.findAll({
@@ -3444,7 +3728,16 @@ const UserController = {
               ),
               "count",
             ],
-            "groupIdentifier",
+            [
+              Sequelize.literal(`
+                CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+                END
+              `),
+              "groupIdentifier",
+            ],
             [
               Sequelize.fn(
                 "COUNT",
@@ -3458,12 +3751,19 @@ const UserController = {
               [Sequelize.Op.in]: allowedRegions,
             },
             ...obj1,
+            // allSpeciesReported: "1",
           },
           group: [
             "endemicRegion",
             "indiaChecklistScientificName",
             "indiaChecklistCommonName",
-            "groupIdentifier",
+            Sequelize.literal(`
+              CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+              END
+            `),
             "allSpeciesReported",
             "uniqueValue",
             "samplingEventIdentifier",
@@ -3584,8 +3884,8 @@ const UserController = {
           }
           return 0;
         })
-        
-        res.send(sortedArray);      } 
+        res.send(sortedArray);   
+        } 
     } catch (err) {
       res.send({ error: err });
     }
@@ -3782,8 +4082,16 @@ const UserController = {
               ),
               "count",
             ],
-            "groupIdentifier",
             [
+              Sequelize.literal(`
+                CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+                END
+              `),
+              "groupIdentifier", 
+            ],            [
               Sequelize.fn(
                 "COUNT",
                 Sequelize.fn("DISTINCT", Sequelize.col("groupIdentifier"))
@@ -3794,7 +4102,15 @@ const UserController = {
           where: {
             ...obj1,
           },
-          group: ["groupIdentifier", "allSpeciesReported"],
+          group: [
+            Sequelize.literal(`
+              CASE
+                WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                THEN "samplingEventIdentifier"
+                ELSE "groupIdentifier"
+              END
+            `),
+             "allSpeciesReported"],
           raw: true,
         });
 
@@ -3811,7 +4127,16 @@ const UserController = {
               ),
               "count",
             ],
-            "groupIdentifier",
+            [
+              Sequelize.literal(`
+                CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+                END
+              `),
+              "groupIdentifier",
+            ],
             [
               Sequelize.fn(
                 "COUNT",
@@ -3827,7 +4152,13 @@ const UserController = {
           group: [
             "indiaChecklistScientificName",
             "indiaChecklistCommonName",
-            "groupIdentifier",
+            Sequelize.literal(`
+              CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+              END
+            `),
             "uniqueValue",
             "allSpeciesReported",
           ],
@@ -4286,7 +4617,6 @@ const UserController = {
             // scientificNameCounts[result.indiaChecklistScientificName] = 1;
           }
         });
-        // console.log(scientificNameCounts);
         const scientificNameArray = Object.entries(scientificNameCounts);
         // Sort the array in descending order based on the counts
         scientificNameArray.sort((a, b) => b[1] - a[1]);
@@ -4351,7 +4681,6 @@ const UserController = {
         });
 
         const top10BirdData = {};
-        // console.log(top10Birds);
         // Get the top 10 bird names from the previous calculation
         const top10BirdNames1 = top10Birds.map(
           ([scientificName]) => scientificName
@@ -4443,7 +4772,16 @@ const UserController = {
               ),
               "count",
             ],
-            "groupIdentifier",
+            [
+              Sequelize.literal(`
+                CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+                END
+              `),
+              "groupIdentifier", 
+            ],
             [
               Sequelize.fn(
                 "COUNT",
@@ -4456,7 +4794,16 @@ const UserController = {
             ...obj2,
           },
 
-          group: ["groupIdentifier", "allSpeciesReported", "observationDate"],
+          group: [
+            Sequelize.literal(`
+              CASE
+                WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                THEN "samplingEventIdentifier"
+                ELSE "groupIdentifier"
+              END
+            `),
+            "allSpeciesReported",
+            "observationDate"],
           raw: true,
         });
 
@@ -4475,7 +4822,16 @@ const UserController = {
               ),
               "count",
             ],
-            "groupIdentifier",
+            [
+              Sequelize.literal(`
+                CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+                END
+              `),
+              "groupIdentifier",
+            ],
             [
               Sequelize.fn(
                 "COUNT",
@@ -4491,8 +4847,14 @@ const UserController = {
           group: [
             "indiaChecklistScientificName",
             "indiaChecklistCommonName",
-            "groupIdentifier",
-            "uniqueValue",
+            Sequelize.literal(`
+              CASE
+                  WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' 
+                  THEN "samplingEventIdentifier"
+                  ELSE "groupIdentifier"
+              END
+            `),
+             "uniqueValue",
             "allSpeciesReported",
             "observationDate",
             "migratoryStatusWithinIndia",
@@ -4513,7 +4875,6 @@ const UserController = {
             // scientificNameCounts[result.indiaChecklistScientificName] = 1;
           }
         });
-        // console.log(scientificNameCounts);
         const scientificNameArray = Object.entries(scientificNameCounts);
         // Sort the array in descending order based on the counts
         scientificNameArray.sort((a, b) => b[1] - a[1]);
@@ -5003,29 +5364,46 @@ const UserController = {
       } else if (state && county) {
         const occurrences = await Kinnaur.findAll({
           attributes: [
-            "locality",
-            "localityId",
-            "latitude",
-            "longitude",
-            [
-              Sequelize.fn(
-                "COUNT",
-                Sequelize.fn("DISTINCT", Sequelize.col("eBirdScientificName"))
-              ),
-              "count",
-            ],
+              "localityId",
+              [Sequelize.fn("MIN", Sequelize.col("latitude")), "latitude"],
+              [Sequelize.fn("MIN", Sequelize.col("longitude")), "longitude"],
+              [
+                  Sequelize.fn(
+                      "COUNT",
+                      Sequelize.fn("DISTINCT", Sequelize.col("eBirdScientificName"))
+                  ),
+                  "count",
+              ],
           ],
           where: {
-            localityType: "H",
-            category: ["species", "issf", "domestic"],
-            ...obj1,
+              localityType: "H",
+              category: ["species", "issf", "domestic"],
+              ...obj1,
           },
-          group: ["locality", "localityId", "latitude", "longitude"],
+          group: ["localityId"], 
           order: [[Sequelize.literal("count"), "DESC"]],
           limit: 5,
           raw: true,
+      });
+
+      const results = [];
+      for (const o of occurrences) {
+        const localityData = await Kinnaur.findOne({
+          attributes: ["locality"], 
+          where: {
+            localityId: o.localityId,
+          },
+          raw: true,
         });
-        res.send(occurrences);
+
+        results.push({
+          ...o, 
+          locality: localityData?.locality || "Unknown", 
+        });
+      }
+
+      res.send(results);
+      
       } else if (state) {
         const occurrences = await Kinnaur.findAll({
           attributes: [
@@ -5046,7 +5424,7 @@ const UserController = {
             category: ["species", "issf", "domestic"],
             ...obj1,
           },
-          group: ["locality", "localityId", "latitude", "longitude"],
+          group: ["locality", "localityId"],
           order: [[Sequelize.literal("count"), "DESC"]],
           limit: 5,
           raw: true,
@@ -5082,6 +5460,7 @@ const UserController = {
       res.send({ error: error });
     }
   },
+
   async completeListOfSpecies(req, res) {
     const { state, county, locality } = req.query;
     const start = req.query.start || false;
@@ -5157,13 +5536,7 @@ const UserController = {
       if (state && county && locality) {
         const list = await Kinnaur.findAll({
           attributes: [
-            [
-              Sequelize.fn(
-                "DISTINCT",
-                Sequelize.col("indiaChecklistScientificName")
-              ),
-              "indiaChecklistScientificName",
-            ],
+            [Sequelize.literal('DISTINCT ON ("indiaChecklistScientificName") "indiaChecklistScientificName"'), 'indiaChecklistScientificName'],
             "migratoryStatusWithinIndia",
             "indiaChecklistCommonName",
             "uniqueValue",
@@ -5171,28 +5544,27 @@ const UserController = {
             "soibConcernStatus",
             "wpaSchedule",
             "iucnCategory",
-            // "groupIdentifier"
           ],
           where: {
             indiaChecklistScientificName: {
               [Op.not]: null,
             },
-            ...obj1,
+            ...obj1
           },
+          order: [
+            ["indiaChecklistScientificName", "ASC"],
+            ["uniqueValue", "ASC"],
+          ],
           raw: true,
         });
+        
         list.sort((a, b) => a.uniqueValue - b.uniqueValue);
         res.send(list);
+
       } else if (state && county) {
         const list = await Kinnaur.findAll({
           attributes: [
-            [
-              Sequelize.fn(
-                "DISTINCT",
-                Sequelize.col("indiaChecklistScientificName")
-              ),
-              "indiaChecklistScientificName",
-            ],
+            [Sequelize.literal('DISTINCT ON ("indiaChecklistScientificName") "indiaChecklistScientificName"'), 'indiaChecklistScientificName'],
             "migratoryStatusWithinIndia",
             "indiaChecklistCommonName",
             "uniqueValue",
@@ -5200,28 +5572,27 @@ const UserController = {
             "soibConcernStatus",
             "wpaSchedule",
             "iucnCategory",
-            // "groupIdentifier"
           ],
           where: {
             indiaChecklistScientificName: {
               [Op.not]: null,
             },
-            ...obj1,
+            ...obj1
           },
+          order: [
+            ["indiaChecklistScientificName", "ASC"],
+            ["uniqueValue", "ASC"],
+          ],
           raw: true,
         });
+        
         list.sort((a, b) => a.uniqueValue - b.uniqueValue);
         res.send(list);
+        
       } else if (state) {
         const list = await Kinnaur.findAll({
           attributes: [
-            [
-              Sequelize.fn(
-                "DISTINCT",
-                Sequelize.col("indiaChecklistScientificName")
-              ),
-              "indiaChecklistScientificName",
-            ],
+            [Sequelize.literal('DISTINCT ON ("indiaChecklistScientificName") "indiaChecklistScientificName"'), 'indiaChecklistScientificName'],
             "migratoryStatusWithinIndia",
             "indiaChecklistCommonName",
             "uniqueValue",
@@ -5229,16 +5600,20 @@ const UserController = {
             "soibConcernStatus",
             "wpaSchedule",
             "iucnCategory",
-            // "groupIdentifier"
           ],
           where: {
             indiaChecklistScientificName: {
               [Op.not]: null,
             },
-            ...obj1,
+            ...obj1
           },
+          order: [
+            ["indiaChecklistScientificName", "ASC"],
+            ["uniqueValue", "ASC"],
+          ],
           raw: true,
         });
+        
         list.sort((a, b) => a.uniqueValue - b.uniqueValue);
         res.send(list);
       }
@@ -5340,35 +5715,49 @@ const UserController = {
         });
         list.sort((a, b) => a.uniqueValue - b.uniqueValue);
         res.send(list);
-      } else if (state && county) {
+      } 
+      // else if (state && county) {
+      //   const list = await Kinnaur.findAll({
+      //     attributes: [
+      //       [Sequelize.fn('DISTINCT', Sequelize.col('groupIdentifier')), 'groupIdentifier'],
+      //       'latitude',
+      //       'longitude'
+      //     ],
+      //     where: {
+      //       // allSpeciesReported: '1',
+      //       state: state,
+      //       county: county,
+      //     },
+      //     order: [['latitude', 'ASC']] // Optionally sort by latitude
+      //   });
+
+      //   res.send(list);
+      else if (state && county) {
         const list = await Kinnaur.findAll({
           attributes: [
             [Sequelize.fn('DISTINCT', Sequelize.col('groupIdentifier')), 'groupIdentifier'],
             'latitude',
-            'longitude'
+            'longitude',
+            'samplingEventIdentifier' // Add samplingEventIdentifier to the query attributes
           ],
           where: {
-            allSpeciesReported: '1',
             state: state,
             county: county,
+            allSpeciesReported: "1",
           },
-          order: [['latitude', 'ASC']] // Optionally sort by latitude
+          order: [['latitude', 'ASC']] 
         });
-
-        // const list = await Kinnaur.count({
-        //   distinct: true,
-        //   col: 'groupIdentifier',
-        //   where: {
-        //     allSpeciesReported: '1',
-        //     [Op.and]: [
-        //       literal(`CONCAT(latitude, 'X', longitude) = '${gridValue}'`) // Use literal for SQL concatenation
-        //     ],
-        //     state: state,  // Add your state filter if necessary
-        //     county: county  // Add your county filter if necessary
-        //   }
-        // });
-        
-        res.send(list);
+      
+      
+        const updatedList = list.map(item => {
+          const data = item.dataValues; 
+          if (!data.groupIdentifier || data.groupIdentifier === 'NA' || data.groupIdentifier === 'NA' || data.groupIdentifier === '' || data.groupIdentifier === null) { // Check if groupIdentifier is empty or 'NA'
+            data.groupIdentifier = data.samplingEventIdentifier; 
+          }
+          return data; 
+        });
+      
+        res.send(updatedList); 
 
     }
      else if (state) {
@@ -5766,6 +6155,15 @@ const UserController = {
     const end = req.query.end || false;
     if (start && end && state && county && locality) {
       var obj1 = {
+        // added
+        category: ["species", "domestic", "issf"],
+        // eBirdScientificName: {
+        //   [Op.not]: null,
+        // },
+        // observationCount: {
+        //   [Op.not]: null,
+        // },
+        //
         state: state,
         county: county,
         locality: locality,
@@ -5784,6 +6182,15 @@ const UserController = {
       };
     } else if (start && end && state && county) {
       var obj1 = {
+          // added
+          // category: ["species", "domestic", "issf"],
+          // eBirdScientificName: {
+          //   [Op.not]: null,
+          // },
+          // observationCount: {
+          //   [Op.not]: null,
+          // },
+          //
         state: state,
         county: county,
         [Op.and]: [
@@ -5801,6 +6208,15 @@ const UserController = {
       };
     } else if (start && end && state) {
       var obj1 = {
+          // added
+          category: ["species", "domestic", "issf"],
+          // eBirdScientificName: {
+          //   [Op.not]: null,
+          // },
+          // observationCount: {
+          //   [Op.not]: null,
+          // },
+          //
         state: state,
         [Op.and]: [
           Sequelize.where(
@@ -5836,7 +6252,7 @@ const UserController = {
       if (state && county && locality) {
         const obj = {};
         const data = await Kinnaur.findAll({
-          attributes: ["indiaChecklistCommonName"],
+          attributes: ["eBirdEnglishName"],
           where: obj1,
           raw: true,
         });
@@ -5906,7 +6322,85 @@ const UserController = {
       } else if (state && county) {
         const obj = {};
         const data = await Kinnaur.findAll({
-          attributes: ["indiaChecklistCommonName"],
+          attributes: ["eBirdEnglishName"],
+          where: obj1,
+          raw: true,
+        });
+        obj.numberOfObservations = data.length;
+        const observers = await Kinnaur.findAll({
+          attributes: [
+            [
+              Sequelize.fn(
+                "COUNT",
+                Sequelize.fn(
+                  "DISTINCT",
+                  Sequelize.col("samplingEventIdentifier")
+                )
+              ),
+              "count",
+            ],
+          ],
+          where: obj1,
+          raw: true,
+        });
+        obj.numberOfList = observers[0].count;
+     
+        const observation = await Kinnaur.findAll({
+          attributes: [
+            [
+              Sequelize.fn(
+                "COUNT",
+                Sequelize.fn(
+                  "DISTINCT",
+                  Sequelize.literal(`
+                    CASE
+                      WHEN "groupIdentifier" IS NULL OR "groupIdentifier" = 'NA' OR "groupIdentifier" = '' THEN "samplingEventIdentifier"
+                      ELSE "groupIdentifier"
+                    END
+                  `)
+                )
+              ),
+              "count",
+            ],
+          ],
+          where: obj1,
+          raw: true,
+        });
+        obj.numberOfUniqueLists = observation[0].count;
+
+        const sample = await Kinnaur.findAll({
+          attributes: [
+            [
+              Sequelize.fn("DISTINCT", Sequelize.col("groupIdentifier")),
+              "uniqueGroupIdentifier",
+            ],
+            "durationMinutes",
+          ],
+          where: obj1,
+          raw: true,
+        });
+        const sampleCount = sample.reduce((acc, obj) => {
+          const durationMinutes = parseInt(obj.durationMinutes);
+          return isNaN(durationMinutes) ? acc : acc + durationMinutes;
+        }, 0);
+        obj.totalNumberOfHours = Math.floor(sampleCount / 60);
+
+        const group = await Kinnaur.findAll({
+          attributes: [
+            [
+              Sequelize.fn("DISTINCT", Sequelize.col("observerId")),
+              "uniqueObserverId",
+            ],
+          ],
+          where: obj1,
+          raw: true,
+        });
+        obj.totalNumberOfObservers = group.length;
+        return res.send({ data: obj });
+      } else if (state) {
+        const obj = {};
+        const data = await Kinnaur.findAll({
+          attributes: ["eBirdEnglishName"],
           where: obj1,
           raw: true,
         });
@@ -5970,10 +6464,10 @@ const UserController = {
           where: obj1,
           raw: true,
         });
+
         obj.totalNumberOfObservers = group.length;
         return res.send({ data: obj });
-      } 
-     
+      }
     } catch (err) {
       res.send({ error: err.message });
     }

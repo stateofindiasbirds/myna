@@ -117,7 +117,7 @@ function Main(props) {
   const [localitiesList, setLocalitiesList] = useState([]);
   const [editedData, setEditedData] = useState(null);
   const [value, setValue] = useState("01/01/1900");
-  const [value2, setValue2] = useState(dayjs('2023-05-31'));
+  const [value2, setValue2] = useState(dayjs('2024-05-31'));
   const [showdate, setShowdate] = useState(true);
   const [area, setArea] = useState(null)
   const [boundary, setBoundary] = useState(null);
@@ -1196,6 +1196,7 @@ console.log('uploadedFileNameuploadedFileName',uploadedFileName);
         <div className="mt-4 p-4 text-sm text-gray-500 gandhi-family">
           <Stack spacing={1}>
             {/* <Link to="/heatmap">HeatMap</Link> */}
+            <a href="https://www.youtube.com/watch?v=bqPDnbQ9v8Y" target="_blank" onclick="gtag('event', 'click', {'event_category': 'YouTube', 'event_label': 'MYNA User'});">Watch Video</a>
             <Link to="/about">About Myna</Link>
             <Link to="/instructions">Usage Instructions</Link>
           </Stack>

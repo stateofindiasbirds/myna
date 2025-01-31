@@ -1317,7 +1317,7 @@ function Report(props) {
           }`}
       >
         <div className="col-span-2 text-right me-4 gandhi-family">
-          Generated from myna.stateofindiasbirds.in v.1.02 on {formattedDate}
+          Generated from myna.stateofindiasbirds.in v.2.0 on {formattedDate}
         </div>
         <div
           className={`${changeLayoutForReport && "invisible"

@@ -85,7 +85,7 @@ export default function Datepicker({ value, setValue, value2, setValue2, showdat
         openTo="day"
         views={['year', 'month', 'day']}
         value={value2}
-        maxDate={new Date("2023-05-31")} 
+        maxDate={new Date("2024-05-31")} 
         showdate={showdate}
         cleared={cleared}
         onChange={(newValue) => {

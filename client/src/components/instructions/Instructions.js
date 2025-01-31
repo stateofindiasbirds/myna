@@ -14,6 +14,29 @@ import mynaPolygonDraw from "../../assets/images/mynaMapPolygonOption.png";
 import polygonDraw from "../../assets/images/drawUsingPolygon.png";
 import { Link } from "react-router-dom";
 
+const monthNames = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+const today = new Date();
+const formattedDate =
+today.getDate() +
+" " +
+monthNames[today.getMonth()] +
+" " +
+today.getFullYear();
+
 function Instructions() {
   localStorage.setItem("isUserNew", true);
   const features = [
@@ -160,7 +183,7 @@ function Instructions() {
                   This data is based entirely on eBird data that was downloaded
                   from{" "}
                   <a href="https://www.ebird.org/india" target="_blank">www.ebird.org/india</a>,
-                  and includes public observations up till 31 May 2023. Data on
+                  and includes public observations up till 31 May 2024. Data on
                   sensitive species (
                   <a href="https://ebird.org/india/news/ebird-sensitive-species" target="_blank">
                     https://ebird.org/india/news/ebird-sensitive-species
@@ -228,7 +251,7 @@ function Instructions() {
                 <p className="mt-3">
                   <span className="font-medium">High Priority</span>: Number of bird species that are listed
                   as High Conservation Priority in the <a href="https://www.stateofindiasbirds.in/" target="_blank">State of India's Birds
-                    2023.</a>
+                    2024.</a>
                 </p>
 
                 <p className="mt-3">
@@ -306,10 +329,30 @@ function Instructions() {
       </div>
       <div className="pb-8 flex justify-center gandhi-family">
         <Link to="/">
-          <button className="p-2 rounded bg-[#DAB830] hover:bg-[#635b3a] text-slate-100     font-semibold">
+          <button className="p-2 mb-10 rounded bg-[#DAB830] hover:bg-[#635b3a] text-slate-100 font-semibold">
             Start Using
           </button>
         </Link>
+      </div>
+      <div
+        className="grid grid-cols-3 text-center text-gray-100 p-3  font-sans bg-[#9A7269] fixed bottom-0 w-100"
+      >
+        <div className="col-span-2 text-right me-4 gandhi-family">
+          Generated from myna.stateofindiasbirds.in v.2.0 on {formattedDate}
+        </div>
+        <div
+          className={` font-medium gandhi-family text-right`}
+        >
+          Developed by{" "}
+          <a
+            style={{ textDecoration: "none" }}
+            className="text-[#dbb931]"
+            target="_blank"
+            href="https://www.alphanzo.io"
+          >
+            Alphanzo Technology Pvt Ltd
+          </a>
+        </div>
       </div>
     </>
   );
