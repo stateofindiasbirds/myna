@@ -14,10 +14,7 @@ const initState = {
   getSoibConcernStatus:[],
   completeListOfSpeciesGi:[],
   completeListOfSpeciesGiFetchSuccess:false,
-  // getDataForIucnRedListTableThroughJsonFile: [],
-  // getDataForEndemicSpeciesTableThroughJsonFile: [],
-  // getMostCommonSpeciesDataThroughJsonFile: [],
-  // getSeasonalChartDataThroughJsonFile: [],
+  getAllYearsCount:[],
 };
 export const UserReducer = (state = initState, action) => {
   switch (action.type) {
@@ -39,6 +36,8 @@ export const UserReducer = (state = initState, action) => {
       return { ...state, getSeasonalChartData: action?.payload };
     case "GET_HOTSPOT_AREAS":
       return { ...state, getHotspotAreas: action?.payload };
+    case "GET_ALL_YEARS_COUNT":
+      return { ...state, getAllYearsCount: action?.payload };  
     case "GET_COMPLETE_LIST_OF_SPECIES":
       return {
         ...state,
@@ -71,7 +70,8 @@ export const UserReducer = (state = initState, action) => {
         getDataForWaterbirdCongregation: [],
         getEffortDetails: [],
         completeListOfSpeciesFetchSuccess: false,
-        getSoibConcernStatus:[]
+        getSoibConcernStatus:[],
+        getAllYearsCount:[],
       };
     default:
       return state;
