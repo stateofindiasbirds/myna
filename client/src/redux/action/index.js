@@ -111,6 +111,34 @@ export const GET_COUNT_BY_SCIENTIFIC_NAME = (data, isFormData, value, value2) =>
   };
 };
 
+export const GET_ALL_YEARS_COUNT = (data, isFormData, value, value2) => {
+  return async (dispatch) => {
+    try {
+      if (isFormData) {
+        let res = await api.post(`latlong/all_years_count?start=${value}&end=${value2}`, data);
+        if (res?.status === 200) {
+          dispatch({
+            type: "GET_ALL_YEARS_COUNT",
+            payload: {data:res?.data, startdate: value},
+          });
+        }
+      } else {
+        let res = await api.get(`users/all_years_count`, {
+          params: { ...data, start: value, end: value2 },
+        });
+        if (res?.status === 200) {
+          dispatch({
+            type: "GET_ALL_YEARS_COUNT",
+            payload: {data:res?.data, startdate: value},
+          });
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+};
+
 
 export const GET_DATA_FOR_IUCN_REDLIST_TABLE = (data, isFormData, value, value2) => {
   return async (dispatch) => {
