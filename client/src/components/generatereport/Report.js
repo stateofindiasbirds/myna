@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState,useRef, useCallback, useMemo } from "react";
+import React, { Fragment, useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Map, Marker, GoogleApiWrapper, Polygon, InfoWindow } from 'google-maps-react';
 import Table2X2 from "./reportcomponents/Table2X2";
 import Table3XN from "./reportcomponents/Table3XN";
@@ -23,7 +23,7 @@ import dayjs from "dayjs";
 import Logo from "../../assets/images/logo.png";
 import CompleteListOfSpecies from "./reportcomponents/CompleteListofSpecies";
 import { RESET_ALL_DATA } from "../../redux/action";
-import { connect } from "react-redux";
+import { connect, useSelector } from "react-redux";
 import SeasonalChart from "./reportcomponents/SeasonalChart";
 import "./style.css";
 import CloseIcon from "@mui/icons-material/Close";
@@ -32,7 +32,8 @@ import ReoprtSkeleton from "./ReoprtSkeleton";
 import TableForEffortVariables from "./reportcomponents/TableForEffortVariables";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import { calculateCentroid, calculateZoom, createTrackMiddlewareForPdfGenerate } from "./helpers/helperFunctions";
-// import CustomHeatMap from '../HeatMap';
+import CustomHeatMap from '../HeatMap';
+import Chart from "./BarChart";
 // import { position } from "html2canvas/dist/types/css/property-descriptors/position";
 function Report(props) {
   const {
@@ -69,10 +70,7 @@ function Report(props) {
     mediumForReport,
   } = props;
 
-  // console.log(dataForMap, 'check datamap')
-  // console.log(editedData, 'edited data')
-  // console.log(getHotspotAreas, 'hotspot')
-  // console.log(boundary, 'selecteddistrict')
+
 
   const isTablet = useMediaQuery({ minWidth: 106, maxWidth: 624 });
   const monthNames = [
@@ -95,9 +93,28 @@ function Report(props) {
   const [activeMarker, setActiveMarker] = useState(null);
   const [center, setCenter] = useState(null);
   const [showInfoWindow, setShowInfoWindow] = useState(false);
-  const [newZoom,setNewZoom] = useState(null);
+  const [newZoom, setNewZoom] = useState(null);
   const [gridBounds, setGridBounds] = useState({ latMin: 0, latMax: 0, lngMin: 0, lngMax: 0 });
-  const [polygonData, setPolygonData] = useState([]);;
+  const [polygonData, setPolygonData] = useState([]);
+  const [isBarChartloaded, setIsBarChartloaded] = useState(false);
+  const [showHeatMap, setShowHeatMap] = useState(false);
+  const [polygonsCount, setPolygonsCount] = useState(null);
+  const allYearsCount = useSelector((state) => state?.UserReducer?.getAllYearsCount) || {};
+  const completeListOfSpeciesGi = useSelector(state => state?.UserReducer?.completeListOfSpeciesGi);
+  
+  useEffect(() => {
+    if (Object.keys(allYearsCount).length > 0) {
+      setIsBarChartloaded(true);
+    }
+  }, [allYearsCount]);
+
+  useEffect(()=>{
+     if(completeListOfSpeciesGi.length > 0){
+      setShowHeatMap(true);
+     }
+  },[completeListOfSpeciesGi])
+  
+
   const downloadPdfProgress = {
     "Download Pdf": "w-[0%]",
     "Creating Layout..": "w-[20%]",
@@ -121,10 +138,11 @@ function Report(props) {
   const seasonalChartDiv = useRef();
   const header = useRef();
   const footer = useRef();
+  const chartRef = useRef();
+  const heatmapRef = useRef();
 
   const closeHandler = () => {
     if (!selectedState && editedData) {
-      // console.log(editedData, "closebutton")
       const latlngs = [editedData.map((point) => [point.lng, point.lat])];
       const featureCollection = {
         type: "FeatureCollection",
@@ -168,25 +186,24 @@ function Report(props) {
   // const boundaryData = boundary?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }));
 
   const convertedData = dataForMap?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }));
-  const boundaryData = boundary?.features[0]?.geometry.type == 'Polygon' 
-                       && boundary?.features[0]?.geometry.coordinates.length == 1
-                       && boundary?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }))
-                       || (boundary?.features[0]?.geometry.type == 'Polygon' 
-                      //  && boundary?.features[0]?.geometry.coordinates.length == 2
-                       && boundary?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng })))
+  const boundaryData = boundary?.features[0]?.geometry.type == 'Polygon'
+    && boundary?.features[0]?.geometry.coordinates.length == 1
+    && boundary?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }))
+    || (boundary?.features[0]?.geometry.type == 'Polygon'
+      //  && boundary?.features[0]?.geometry.coordinates.length == 2
+      && boundary?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng })))
 
-  const newData = boundary?.features[0]?.geometry?.type == 'MultiPolygon' 
-                  // && boundary?.features[0]?.geometry?.coordinates.length > 2
-                  && boundary?.features[0]?.geometry?.coordinates
-                
+  const newData = boundary?.features[0]?.geometry?.type == 'MultiPolygon'
+    // && boundary?.features[0]?.geometry?.coordinates.length > 2
+    && boundary?.features[0]?.geometry?.coordinates
+
   const formattedData = newData && newData?.map(polygon => polygon[0]?.map(([lng, lat]) => ({ lat, lng })));
 
-  useEffect(()=>{
-    if(getHotspotAreas.length>0 && polygonData.length === 0){
+  useEffect(() => {
+    if (getHotspotAreas.length > 0 && polygonData.length === 0) {
       setPolygonData(getHotspotAreas);
     }
-  },[getHotspotAreas])
- 
+  }, [getHotspotAreas])
 
   // const getPolygonCenter = (polygon) => {
   //   if (polygon && polygon.length > 0) {
@@ -208,7 +225,7 @@ function Report(props) {
   //     if (polygon && polygon.length > 0 && google) {
   //       console.log('polygon',polygon)
   //       const bounds = new google.maps.LatLngBounds();
-  
+
   //       try {
   //         // Extend the bounds to include each point in the polygon
   //         if (Array.isArray(polygon[0][0])) {
@@ -241,19 +258,19 @@ function Report(props) {
   //       } catch (error) {
   //         console.error("Error processing polygon parts:", error);
   //       }
-  
+
   //       try {
   //         console.log(bounds);
   //         const center = bounds.getCenter();
   //         console.log("center", center);
-  
+
   //         const centerLat = center.lat();
   //         const centerLng = center.lng();
-  
+
   //         // If the center returns NaN, use the manual fallback logic
   //         if (isNaN(centerLat) || isNaN(centerLng)) {
   //           console.warn("Bounds returned NaN for center, using manual calculation.");
-  
+
   //           const totalPoints = polygon.length;
   //           const latSum = polygon.reduce((sum, point) => sum + point.lat, 0);
   //           const lngSum = polygon.reduce((sum, point) => sum + point.lng, 0);
@@ -264,7 +281,7 @@ function Report(props) {
   //           console.log('manualCenter',manualCenter);
   //           return manualCenter;
   //         }
-  
+
   //         // Return the bounds center if valid
   //         console.log({ lat: centerLat, lng: centerLng });
   //         return { lat: centerLat, lng: centerLng };
@@ -275,17 +292,16 @@ function Report(props) {
   //   } catch (error) {
   //     console.error("Error in getPolygonCenter function:", error);
   //   }
-  
+
   //   // Fallback in case polygon is empty
   //   console.log("Fallback - polygon is empty or not provided");
   //   return { lat: 25.21, lng: 79.32 };
   // };
-//  console.log("???????????/",props.google.maps.LatLngBounds()) 
+  //  console.log("???????????/",props.google.maps.LatLngBounds()) 
   const getPolygonCenter = (polygon, google) => {
-    // console.log('polygon',polygon)
     if (polygon && polygon.length > 0 && google) {
       const bounds = new google.maps.LatLngBounds();
-  
+
       const flattenPolygon = (polygon) => {
         return polygon.flatMap((part) => {
           if (Array.isArray(part[0])) {
@@ -294,22 +310,22 @@ function Report(props) {
           return part;
         });
       };
-  
+
       const flattenedPolygon = flattenPolygon(polygon);
-  
+
       flattenedPolygon.forEach((point) => {
         if (isFinite(point.lat) && isFinite(point.lng)) {
           bounds.extend(new google.maps.LatLng(point.lat, point.lng));
         } else {
         }
       });
-  
+
       const center = bounds.getCenter();
-  
+
       const centerLat = center.lat();
       const centerLng = center.lng();
-  
-      if (isNaN(centerLat) || isNaN(centerLng)) {  
+
+      if (isNaN(centerLat) || isNaN(centerLng)) {
         const totalPoints = flattenedPolygon.length;
         const latSum = flattenedPolygon.reduce((sum, point) => sum + point.lat, 0);
         const lngSum = flattenedPolygon.reduce((sum, point) => sum + point.lng, 0);
@@ -317,22 +333,22 @@ function Report(props) {
           lat: latSum / totalPoints,
           lng: lngSum / totalPoints,
         };
-  
+
         return manualCenter;
       }
-  
+
       return { lat: centerLat, lng: centerLng };
     }
-  
+
     return { lat: 25.21, lng: 79.32 };
   };
-  
-  
+
+
 
   // const memoizedData = useMemo(() => {
   //   return [convertedData, boundaryData, formattedData].find((d) => d && d !== false);
   // }, [convertedData, boundaryData, formattedData]);
-  
+
   // useEffect(() => {
   //   try {
   //     if (memoizedData && memoizedData.length > 0) {
@@ -346,17 +362,17 @@ function Report(props) {
   //           return coord;
   //         });
   //       };
-  
+
   //       const flattenedData = flattenCoordinates(memoizedData);
-  
+
   //       const latitudes = flattenedData.map((p) => p.lat);
   //       const longitudes = flattenedData.map((p) => p.lng);
-  
+
   //       const latMin = Math.min(...latitudes);
   //       const latMax = Math.max(...latitudes);
   //       const lngMin = Math.min(...longitudes);
   //       const lngMax = Math.max(...longitudes);
-  
+
   //       setGridBounds((prevBounds) => {
   //         const newBounds = { latMin, latMax, lngMin, lngMax };
   //         if (
@@ -374,33 +390,32 @@ function Report(props) {
   //     console.log('error', e);
   //   }
   // }, [memoizedData]);
-  
-  
-  
-    // Calculate the center of the polygon
-    // const polygonCenter = getPolygonCenter(polygonData, props.google);
 
-      const mapRef = useRef(null);
-    
-      // This function will calculate and return the bounds for the boundary data
-      const getBoundsForPolygon = (boundaryData) => {
-        const bounds = new props.google.maps.LatLngBounds();
-        boundaryData.forEach(coord => {
-          bounds.extend(new props.google.maps.LatLng(coord.lat, coord.lng));
-        });
-        return bounds;
-      };
-    
-      // This will be triggered when the map is loaded
-      const onMapReady = (mapProps, map) => {
-        const dataToUse = boundaryData || convertedData || editedData;
 
-        if (dataToUse ) {
-          console.log("//////////////",dataToUse)
-          const bounds = getBoundsForPolygon(dataToUse);
-          map.fitBounds(bounds); 
-        }
-      };
+
+  // Calculate the center of the polygon
+  // const polygonCenter = getPolygonCenter(polygonData, props.google);
+
+  const mapRef = useRef(null);
+
+  // This function will calculate and return the bounds for the boundary data
+  const getBoundsForPolygon = (boundaryData) => {
+    const bounds = new props.google.maps.LatLngBounds();
+    boundaryData.forEach(coord => {
+      bounds.extend(new props.google.maps.LatLng(coord.lat, coord.lng));
+    });
+    return bounds;
+  };
+
+  // This will be triggered when the map is loaded
+  const onMapReady = (mapProps, map) => {
+    const dataToUse = boundaryData || convertedData || editedData;
+
+    if (dataToUse) {
+      const bounds = getBoundsForPolygon(dataToUse);
+      map.fitBounds(bounds);
+    }
+  };
 
 
 
@@ -410,68 +425,70 @@ function Report(props) {
 
     if (changeLayoutForReport) {
       delayTimeout = setTimeout(() => {
-      createTrackMiddlewareForPdfGenerate(mediumForReport)
+        createTrackMiddlewareForPdfGenerate(mediumForReport)
 
-      handleDownloadPdf(
-        PrintScreen,
-        otherScreen,
-        mostCommonSpeciesDiv,
-        seasonalChartDiv,
-        header,
-        footer,
-        getDataForIucnRedListTable,
-        getDataForEndemicSpeciesTable,
-        getDataForWaterbirdCongregation,
-        completeListOfSpecies,
-        selectedState,
-        selectedCounty,
-        getHotspotAreas,
-        setPdfDownloadStatus,
-        setChangeLayoutForReport,
-        reportName,
-        formattedDate,
-        Group86,
-        Group_26,
-        Layer_1,
-        Layer_2,
-        whiteLogo,
-        India,
-        NT_Logo,
-        EN_Logo,
-        CR_Logo,
-        VU_Logo,
-        getCountByScientificName?.indiaEndemic,
-        getCountByScientificName?.scheduleI,
-        getCountByScientificName?.soibHighPriority,
-        getCountByScientificName?.iucnRedList,
-        getCountByScientificName?.migrate,
-        getCountByScientificName?.total,
-        getCountByScientificName?.cmsAppendixSpecies,
-        getCountByScientificName?.citesAppendixSpecies,
-        getCountByScientificName?.soibConservationConcernSpecies,
-        getCountByScientificName?.iucnRedListCategoriesCount
-          ? getCountByScientificName?.iucnRedListCategoriesCount[
-          "Near Threatened"
-          ]
-          : 0,
-        getCountByScientificName?.iucnRedListCategoriesCount
-          ? getCountByScientificName?.iucnRedListCategoriesCount["Vulnerable"]
-          : 0,
-        getCountByScientificName?.iucnRedListCategoriesCount
-          ? getCountByScientificName?.iucnRedListCategoriesCount["Endangered"]
-          : 0,
-        getCountByScientificName?.iucnRedListCategoriesCount
-          ? getCountByScientificName?.iucnRedListCategoriesCount[
-          "Critically Endangered"
-          ]
-          : 0,
-        getEffortDetails,
-        getSoibConcernStatus,
-        startDate,
-        endDate,
-        getSeasonalChartData
-      );
-    },3000);
+        handleDownloadPdf(
+          PrintScreen,
+          otherScreen,
+          heatmapRef,
+          chartRef,
+          mostCommonSpeciesDiv,
+          seasonalChartDiv,
+          header,
+          footer,
+          getDataForIucnRedListTable,
+          getDataForEndemicSpeciesTable,
+          getDataForWaterbirdCongregation,
+          completeListOfSpecies,
+          selectedState,
+          selectedCounty,
+          getHotspotAreas,
+          setPdfDownloadStatus,
+          setChangeLayoutForReport,
+          reportName,
+          formattedDate,
+          Group86,
+          Group_26,
+          Layer_1,
+          Layer_2,
+          whiteLogo,
+          India,
+          NT_Logo,
+          EN_Logo,
+          CR_Logo,
+          VU_Logo,
+          getCountByScientificName?.indiaEndemic,
+          getCountByScientificName?.scheduleI,
+          getCountByScientificName?.soibHighPriority,
+          getCountByScientificName?.iucnRedList,
+          getCountByScientificName?.migrate,
+          getCountByScientificName?.total,
+          getCountByScientificName?.cmsAppendixSpecies,
+          getCountByScientificName?.citesAppendixSpecies,
+          getCountByScientificName?.soibConservationConcernSpecies,
+          getCountByScientificName?.iucnRedListCategoriesCount
+            ? getCountByScientificName?.iucnRedListCategoriesCount[
+            "Near Threatened"
+            ]
+            : 0,
+          getCountByScientificName?.iucnRedListCategoriesCount
+            ? getCountByScientificName?.iucnRedListCategoriesCount["Vulnerable"]
+            : 0,
+          getCountByScientificName?.iucnRedListCategoriesCount
+            ? getCountByScientificName?.iucnRedListCategoriesCount["Endangered"]
+            : 0,
+          getCountByScientificName?.iucnRedListCategoriesCount
+            ? getCountByScientificName?.iucnRedListCategoriesCount[
+            "Critically Endangered"
+            ]
+            : 0,
+          getEffortDetails,
+          getSoibConcernStatus,
+          startDate,
+          endDate,
+          getSeasonalChartData
+        );
+      }, 3000);
     }
     return () => {
       // Clear the timeout if the component is unmounted or changeLayoutForReport changes
@@ -479,7 +496,7 @@ function Report(props) {
         clearTimeout(delayTimeout);
       }
     };
-  }, [changeLayoutForReport,otherScreen]);
+  }, [changeLayoutForReport, otherScreen, chartRef, heatmapRef]);
 
 
   const [initialCenter, setInitialCenter] = useState({ lat: 25.21, lng: 79.32 });
@@ -586,7 +603,7 @@ function Report(props) {
       const existingStyle = document.getElementById("customMapStyles");
       if (existingStyle) {
         existingStyle.remove();
-      }    
+      }
     }
     return () => {
       const existingStyle = document.getElementById("customMapStyles");
@@ -603,7 +620,7 @@ function Report(props) {
       setGridPolygonsDataForMap(boundaryGrid);
 
     }
-  }, [changeLayoutForReport,boundary]);
+  }, [changeLayoutForReport, boundary]);
 
   useEffect(() => {
     if (dataForMap && dataForMap.features && dataForMap.features.length > 0) {
@@ -620,11 +637,11 @@ function Report(props) {
   }, [dataForMap]);
 
 
-   const handleZoomChange =() => {
+  const handleZoomChange = () => {
     setNewZoom(7);
-   }
+  }
 
-   const [downloadTriggered, setDownloadTriggered] = useState(false);
+  const [downloadTriggered, setDownloadTriggered] = useState(false);
 
   const handleDownloadClick = () => {
     if (otherScreen.current) {
@@ -632,7 +649,7 @@ function Report(props) {
 
       setTimeout(() => {
         triggerDownload(true);
-      }, 1000); 
+      }, 1000);
     } else {
       triggerDownload(false);
     }
@@ -644,12 +661,13 @@ function Report(props) {
     setChangeLayoutForReport(value);
     setTimeout(() => {
       scrollToTop();
-    }, 1000);   };
+    }, 1000);
+  };
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
- 
+
   const timeoutRef = useRef(null);
 
   // const handleMouseOver = (marker) => {
@@ -666,7 +684,7 @@ function Report(props) {
   // const handleMouseOver = (marker) => {
   //   // debugger;
   //   // clearTimeout(timeoutRef.current);
-    
+
   //   // Debounce the state update to prevent flickering on rapid hover
   //   // timeoutRef.current = setTimeout(() => {
   //     // Update the state only if the hovered marker is different
@@ -687,8 +705,8 @@ function Report(props) {
   // }
 
 
-  
-    
+
+
   const MemoizedPolygonCenter = useMemo(() => {
     return {
       convertedData: convertedData && getPolygonCenter(convertedData, props.google),
@@ -698,10 +716,10 @@ function Report(props) {
     };
   }, [convertedData, editedData, boundaryData, formattedData, props.google]);
 
-  
 
-  
-  
+
+
+
   const handleMarkerClick = (marker) => {
     setActiveMarker(marker);
     setShowInfoWindow(true);
@@ -726,14 +744,13 @@ function Report(props) {
     }
   }, [changeLayoutForReport, getHotspotAreas]);
 
-
-  
+  const roundToTwoDecimals = (num) => Math.round(num * 100) / 100;
 
   return (
     <Fragment>
       <div style={{ backgroundColor: "#ffffff00" }}>
-      <div ref={header} style={{ opacity: getCountByScientificName?.total !== undefined && completeListOfSpeciesFetchSuccessFully ? 1 : 0.4 }}>
-      <Card
+        <div ref={header} style={{ opacity: getCountByScientificName?.total !== undefined && completeListOfSpeciesFetchSuccessFully && isBarChartloaded ? 1 : 0.4 }}>
+          <Card
             className={changeLayoutForReport && "p-8"}
             style={{ borderRadius: "0 0 0 0", backgroundColor: "#DAB830" }}
           >
@@ -786,13 +803,13 @@ function Report(props) {
                           title="Download"
                           className={changeLayoutForReport && "invisible"}
                         >
-                           {getCountByScientificName?.total &&
-                              <FileDownloadOutlinedIcon
-                                onClick={() => handleDownloadClick(true)}
-                                style={{ cursor: 'pointer'}}
-                              />
-                            }
-                       </Tooltip>
+                          {getCountByScientificName?.total &&
+                            <FileDownloadOutlinedIcon
+                              onClick={() => handleDownloadClick(true)}
+                              style={{ cursor: 'pointer' }}
+                            />
+                          }
+                        </Tooltip>
                       </div>
                       <div>
                         <Tooltip
@@ -825,7 +842,7 @@ function Report(props) {
             </div>
           </Card>
         </div>
-        {getCountByScientificName?.total !== undefined && completeListOfSpeciesFetchSuccessFully ? (
+        {getCountByScientificName?.total !== undefined && completeListOfSpeciesFetchSuccessFully && isBarChartloaded ? (
           <div>
             <div
               ref={PrintScreen}
@@ -987,7 +1004,7 @@ function Report(props) {
                       includesScientificName={false}
                     />
                   </Card>
-                  <Card className="mx-40">
+                  <Card className="mx-40 my-8">
                     <Table3XN
                       heading="IUCN REDLIST SPECIES"
                       tableData={getDataForIucnRedListTable}
@@ -999,7 +1016,7 @@ function Report(props) {
                       includesScientificName={false}
                     />
                   </Card>
-                 
+
                   <Card className="mx-40 my-8">
                     <Table3XN
                       heading="ENDEMIC SPECIES"
@@ -1061,126 +1078,126 @@ function Report(props) {
               )}
             </div>
 
-            <div className="mb-16 py-4" style={{ height:"70vh" }}>
-              <div className="p-2 grid grid-cols-1 md:grid-cols-3  mx-20 mb-16" style={{ height:"70vh" }}>
-              <div className="grid col-span-2"  ref={otherScreen} >
-                    <Map
-                        ref={mapRef}
-                        className="w-auto"
-                        style={{
-                          height: "58vh",
-                          width: '58vw',
-                        }}
-                        google={props.google}
-                        mapTypeControl={false}
-                        scaleControl={false}
-                        streetViewControl={false}
-                        panControl={false}
-                        rotateControl={false}
-                        // zoom={ newZoom ||
-                        //   editedData ? 9 :
-                        //     convertedData ? 10.5 :
-                        //       boundaryData ? 9 : 10.5
-                        // }
-                        zoom={changeLayoutForReport ? 8.2 : 8.2}
-                        onReady={onMapReady} 
-                        // initialCenter={{
-                        //   lat: (gridBounds.latMin + gridBounds.latMax) / 2,
-                        //   lng: (gridBounds.lngMin + gridBounds.lngMax) / 2
-                        // }}
-                        // initialCenter={iCenter}
-                        // initialCenter={(convertedData && getPolygonCenter(convertedData,props.google)) || (editedData && getPolygonCenter(editedData,props.google)) || boundaryData && (changeLayoutForReport ? getPolygonCenter(boundaryData,props.google) : getPolygonCenter(boundaryData,props.google)) || formattedData && (changeLayoutForReport ? getPolygonCenter(formattedData,props.google) : getPolygonCenter(formattedData,props.google)) ||{ lat: 25.21, lng: 79.32 }}
-                        initialCenter={
-                          MemoizedPolygonCenter.convertedData ||
-                          MemoizedPolygonCenter.editedData ||
-                          MemoizedPolygonCenter.boundaryData ||
-                          MemoizedPolygonCenter.formattedData || 
-                          { lat: 25.21, lng: 79.32 }  // Default center
-                        }
+            <div className="mb-16 py-4" style={{ height: "70vh" }}>
+              <div className="p-2 grid grid-cols-1 md:grid-cols-3  mx-20 mb-16" style={{ height: "70vh" }}>
+                <div className="grid col-span-2" ref={otherScreen} >
+                  <Map
+                    ref={mapRef}
+                    className="w-auto"
+                    style={{
+                      height: "58vh",
+                      width: '58vw',
+                    }}
+                    google={props.google}
+                    mapTypeControl={false}
+                    scaleControl={true}
+                    streetViewControl={false}
+                    panControl={false}
+                    rotateControl={false}
+                    // zoom={ newZoom ||
+                    //   editedData ? 9 :
+                    //     convertedData ? 10.5 :
+                    //       boundaryData ? 9 : 10.5
+                    // }
+                    zoom={changeLayoutForReport ? 8.5 : 8.5}
+                    onReady={onMapReady}
+                    // initialCenter={{
+                    //   lat: (gridBounds.latMin + gridBounds.latMax) / 2,
+                    //   lng: (gridBounds.lngMin + gridBounds.lngMax) / 2
+                    // }}
+                    // initialCenter={iCenter}
+                    // initialCenter={(convertedData && getPolygonCenter(convertedData,props.google)) || (editedData && getPolygonCenter(editedData,props.google)) || boundaryData && (changeLayoutForReport ? getPolygonCenter(boundaryData,props.google) : getPolygonCenter(boundaryData,props.google)) || formattedData && (changeLayoutForReport ? getPolygonCenter(formattedData,props.google) : getPolygonCenter(formattedData,props.google)) ||{ lat: 25.21, lng: 79.32 }}
+                    initialCenter={
+                      MemoizedPolygonCenter.convertedData ||
+                      MemoizedPolygonCenter.editedData ||
+                      MemoizedPolygonCenter.boundaryData ||
+                      MemoizedPolygonCenter.formattedData ||
+                      { lat: 25.21, lng: 79.32 }  // Default center
+                    }
+                  >
+                    {props.data && props.data.features && props.data.features.length > 0 && (
+                      <Polygon
+                        paths={[props.data.features[0].geometry.coordinates[0]]}
+                        strokeColor="#0000FF"
+                        strokeOpacity={0.8}
+                        strokeWeight={2.5}
+                        fillOpacity={0}
+                      />
+                    )}
+
+                    {editedData && (
+                      <Polygon
+                        paths={editedData}
+                        strokeColor="#0000FF"
+                        strokeOpacity={0.8}
+                        strokeWeight={2.5}
+                        fillOpacity={0}
+                      />
+                    )}
+
+                    {convertedData && (
+                      <Polygon
+                        paths={convertedData}
+                        strokeColor="#0000FF"
+                        strokeOpacity={0.8}
+                        strokeWeight={2.5}
+                        fillOpacity={0}
+                      />
+                    )}
+
+                    {boundaryData && (
+                      <Polygon
+                        paths={boundaryData}
+                        strokeColor="#0000FF"
+                        strokeOpacity={0.8}
+                        strokeWeight={2.5}
+                        fillOpacity={0}
+                      />
+                    )}
+                    {formattedData && (
+                      <Polygon
+                        paths={formattedData}
+                        strokeColor="#0000FF"
+                        strokeOpacity={0.8}
+                        strokeWeight={2.5}
+                        fillOpacity={0}
+                      />
+                    )}
+                    {(capturedMarkers?.length > 0 ? capturedMarkers : getHotspotAreas).map((marker) => (
+                      <Marker
+                        key={marker.id}
+                        position={marker.position}
+                        onMouseover={marker.onMouseover}
+                      />
+                    ))}
+
+                    {getHotspotAreas && getHotspotAreas?.map(marker => (
+                      <Marker
+                        key={marker.localityId}
+                        position={{ lat: marker.latitude, lng: marker.longitude }}
+                        onMouseover={() => handleMarkerClick(marker)}
+                        onMouseout={() => setShowInfoWindow(false)}
+                      />
+                    ))}
+
+                    {getHotspotAreas && activeMarker && getHotspotAreas?.map(marker => (
+                      <InfoWindow
+                        key={marker.localityId}
+                        position={{ lat: activeMarker.latitude, lng: marker.longitude }}
+                        visible={showInfoWindow && activeMarker === marker}
+                        zIndex={10000}
                       >
-                        {props.data && props.data.features && props.data.features.length > 0 && (
-                          <Polygon
-                            paths={[props.data.features[0].geometry.coordinates[0]]}
-                            strokeColor="#0000FF"
-                            strokeOpacity={0.8}
-                            strokeWeight={2.5}
-                            fillOpacity={0}
-                          />
-                        )}
-
-                        {editedData && (
-                          <Polygon
-                            paths={editedData}
-                            strokeColor="#0000FF"
-                            strokeOpacity={0.8}
-                            strokeWeight={2.5}
-                            fillOpacity={0}
-                          />
-                        )}
-
-                        {convertedData && (
-                          <Polygon
-                            paths={convertedData}
-                            strokeColor="#0000FF"
-                            strokeOpacity={0.8}
-                            strokeWeight={2.5}
-                            fillOpacity={0}
-                          />
-                        )}
-
-                        {boundaryData && (
-                          <Polygon
-                            paths={boundaryData}
-                            strokeColor="#0000FF"
-                            strokeOpacity={0.8}
-                            strokeWeight={2.5}
-                            fillOpacity={0}
-                          />
-                        )}
-                          {formattedData && (
-                          <Polygon
-                            paths={formattedData}
-                            strokeColor="#0000FF"
-                            strokeOpacity={0.8}
-                            strokeWeight={2.5}
-                            fillOpacity={0}
-                          />
-                        )}
-                        {(capturedMarkers?.length > 0 ? capturedMarkers : getHotspotAreas).map((marker) => (
-                          <Marker
-                            key={marker.id}
-                            position={marker.position}
-                            onMouseover={marker.onMouseover}
-                          />
-                        ))}
-
-                        {getHotspotAreas && getHotspotAreas?.map(marker => (
-                          <Marker
-                            key={marker.localityId}
-                            position={{ lat: marker.latitude, lng: marker.longitude }}
-                            onMouseover={() => handleMarkerClick(marker)}
-                            onMouseout={() => setShowInfoWindow(false)}
-                          />
-                        ))}
-
-                        {getHotspotAreas && activeMarker && getHotspotAreas?.map(marker => (
-                          <InfoWindow
-                            key={marker.localityId}
-                            position={{ lat: activeMarker.latitude, lng: marker.longitude }}
-                            visible={showInfoWindow && activeMarker === marker}
-                            zIndex={10000}
-                          >
-                            <div style={{zIndex:'1000'}}>
-                              <p>{marker.locality}</p>
-                            </div>
-                          </InfoWindow>
-                        ))}
-                    </Map>
+                        <div style={{ zIndex: '1000' }}>
+                          <p>{marker.locality}</p>
+                        </div>
+                      </InfoWindow>
+                    ))}
+                  </Map>
                   {area != null ? (
-                    <span   className={`bg-[#F3EDE8] text-gray-800 h-[64vh] p-2 pb-4 gandhi-family rounded-b-xl`}
-                    style={{ display: 'flex', alignItems: 'end',letterSpacing: '0.05em',fontFamily:'"Gandhi Sans Regular"' }}>
+                    <span className={`bg-[#F3EDE8] text-gray-800 h-[64vh] p-2 pb-4 gandhi-family rounded-b-xl`}
+                      style={{ display: 'flex', alignItems: 'end', letterSpacing: '0.05em', fontFamily: '"Gandhi Sans Regular"' }}>
                       {" "}
-                      {"Area: "}{parseFloat(area)} square kilometers
+                      {"Area: "}{parseFloat(roundToTwoDecimals(area))} square kilometers
                     </span>
                   ) : (
                     ""
@@ -1193,10 +1210,69 @@ function Report(props) {
               </div>
             </div>
 
-            {/* <div style={{display:'flex', justifyContent:'center', alignItems:'center', height:'100%', marginLeft:'12rem'}}>
-            <CustomHeatMap paths={editedData || convertedData || boundaryData} />
-            </div> */}
-           
+            {showHeatMap && 
+              <div style={{ display: polygonsCount < 1 || area <= 500 ? "none" : "block" }}>
+              <div ref={heatmapRef} className='flex flex-col justify-center items-center relative'>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", margin: '2rem' }}>
+                <h2 className="gandhi-family-bold" style={{ margin: 0, fontSize: "24px" }}>HEATMAP</h2>
+                <button
+                  className="gandhi-family"
+                  style={{
+                    background: "none",
+                    border: "1px solid #DAB830",
+                    borderRadius: "50%",
+                    color: "#DAB830",
+                    width: "24px",
+                    height: "24px",
+                    textAlign: "center",
+                    cursor: "pointer",
+                  }}
+                  title="Intensity of the colour of a grid is proportional to the number of checklists from that grid"
+                >
+                  i
+                </button>
+              </div>
+              <CustomHeatMap onMapReady={onMapReady} paths={editedData || convertedData || boundaryData || formattedData} setPolygonsCount={setPolygonsCount} />
+              <div>
+                <div className="bottom-0 left-0 w-full flex justify-center items-center bg-white mt-[10px]">
+                  <div className="flex items-center mx-2">
+                    <div className="w-8 h-8 bg-[#562377] border border-black mr-2"></div>
+                    <span className="text-sm">{'>= 70'}</span>
+                  </div>
+                  <div className="flex items-center mx-2">
+                    <div className="w-8 h-8 bg-[#3949ab] border border-black mr-2"></div>
+                    <span className="text-sm">{'30 - 69'}</span>
+                  </div>
+                  <div className="flex items-center mx-2">
+                    <div className="w-8 h-8 bg-[#5c6bc0] border border-black mr-2"></div>
+                    <span className="text-sm">{'10 - 29'}</span>
+                  </div>
+                  <div className="flex items-center mx-2">
+                    <div className="w-8 h-8 bg-[#7986cb] border border-black mr-2"></div>
+                    <span className="text-sm">{'3 - 9'}</span>
+                  </div>
+                  <div className="flex items-center mx-2">
+                    <div className="w-8 h-8 bg-[#c5cae9] border border-black mr-2"></div>
+                    <span className="text-sm">{'1 - 2'}</span>
+                  </div>
+                  <div className="flex items-center mx-2">
+                    <div className="w-8 h-8 bg-[#FFFFFF] border border-black mr-2"></div>
+                    <span className="text-sm">{'0'}</span>
+                  </div>
+                </div>
+              </div>
+            <div className="text-center text-3xl  gandhi-family text-[20px]  mt-[5px]">
+              NUMBER OF COMPLETE LISTS
+            </div>
+            </div>
+            </div>
+            }
+
+
+            <div ref={chartRef} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', transform: 'translateY(48px)', margin: '6rem 0rem' }}>
+              <Chart />
+            </div>
+
 
 
             {/* <div className=" grid grid-cols-3 px-20 ">
@@ -1317,7 +1393,7 @@ function Report(props) {
           }`}
       >
         <div className="col-span-2 text-right me-4 gandhi-family">
-          Generated from myna.stateofindiasbirds.in v.2.0 on {formattedDate}
+          Generated from myna.stateofindiasbirds.in v.2.1 on {formattedDate}
         </div>
         <div
           className={`${changeLayoutForReport && "invisible"
@@ -1351,7 +1427,7 @@ const mapStateToProps = (state) => {
     getDataForWaterbirdCongregation:
       state?.UserReducer?.getDataForWaterbirdCongregation,
     getEffortDetails: state?.UserReducer?.getEffortDetails,
-    getSoibConcernStatus:state?.UserReducer?.getSoibConcernStatus,
+    getSoibConcernStatus: state?.UserReducer?.getSoibConcernStatus,
     completeListOfSpeciesFetchSuccessFully: state?.UserReducer?.completeListOfSpeciesFetchSuccess,
   };
 };
@@ -1361,7 +1437,6 @@ export default connect(mapStateToProps, {
 })(GoogleApiWrapper({
   apiKey: process.env.REACT_APP_API_KEY
 })(Report));
-
 
 
 

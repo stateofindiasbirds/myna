@@ -47,6 +47,7 @@ import {
   GET_ALL_EFFORT_DETAILS,
   GET_SOIB_CONCERN_STATUS,
   GET_COMPLETE_LIST_OF_SPECIES_GI,
+  GET_ALL_YEARS_COUNT
 } from "../../redux/action";
 import { connect } from "react-redux";
 import { useEffect } from "react";
@@ -77,6 +78,7 @@ function Main(props) {
     GET_ALL_EFFORT_DETAILS,
     GET_SOIB_CONCERN_STATUS,
     GET_COMPLETE_LIST_OF_SPECIES_GI,
+    GET_ALL_YEARS_COUNT
   } = props;
   const generateFileName = (name) => {
     const alias = name.split(".");
@@ -116,7 +118,7 @@ function Main(props) {
   const [districtList, setDistrictList] = useState([]);
   const [localitiesList, setLocalitiesList] = useState([]);
   const [editedData, setEditedData] = useState(null);
-  const [value, setValue] = useState("01/01/1900");
+  const [value, setValue] = useState("1900-01-01");
   const [value2, setValue2] = useState(dayjs('2024-05-31'));
   const [showdate, setShowdate] = useState(true);
   const [area, setArea] = useState(null)
@@ -380,6 +382,20 @@ console.log('uploadedFileNameuploadedFileName',uploadedFileName);
       uploadedgeojson || newPolygon ? true : false,
       formattedStartDate,
       formattedEndDate
+    );
+    GET_ALL_YEARS_COUNT(
+      uploadedgeojson || newPolygon
+      ? formData
+      : {
+        state: selectedState,
+        county: selectedCounty,
+        locality: selectedLocality,
+        start: value,
+        end: value2,
+      },
+    uploadedgeojson || newPolygon ? true : false,
+    formattedStartDate,
+    formattedEndDate
     );
   };
 
@@ -1369,4 +1385,5 @@ export default connect(mapStateToProps, {
   GET_COMPLETE_LIST_OF_SPECIES_GI,
   GET_ALL_EFFORT_DETAILS,
   GET_SOIB_CONCERN_STATUS,
+  GET_ALL_YEARS_COUNT
 })(Main);

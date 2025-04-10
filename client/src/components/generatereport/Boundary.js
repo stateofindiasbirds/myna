@@ -39,7 +39,7 @@ function Boundary(props) {
 
     }
     catch(err){
-      console.log('errrorBoundary', err);
+      // console.log('errrorBoundary', err);
       console.error("Can't zoom")
       props.setData(null)
     }
@@ -60,7 +60,7 @@ function Boundary(props) {
       />
     );
   } catch (error) {
-    console.log(error)
+    // console.log(error)
     props.setData(null)
     toast.error("format Not Supported");
   }

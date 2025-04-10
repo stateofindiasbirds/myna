@@ -314,6 +314,13 @@ function Instructions() {
                     reported. Their locations are shown in the map.
                   </p>
                   <p className="mt-3">
+                    <span className="font-medium">HEATMAP</span> shows the boundary of the area covered by square grids of 5 x 5 km and each grid has a colour density proportional to the number of checklists in that grid. The color density is normalized to the number of unique lists.
+                    
+                  </p>
+                  <p className="mt-3">
+                    <span className="font-medium">SPECIES ACCUMULATION CURVE</span> bar chart is a cumulative curve and against a particular year it plots the number of species seen until that year (and not of that year alone!)
+                  </p>
+                  <p className="mt-3">
                     <span className="font-medium">COMPLETE LIST OF SPECIES</span> is a full table of all the bird
                     species, and their conservation priority, threat status,
                     endemicity, and protection status.
@@ -338,7 +345,7 @@ function Instructions() {
         className="grid grid-cols-3 text-center text-gray-100 p-3  font-sans bg-[#9A7269] fixed bottom-0 w-100"
       >
         <div className="col-span-2 text-right me-4 gandhi-family">
-          Generated from myna.stateofindiasbirds.in v.2.0 on {formattedDate}
+          Generated from myna.stateofindiasbirds.in v.2.1 on {formattedDate}
         </div>
         <div
           className={` font-medium gandhi-family text-right`}

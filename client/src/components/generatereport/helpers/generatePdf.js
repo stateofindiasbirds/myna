@@ -28,6 +28,8 @@ import { generateFirstPage } from "./generateFirstPage";
 export const handleDownloadPdf = async (
   PrintScreen,
   otherScreen,
+  chartRef,
+  heatmapRef,
   mostCommonSpeciesDiv,
   seasonalChartDiv,
   header,
@@ -84,13 +86,43 @@ export const handleDownloadPdf = async (
   setPdfDownloadStatus("Creating Layout..");
   const pdf = new jsPDF({ format: "a4" });
   // capturing multiple images
-
+  const captureCanvas = async (ref) => {
+    if (!ref?.current) {
+      console.warn("Skipping capture: Element not found.");
+      return null;
+    }
+    return await html2canvas(ref.current, {
+      windowWidth: 1600,
+      useCORS: true,
+    });
+  };
   setPdfDownloadStatus("Gathering Data...");
-  const canvas2 = await html2canvas(otherScreen.current, {
-    windowWidth: 1600,
-    useCORS: true,
-    // proxy: "server.js",
-  });
+const canvas2 = await captureCanvas(otherScreen);
+const canvas5 = await captureCanvas(chartRef);
+const canvas7 = await captureCanvas(heatmapRef);
+
+  // setPdfDownloadStatus("Gathering Data...");
+  // const canvas2 = await html2canvas(otherScreen?.current, {
+  //   windowWidth: 1600,
+  //   useCORS: true,
+  //   // proxy: "server.js",
+  // });
+  
+  // setPdfDownloadStatus("Gathering Data...");
+  // const canvas5 = await html2canvas(chartRef?.current, {
+  //   windowWidth: 1600,
+  //   useCORS: true,
+  //   // proxy: "server.js",
+  // });
+
+  // setPdfDownloadStatus("Gathering Data...");
+  // const canvas7 = await html2canvas(heatmapRef?.current, {
+  //   windowWidth: 1600,
+  //   useCORS: true,
+  //   // proxy: "server.js",
+  // });
+ 
+
 
   setPdfDownloadStatus("Creating Tables...");
   const canvas3 = await html2canvas(mostCommonSpeciesDiv.current, {
@@ -157,22 +189,6 @@ export const handleDownloadPdf = async (
 
   const footerImgHeight =
     (footerImgProperty.height * pdfWidth) / footerImgProperty.width;
-  //add page only if any of the tabe exists iucn, endemic, waterBirdCongregation
-
-  // const processedData =  soibData.map(row => {
-  //   if (row[2]?.newDate) {
-  //     const url = `https://ebird.org/checklist/${row[2].samplingEventIdentifier}`;
-  //     const linkText = row[2].newDate.toString(); // Convert the date to a string
-  //     //  pdf.textWithLink(linkText,50, 10,{ url: url }); // Add clickable link to the PDF
-  //     return [row[0], row[1], pdf]; 
-  //   } else {
-  //     return row;
-  //   }
-  // });
-
-  // pdf.textWithLink(row[2].newDate, 91, 162, {url: url});
-
-//  console.log(processedData);
   (soibData.length > 0 ||
     endemicData.length > 0 ||
     waterBirdCongregationsData > 0 || iucnData.length > 0) &&
@@ -258,10 +274,6 @@ export const handleDownloadPdf = async (
     addPageIfLessSpaceLeft(pdf.previousAutoTable.finalY) && pdf.addPage();
   }
 
-  // (iucnData.length > 0 ||
-  //   endemicData.length > 0 ||
-  //   waterBirdCongregationsData > 0 || soibData.length > 0) &&
-  //   pdf.addPage();
   if (shouldDrawTable(iucnData)) {
     pdf.autoTable({
       headStyles: {
@@ -281,9 +293,7 @@ export const handleDownloadPdf = async (
       fontStyle: "normal",
       rowPageBreak: "avoid",
     });
-    // defining header image data
-    //second table
-    //tableStartPage and tableEndPage is repeated at start and end of table to know pagenumber on which repeater table title is required
+   
     tableStartPage = pdf.internal.getNumberOfPages();
     pdf.autoTable({
       body: iucnData,
@@ -543,11 +553,11 @@ export const handleDownloadPdf = async (
     "two",
     "fast"
   );
-  { getSeasonalChartData?.length && pdf.addPage(); }
+  { canvas2 && getSeasonalChartData?.length && pdf.addPage(); }
     const secondImg = canvas2.toDataURL("image/png");
     const hotspotImageProperties = pdf.getImageProperties(secondImg);
     const hotspotImageHeight =
-      (hotspotImageProperties.height * 120) / hotspotImageProperties.width;
+      (hotspotImageProperties.height * 100) / hotspotImageProperties.width;
      pdf.addImage(
       secondImg,
       "PNG",
@@ -558,60 +568,114 @@ export const handleDownloadPdf = async (
       "three",
       "fast"
     );
+    let isShiftingRequiredafterHotspot = false;
+    if (hotspotList?.length > 3) {
+      isShiftingRequiredafterHotspot = true;
+    }
+    pdf.setFillColor("#000000");
+  
+     pdf.autoTable({
+      body: hotspotList,
+      headStyles: {
+        fillColor: [154, 114, 105],
+        cellpadding: 4,
+        textColor: [255, 255, 255],
+        font: "GandhiFont",
+        fontStyle: "bold",
+      },
+      head: [["Top Hotspots", "No of Species"]],
+      styles: {
+        cellPadding: 3, // Set padding for all cells
+        font: "GandhiSans-Regular",
+        fontStyle: "normal",
+      },
+      rowPageBreak: "avoid",
+      startY: 40,
+      // startY: 60,
+      margin: { left: 116 },
+      didParseCell: function (data) {
+        const { row } = data;
+        if (row.section !== "head") {
+          const fillColor = rowColors[row.index % 2];
+          if (fillColor && row.section !== "head") {
+            data.cell.styles.fillColor = fillColor;
+          }
+        }
+      },
+    });
+  
 
-// ye second map hai 
-  // const secondImg2 = canvas2.toDataURL("image/png");
-  // console.log(secondImg2, 'secnd img')
-  // const hotspotImageProp = pdf.getImageProperties(secondImg2);
-  // const hotspotImageHei =
-  //   (hotspotImageProp.height * 100) / hotspotImageProp.width;
-  // hotspotList[0] != 'No Data Available' && pdf.addImage(
-  //   secondImg2,
-  //   "PNG",
-  //   40,
-  //   120,
-  //   100,
-  //   hotspotImageHei,
-  //   "three",
-  //   "fast"
-  // );
 
+    pdf.addPage();
+    // console.log("canvas5",canvas5)
+    const seventhImg = canvas7.toDataURL("image/png");
+    const fifthImage = canvas5?.toDataURL("image/png");
+    // console.log("fifthImage",fifthImage);
 
-  let isShiftingRequiredafterHotspot = false;
-  if (hotspotList?.length > 3) {
-    isShiftingRequiredafterHotspot = true;
-  }
-  pdf.setFillColor("#000000");
+    if(seventhImg && seventhImg.startsWith("data:image/png")){ 
+      // console.log("seventhImg",seventhImg)
+      const heatmapImageProperties = pdf.getImageProperties(seventhImg);
+      const pageWidthHmap = pdf.internal.pageSize.getWidth();
+      const imgWidthHmap = 280; // Fixed width (you can modify this)
+      const xPosHmap = (pageWidthHmap - imgWidthHmap) / 2; // Center horizontally
+      const mapYPosition = fifthImage?.startsWith("data:image/png") ?  185 : 40; // Starting position of the heatmap image
+      // const nextStartPosition = 40 + hotspotImageHeight + 20; 
 
-   pdf.autoTable({
-    body: hotspotList,
-    headStyles: {
-      fillColor: [154, 114, 105],
-      cellpadding: 4,
-      textColor: [255, 255, 255],
-      font: "GandhiFont",
-      fontStyle: "bold",
-    },
-    head: [["Top Hotspots", "No of Species"]],
-    styles: {
-      cellPadding: 3, // Set padding for all cells
-      font: "GandhiSans-Regular",
-      fontStyle: "normal",
-    },
-    rowPageBreak: "avoid",
-    startY: 40,
-    margin: { top: 60, left: 116 },
-    didParseCell: function (data) {
-      const { row } = data;
-      if (row.section !== "head") {
-        const fillColor = rowColors[row.index % 2];
-        if (fillColor && row.section !== "head") {
-          data.cell.styles.fillColor = fillColor;
+      const heatmapImageHeight =
+        (heatmapImageProperties.height * imgWidthHmap) / heatmapImageProperties.width;
+        const heatmapEndY = mapYPosition + heatmapImageHeight;
+        const marginBelowSeventhImg = 10; // Adjust this value as needed
+        const yPos = heatmapEndY + marginBelowSeventhImg; // Place secondImg2 after seventhImg with margin
+        
+        pdf.addImage(
+          seventhImg,
+          "PNG",
+          xPosHmap,
+          mapYPosition,
+          imgWidthHmap,
+          heatmapImageHeight,
+          "seven",
+          "fast"
+        );
+      }
+      
+      
+      if(canvas5){
+        const secondImg2 = canvas5.toDataURL("image/png");
+          // console.log(secondImg2,"secondImg2")
+          if (secondImg2 && secondImg2.startsWith("data:image/png")) {
+            const hotspotImageProp = pdf.getImageProperties(secondImg2);
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+
+            const imgAspectRatio = hotspotImageProp.width / hotspotImageProp.height;
+            let imgWidth = pageWidth + 60 ;
+            let imgHeight = imgWidth / imgAspectRatio;
+
+            if (imgHeight > pageHeight - 80) {
+              imgHeight = pageHeight - 80;
+              imgWidth = imgHeight * imgAspectRatio;
+            }
+
+            const xPos = (pageWidth - imgWidth) / 2;
+            const yPos = 33;
+
+            pdf.addImage(
+              secondImg2,
+              "PNG",
+              xPos,
+              yPos,
+              imgWidth,
+              imgHeight,
+              "five",
+              "fast"
+            );
         }
       }
-    },
-  });
+      // pdf.addPage();
 
+
+  pdf.addPage();
   if (shouldDrawTable(completeListOfSpeciesData)) {
     pdf.autoTable({
       headStyles: {
@@ -625,38 +689,37 @@ export const handleDownloadPdf = async (
       head: [["COMPLETE LIST OF SPECIES"]],
       body: [],
       font: "GandhiSans-Regular",
-      margin: { top: 60 },
+      margin: { top: 0},
       fontStyle: "normal",
       rowPageBreak: "avoid",
-      startY: hotspotList[0] != 'Null' ? (isShiftingRequiredafterHotspot ? 160 : 140) : 40,
-      // startY: isShiftingRequiredafterHotspot ? 130 : 110,
+      startY:40,
     });
-    tableStartPage = pdf.internal.getNumberOfPages();
-    pdf.autoTable({
-      body: completeListOfSpeciesData,
-      headStyles: {
-        fillColor: [232, 232, 232],
-        textColor: [54, 54, 54],
-        font: "GandhiFont",
-        fontStyle: "bold",
-      },
-      head: [["Species", "SoIB Priority", "IUCN", "Endemic Region", "WLPA"]],
-      styles: {
-        cellPadding: 3, // Set padding for all cells
-        font: "GandhiSans-Regular",
-        fontStyle: "normal",
-      },
-      rowPageBreak: "avoid",
-      startY: removeSpace(pdf.previousAutoTable.finalY),
-      alternateRowStyles: {
-        fillColor: [200, 216, 220], // Light gray
-      },
-      didParseCell: function (data) {
-        const { row } = data;
-        const fillColor = rowColors[row.index % 2];
-        if (fillColor && row.section !== "head") {
-          data.cell.styles.fillColor = fillColor;
-        }
+      tableStartPage = pdf.internal.getNumberOfPages();
+      pdf.autoTable({
+        body: completeListOfSpeciesData,
+        headStyles: {
+          fillColor: [232, 232, 232],
+          textColor: [54, 54, 54],
+          font: "GandhiFont",
+          fontStyle: "bold",
+        },
+        head: [["Species", "SoIB Priority", "IUCN", "Endemic Region", "WLPA"]],
+        styles: {
+          cellPadding: 3, // Set padding for all cells
+          font: "GandhiSans-Regular",
+          fontStyle: "normal",
+        },
+        rowPageBreak: "avoid",
+        startY: removeSpace(pdf.previousAutoTable.finalY),
+        alternateRowStyles: {
+          fillColor: [200, 216, 220], // Light gray
+        },
+        didParseCell: function (data) {
+          const { row } = data;
+          const fillColor = rowColors[row.index % 2];
+          if (fillColor && row.section !== "head") {
+            data.cell.styles.fillColor = fillColor;
+          }
         const doesExist = backgroundColorForHeading.find(
           (item) => item.pageNo === data.doc.internal.getNumberOfPages()
         );
@@ -716,11 +779,6 @@ export const handleDownloadPdf = async (
     tableStartPage = pdf.internal.getNumberOfPages();
     pdf.autoTable({
       body: observationsList,
-      // headStyles: {
-      //   fillColor: [232, 232, 232],
-      //   textColor: [54, 54, 54],
-      // },
-      // head: [["Species", "SoIB Priority", "IUCN", "Endemic Region", "WPA"]],
       styles: {
         cellPadding: 3,
       },
@@ -867,6 +925,3 @@ export const handleDownloadPdf = async (
 
   handleClick();
 };
-
-
-
