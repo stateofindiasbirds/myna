@@ -22,5 +22,10 @@ Updated Database to year 2024.
 Release 2.0a: Updated Category of some species and removed some 2023 old data and inserted updated one with update of data till 31st May 2024.
 Release 2.0b: Frontend update - added footer to about and instruction Page. Extended date year till 31st may 2024
 
+# MYNA v2.1
+Added Heat Map & Accumulated Curve.
+Release 2.1a: Built apis for fetch the data of Heat Map Grid data and Graph data yearly basis.
+Release 2.1b: Frontend update - Added Heat Map UI and Accumulated curve for showing yearly data,Text updated about and instruction Page. Updated Pdf Report Ui and added heat map and accumulated curve to it.
+
 
 

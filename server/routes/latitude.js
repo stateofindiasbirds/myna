@@ -11,7 +11,6 @@ router.use(bodyParser.json());
 const upload = multer();
 
 const cacheKeyGenerator = (req) => {
-  console.log(req);
   const { start, end } = req.query;
   const pathname = req.originalUrl; 
   const fileBuffer = req.file.buffer;
@@ -19,16 +18,10 @@ const cacheKeyGenerator = (req) => {
   const state = parsedContent.features[0].properties.stname;
   const county = parsedContent.features[0].properties.dtname;
 
-  if (req.file && req.file.buffer) {
-    const fileBuffer = req.file.buffer;
-    const parsedContent = JSON.parse(fileBuffer.toString());
-    console.log(parsedContent.features[0].properties);
-  }
-
   if(state && county){
     return `${state}:${county}:${pathname}:${start}:${end}`;
-  }else if (start && end){
-    return `cache_key_for_${req.url}`
+  }else if (parsedContent &&  start && end){
+    return `cache_key_for_${encodeURIComponent(req.url)}_${encodeURIComponent(parsedContent.features[0].geometry.coordinates[0])}`
   }else{
     return
   }
@@ -63,7 +56,10 @@ router.post(
   uploadToS3,
   UserController.seasonalChart
 );
-router.post("/hotspot_area", upload.single("file"), cacheMiddleware(cacheKeyGenerator), UserController.hotspotArea);
+router.post("/hotspot_area", upload.single("file"), 
+cacheMiddleware(cacheKeyGenerator),
+ UserController.hotspotArea);
+
 
 router.post(
   "/complete_List_Of_Species",
@@ -76,6 +72,7 @@ router.post(
 router.post(
   "/complete_List_Of_Species_Gi",
   upload.single("file"),
+  cacheMiddleware(cacheKeyGenerator),
   uploadToS3,
   UserController.completeListOfSpeciesGi
 );
@@ -122,5 +119,11 @@ router.post(
     cacheMiddleware(cacheKeyGenerator),
     uploadToS3,
   UserController.count3);
+
+  router.post("/all_years_count",
+    upload.single("file"),
+    cacheMiddleware(cacheKeyGenerator),
+    uploadToS3,
+  UserController.graph);
 
 module.exports = router;
