@@ -3,6 +3,7 @@ import { GeoJSON, useMap } from "react-leaflet";
 import {
   calculateCentroid,
   calculateZoom,
+  getPolygonCenter
 } from "./helpers/helperFunctions";
 import { toast } from 'react-toastify';
 
@@ -14,10 +15,8 @@ function Boundary(props) {
 
     map.invalidateSize();
     try {
-      // console.log('props.data.features[0].geometry.coordinates.length',props.data.features[0].geometry.coordinates[0])
       if(props.data.features[0].geometry.coordinates.length==1)
       {
-
         const arrayOfCords = props.data.features[0].geometry.coordinates[0];
         const centroid = calculateCentroid(arrayOfCords);
         const zoom = calculateZoom(arrayOfCords);
@@ -33,8 +32,9 @@ function Boundary(props) {
       else if(props.data.features[0].geometry.coordinates[0][0]){
         const arrayOfCords = props.data.features[0].geometry.coordinates[0][0];
         const centroid = calculateCentroid(arrayOfCords);
-        const zoom = calculateZoom(arrayOfCords);
-        map.flyTo(centroid, zoom);
+      
+        const zoomTrue = props.data.features[0].properties.COUNTY == 'Diu';
+        map.flyTo(centroid, zoomTrue ? 12 : 7);
       }
 
     }
@@ -43,6 +43,7 @@ function Boundary(props) {
       console.error("Can't zoom")
       props.setData(null)
     }
+    // console.log("props.isStateData",props.isStateData)
     const blueStyle = props.isStateData
   ? {
       color: '#00000000', 
@@ -56,7 +57,7 @@ function Boundary(props) {
     return (
       <GeoJSON
         data={props.data}
-        style={blueStyle}
+        style={ blueStyle}
       />
     );
   } catch (error) {

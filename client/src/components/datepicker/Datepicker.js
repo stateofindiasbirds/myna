@@ -57,7 +57,8 @@ export default function Datepicker({ value, setValue, value2, setValue2, showdat
 
   const handleClear = () => {
     setValue("01/01/1900");
-    setValue2("2023-05-31");
+    // setValue2("2023-05-31");
+    setValue2("2024-12-31");
     setShowdate(false);
     setCleared(true);
   };

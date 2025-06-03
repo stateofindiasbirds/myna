@@ -8,14 +8,48 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 
+
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     backgroundColor: "#F3EDE8",
     color: theme.palette.common.black,
-    fontSize: 20,
+    fontSize: 20, // Default for large screens
+    paddingLeft: "40px",
+    [theme.breakpoints.down("lg")]: {
+      fontSize: 18, // Adjust font size for large screens
+      paddingLeft: "30px",
+    },
+    [theme.breakpoints.down("md")]: {
+      fontSize: 16, // Adjust font size for medium screens
+      paddingLeft: "20px",
+    },
+    [theme.breakpoints.down("sm")]: {
+      fontSize: 10, // Adjust font size for small screens
+      paddingLeft: "0px",
+      // width: ".5rem",
+    },
   },
   [`&.${tableCellClasses.body}`]: {
-    fontSize: 18,
+    fontSize: 18, // Default for large screens
+    paddingLeft: "40px",
+    [theme.breakpoints.down("lg")]: {
+      fontSize: 16,
+      paddingLeft: "30px",
+    },
+    [theme.breakpoints.down("md")]: {
+      fontSize: 14,
+      paddingLeft: "20px",
+    },
+    [theme.breakpoints.down("sm")]: {
+      fontSize: ".6rem",
+      paddingLeft: "0px",
+      // width: ".5rem",
+    },
+    [theme.breakpoints.down("xsm")]: {
+      fontSize: ".6rem",
+      paddingLeft: "2px",
+      // width: ".5rem",
+    },
   },
 }));
 
@@ -38,12 +72,20 @@ const CompleteListOfSpecies = ({ completeListOfSpecies }) => {
     <>
       <div
         style={{ backgroundColor: "#9A7269", color: "#fff" }}
-        className="text-center text-3xl gandhi-family  p-4 "
+        className="text-center sm:text-xl md:text-3xl lg:text-3xl gandhi-family  p-4 "
       >
         COMPLETE LIST OF SPECIES
       </div>
       <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 700 }} aria-label="customized table">
+        <Table  
+        sx={{
+          "& th, & td": {
+            padding: { xs: "8px", sm: "8px" },
+            fontSize: { xs: "8px", sm: "8px" },
+            // wordBreak: "break-word",
+          },
+        }}
+        aria-label="responsive table">
           <TableHead>
             <TableRow>
               <StyledTableCell>

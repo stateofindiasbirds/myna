@@ -61,6 +61,9 @@ import dayjs from 'dayjs';
 import { getAreaOfPolygon } from 'geolib';
 import { open, openDbf, openShp, read } from 'shapefile';
 import api from "../../redux/api";
+import { useRef } from 'react';
+import { useDrawing } from "./contexts/Mapcontext";
+
 
 const drawerWidth = 360;
 const windowWidth = window.innerWidth;
@@ -128,6 +131,10 @@ function Main(props) {
   const [isStateData, setIsStateData] = useState(false);
   const [statesJsonData,setStatesJsonData] = useState({});
   const [districtJsonData,setDistrictJsonData] = useState({});
+  const { setStartPolygonDrawing } = useDrawing();
+  const [bufferData, setBufferData] = useState(null);
+  const [orgPolyCoords, setOrgPolyCoords] = useState(null);
+  
   const handleMouseLeave = () => {
     setAnchorEl(null);
   };
@@ -135,7 +142,7 @@ function Main(props) {
     handleGeographyClick("Upload Button");
     setShowUploadFileComponent(payload);
   };
-console.log('uploadedFileNameuploadedFileName',uploadedFileName);
+// console.log('uploadedFileNameuploadedFileName',uploadedFileName);
   const [showHeatmap, setShowHeatmap] = useState(false);
 
   const [showreport, setShowreport] = useState(false);
@@ -153,7 +160,7 @@ console.log('uploadedFileNameuploadedFileName',uploadedFileName);
   };
 
 
-  console.log('selectedState',selectedState)
+  // console.log('selectedState',selectedState)
 
   const handleSelectCounty = (e) => {
     setBoundary(null)
@@ -189,10 +196,25 @@ console.log('uploadedFileNameuploadedFileName',uploadedFileName);
   const [uploadedgeojson, setUploadedgeojson] = React.useState(null);
   const { window } = props;
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  // const mapRef = useRef();
+
+
+  useEffect(() => {
+      if (windowWidth<= 768) {
+        setMobileOpen(true);
+      }
+  }, []);
+  
+  
   const handleDrawerToggle = () => {
+    
     setMobileOpen(!mobileOpen);
+   
+    if(!selectedState && !uploadedgeojson){
+      setStartPolygonDrawing(true)
+    }
   };
-  console.log('uploadedgeojson',uploadedgeojson);
+  // console.log('uploadedgeojson',uploadedgeojson);
 
   const formattedStartDate = formatDateToMMDDYYYY(value);
   const formattedEndDate = formatDateToMMDDYYYY(value2);
@@ -467,6 +489,12 @@ console.log('uploadedFileNameuploadedFileName',uploadedFileName);
   };
   const handleGeographyClick = (emitter) => {
     setUploadedFileName(null);
+        setBoundary(null);
+    // setDistrictJsonData(null);
+    // setDistrictJsonData(null);
+    //  setSelectedState("");
+    //   setSelectedCounty("");
+    //   setSelectedLocality("");
     if (showGeographySign) {
       setSelectedState("");
       setSelectedCounty("");
@@ -526,7 +554,7 @@ console.log('uploadedFileNameuploadedFileName',uploadedFileName);
             state: selectedState
           }
         });
-        console.log(response.data);
+        // console.log(response.data);
         setStatesJsonData(response.data);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -547,7 +575,7 @@ console.log('uploadedFileNameuploadedFileName',uploadedFileName);
             state: selectedState
           }
         });
-        console.log(response.data);
+        // console.log(response.data);
         setDistrictJsonData(response.data);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -558,17 +586,17 @@ console.log('uploadedFileNameuploadedFileName',uploadedFileName);
     }
   }, [selectedCounty]);
 
- console.log('statesJsonData',statesJsonData)
+//  console.log('statesJsonData',statesJsonData)
 
 
   useEffect(() => {
-    console.log('statesJsonData updated:', statesJsonData);
+    // console.log('statesJsonData updated:', statesJsonData);
 
     try {
       if (selectedState && statesJsonData && Object.keys(statesJsonData).length > 0) {
         setIsStateData(true); 
         
-        console.log('Processed statesJsonData:', statesJsonData);
+        // console.log('Processed statesJsonData:', statesJsonData);
         
         const toJson = {
           "type": "FeatureCollection",
@@ -590,12 +618,16 @@ console.log('uploadedFileNameuploadedFileName',uploadedFileName);
 
 
   useEffect(() => {
-    console.log('district updated:', districtJsonData);
+    // console.log('district updated:', districtJsonData);
     try {
       if (selectedCounty && districtJsonData && Object.keys(districtJsonData).length > 0) {
         setIsStateData(false); 
         let totalArea = 0;
-      if (districtJsonData) {
+      
+       if(districtJsonData.properties.AREA != '' || districtJsonData.properties.AREA != null){
+        // console.log(districtJsonData.properties.AREA);
+        setArea(districtJsonData.properties.AREA);
+       }else if(districtJsonData){
         const geometry = districtJsonData.geometry;
         if (geometry.type === "Polygon") {
           totalArea = getAreaOfPolygon(geometry.coordinates[0]) / 1000000;
@@ -604,8 +636,9 @@ console.log('uploadedFileNameuploadedFileName',uploadedFileName);
             totalArea += getAreaOfPolygon(polygon[0]) / 1000000; 
           });
         }
-      }
         setArea(totalArea);
+       }
+        
 
         const toJson = {
           "type": "FeatureCollection",
@@ -625,285 +658,7 @@ console.log('uploadedFileNameuploadedFileName',uploadedFileName);
   }, [districtJsonData]);
 
 
-
-
-
-
-
-
-  // useEffect(() => {
-  //   try {
-  //     if (selectedState) {
-  //       setIsStateData(true);
-  //       const statesJsonData = stateBoundry.features.find(item => 
-  //         item?.properties?.STATE_NAME && 
-  //         selectedState &&
-  //         item?.properties?.STATE_NAME?.toLowerCase() === selectedState.toLowerCase()
-  //       );
-  //             console.log(statesJsonData, 'state data')
-  //       if (statesJsonData) {
-  //         const toJson = {
-  //           "type": "FeatureCollection",
-  //           "features": [
-  //             {
-  //               "type": "Feature",
-  //               "properties": {},
-  //               "geometry": statesJsonData.geometry
-  //             }
-  //           ]
-  //         }
-  //         // console.log(toJson, 'stateconvdata')
-  //         setBoundary(toJson)
-  //       }
-  //       else {
-  //         toast.error("No such boundary exist")
-  //       }
-  //     }
-  //   } catch (error) {
-  //      console.log(error)
-  //   }
-
-  // }, [selectedState])
-  // useEffect(() => {
-
-  //   console.log(selectedCounty)
-  //   if (selectedCounty) {
-  //     setIsStateData(false);
-  //     console.log('districtBoundary',districtBoundary)
-  //     const districtJsonData = districtBoundary.features.find(item => item?.properties?.DISTRIC?.toLowerCase() == selectedCounty?.toLowerCase())
-  //     let totalArea = 0;
-  //     if (districtJsonData) {
-  //       const geometry = districtJsonData.geometry;
-  //       if (geometry.type === "Polygon") {
-  //         totalArea = getAreaOfPolygon(geometry.coordinates[0]) / 1000000;
-  //       } else if (geometry.type === "MultiPolygon") {
-  //         geometry.coordinates.forEach((polygon) => {
-  //           totalArea += getAreaOfPolygon(polygon[0]) / 1000000; 
-  //         });
-  //       }
-  //     }
-  //       setArea(totalArea);
-  //       console.log('districtJsonData', districtJsonData);
-  //     if (districtJsonData) {
-  //       const toJson = {
-  //         "type": "FeatureCollection",
-  //         "features": [
-  //           {
-  //             "type": "Feature",
-  //             "properties": {},
-  //             "geometry": districtJsonData.geometry
-  //           }
-  //         ]
-  //       }
-  //       setBoundary(toJson)
-  //     }
-  //     else {
-  //       toast.error("No such boundary exist")
-  //     }
-  //   }
-  // }, [selectedCounty])
-
-  // useEffect(() => {
-
-  //   console.log(selectedCounty)
-  //   if (selectedCounty) {
-  //     setIsStateData(false);
-  //     const districtJsonData = districtBoundary.features.find(item => item?.properties?.DISTRIC?.toLowerCase() == selectedCounty?.toLowerCase())
-  //     const polygonCoordinates = districtJsonData?.geometry?.coordinates;
-  //     console.log("polygonCoordinates",districtJsonData)
-
-  //     console.log("polygonCoordinates",polygonCoordinates)
-  //     const area = getAreaOfPolygon(polygonCoordinates[0])/1000000;
-  //     setArea(area)
-  //     if (districtJsonData) {
-  //       const toJson = {
-  //         "type": "FeatureCollection",
-  //         "features": [
-  //           {
-  //             "type": "Feature",
-  //             "properties": {},
-  //             "geometry": districtJsonData.geometry
-  //           }
-  //         ]
-  //       }
-  //       // console.log(toJson, 'district data')
-  //       setBoundary(toJson)
-  //     }
-  //     else {
-  //       toast.error("No such boundary exist")
-  //     }
-  //   }
-  // }, [selectedCounty])
-
-  // useEffect(() => {
-   
-  //   shapefile
-  //     .open('../../../public/states_sf_admin_mapped/states_sf_admin_mapped/states_sf_admin_mapped.shp')
-  //     .then(source => source.read().then(function log(result) {
-  //       if (result.done) return;
-  //       setStateBoundary(result.value);  
-  //       return source.read().then(log);
-  //     }))
-  //     .catch(error => console.error(error));
-    
-  //   // Load the district shapefile
-  //   shapefile
-  //     .open('../../../public/dists_sf_admin_mapped/dists_sf_admin_mapped/dists_sf_admin_mapped.shp')
-  //     .then(source => source.read().then(function log(result) {
-  //       if (result.done) return;
-  //       setDistrictBoundary(result.value);  
-  //       return source.read().then(log);
-  //     }))
-  //     .catch(error => console.error(error));
-  // }, []);
-
-  // useEffect(() => {
-  //   if (selectedState && stateBoundary) {
-  //     const statesJsonData = stateBoundary.features.find(
-  //       item => item.properties.stname.toLowerCase() === selectedState.toLowerCase()
-  //     );
-
-  //     if (statesJsonData) {
-  //       const toJson = {
-  //         type: 'FeatureCollection',
-  //         features: [
-  //           {
-  //             type: 'Feature',
-  //             properties: {},
-  //             geometry: statesJsonData.geometry,
-  //           },
-  //         ],
-  //       };
-  //       setBoundary(toJson);
-  //     } else {
-  //       toast.error('No such boundary exists');
-  //     }
-  //   }
-  // }, [selectedState, stateBoundary]);
-  //  console.log('boundaryboundary',boundary);
-  // useEffect(() => {
-  //   if (selectedCounty && districtBoundary) {
-  //     const districtJsonData = districtBoundary.features.find(
-  //       item => item.properties.dtname.toLowerCase() === selectedCounty.toLowerCase()
-  //     );
-
-  //     if (districtJsonData) {
-  //       const toJson = {
-  //         type: 'FeatureCollection',
-  //         features: [
-  //           {
-  //             type: 'Feature',
-  //             properties: {},
-  //             geometry: districtJsonData.geometry,
-  //           },
-  //         ],
-  //       };
-  //       setBoundary(toJson);
-  //     } else {
-  //       toast.error('No such boundary exists');
-  //     }
-  //   }
-  // }, [selectedCounty, districtBoundary]);
-
-
-  // useEffect(() => {
-  //   // Load the state shapefile
-  //   const loadStateShapefile = async () => {
-  //     try {
-  //       const source = await open('../../../public/states_sf_admin_mapped/states_sf_admin_mapped/states_sf_admin_mapped.shp');
-  //       let result = await source.read();
-  //     //   if (result.done) {
-  //     //     console.log('Shapefile is empty or could not be read.');
-  //     // }
-      
-  //     // Check the geometry type
-  //     const geometryType = result.value.geometry.type;
-  //     console.log('Geometry Type:', geometryType);
-  //       const features = [];
-  //       while (!result.done) {
-  //         features.push(result.value);
-  //         result = await source.read();
-  //       }
-  //       setStateBoundary({ type: 'FeatureCollection', features });
-  //     } catch (error) {
-  //       console.error('Error loading state shapefile:', error);
-  //     }
-  //   };
   
-  //   // Load the district shapefile
-  //   const loadDistrictShapefile = async () => {
-  //     try {
-  //       const source = await open('../../../public/dists_sf_admin_mapped/dists_sf_admin_mapped/dists_sf_admin_mapped.shp');
-  //       let result = await source.read();
-  //       if (result.done) {
-  //         console.log('Shapefile is empty or could not be read.');
-  //     }
-      
-  //     // Check the geometry type
-  //     const geometryType = result.value.geometry.type;
-  //     console.log('Geometry Type:', geometryType);
-  //       const features = [];
-  //       while (!result.done) {
-  //         features.push(result.value);
-  //         result = await source.read();
-  //       }
-  //       setDistrictBoundary({ type: 'FeatureCollection', features });
-  //     } catch (error) {
-  //       console.error('Error loading district shapefile:', error);
-  //     }
-  //   };
-  
-  //   loadStateShapefile();
-  //   loadDistrictShapefile();
-  // }, []);
-  
-  // useEffect(() => {
-  //   if (selectedState && stateBoundary) {
-  //     const statesJsonData = stateBoundary.features.find(
-  //       item => item.properties.stname.toLowerCase() === selectedState.toLowerCase()
-  //     );
-  
-  //     if (statesJsonData) {
-  //       const toJson = {
-  //         type: 'FeatureCollection',
-  //         features: [
-  //           {
-  //             type: 'Feature',
-  //             properties: {},
-  //             geometry: statesJsonData.geometry,
-  //           },
-  //         ],
-  //       };
-  //       setBoundary(toJson);
-  //     } else {
-  //       toast.error('No such boundary exists');
-  //     }
-  //   }
-  // }, [selectedState, stateBoundary]);
-  
-  // useEffect(() => {
-  //   if (selectedCounty && districtBoundary) {
-  //     const districtJsonData = districtBoundary.features.find(
-  //       item => item.properties.dtname.toLowerCase() === selectedCounty.toLowerCase()
-  //     );
-  
-  //     if (districtJsonData) {
-  //       const toJson = {
-  //         type: 'FeatureCollection',
-  //         features: [
-  //           {
-  //             type: 'Feature',
-  //             properties: {},
-  //             geometry: districtJsonData.geometry,
-  //           },
-  //         ],
-  //       };
-  //       setBoundary(toJson);
-  //     } else {
-  //       toast.error('No such boundary exists');
-  //     }
-  //   }
-  // }, [selectedCounty, districtBoundary]);
 
 
 
@@ -923,162 +678,14 @@ console.log('uploadedFileNameuploadedFileName',uploadedFileName);
       <form onSubmit={handleSubmit}>
         <div className="p-4">
           <Stack spacing={3}>
-            {/* <div
-              onClick={() =>
-                newPolygon
-                  ? toast.error(
-                    "Please clear polygon before using this feature"
-                  )
-                  : handleShowUploadFileComponent(!showUploadFileComponent)
-              }
-              className={`text-white text-center gandhi-family ${newPolygon 
-                ? "bg-[#948c8a] cursor-not-allowed"
-                : "bg-[#9A7269] hover:bg-[#955c4f] cursor-pointer"
-                } transition ease-linear hover: w-2/3 p-2 rounded`}
-            >
-              UPLOAD FILE kjhjh
-            </div> */}
-              <div
-                  onClick={() => {
-                    if (selectedState) {
-                      setBoundary(null);
-                      setSelectedState("");
-                      setSelectedCounty("");
-                      setSelectedLocality("");
-                    }
 
-                    if (newPolygon) {
-                      toast.error("Please clear polygon before using this feature");
-                    } else {
-                      handleShowUploadFileComponent(!showUploadFileComponent);
-                    }
-                  }}
-                  className={`text-white text-center gandhi-family ${newPolygon 
-                    ? "bg-[#948c8a] cursor-not-allowed"
-                    : "bg-[#9A7269] hover:bg-[#955c4f] cursor-pointer"
-                  } transition ease-linear hover: w-2/3 p-2 rounded`}
-                  >
-                  UPLOAD FILE
-                </div>
-            {showUploadFileComponent && (
-              <FormControl fullWidth>
-                {uploadedgeojson ? (
-                  <div
-                    onClick={removeFile}
-                    className="cursor-pointer border-2 p-3 rounded border-green-400 flex justify-between text-xs ms-1 mt-2 text-red-600"
-                  >
-                    <div className="my-auto">
-                      {uploadedFileName || "REMOVE FILE"}
-                    </div>
-                    <div classname="my-auto">
-                      <CloseOutlined size={12} />
-                    </div>
-                  </div>
-                ) : (
-                  <div
-                    onMouseEnter={(e) =>
-                      selectedState || newPolygon
-                        ? ""
-                        : setAnchorEl(e.currentTarget)
-                    }
-                    className=" text-md  text-gray-500 mt-2 border py-2 border-gray-300  rounded-md hover:border-gray-600 hover:text-gray-800 flex gap-2"
-                  >
-                    <div>
-                      <IconButton
-                        id="basic-button"
-                        disabled={selectedState || newPolygon ? true : false}
-                        aria-controls={
-                          Boolean(anchorEl) ? "basic-menu" : undefined
-                        }
-                        aria-haspopup="true"
-                        aria-expanded={Boolean(anchorEl) ? "true" : undefined}
-                        onClick={(e) =>
-                          selectedState || newPolygon
-                            ? ""
-                            : setAnchorEl(e.currentTarget)
-                        }
-                      >
-                        <AttachFile className="cursor-pointer" />
-                        <div className="text-base">
-                          {uploadedFileName || "Upload file"}
-                        </div>
-                      </IconButton>
-                      <Menu
-                        id="basic-menu"
-                        anchorEl={anchorEl}
-                        open={Boolean(anchorEl)}
-                        onClose={handleMouseLeave}
-                        onClick={handleMouseLeave}
-                        disabled={selectedState || newPolygon ? false : true}
-                        MenuListProps={{
-                          "aria-labelledby": "basic-button",
-                        }}
-                      >
-                        <MenuItem
-                          onClick={() => handleKmlFileInput.current.click()}
-                          sx={{ cursor: "pointer" }}
-                        >
-                          {" "}
-                          <img
-                            src={kmlFileIcon}
-                            alt="img"
-                            height="20"
-                            width={20}
-                          />{" "}
-                          <span className="ml-1"> .Kml</span>{" "}
-                        </MenuItem>
-                        <MenuItem
-                          onClick={() => hiddenGeojsonInput.current.click()}
-                        >
-                          {" "}
-                          <VscJson size="25" />{" "}
-                          <span className="ml-1"> .geojson</span>{" "}
-                        </MenuItem>
-                        <MenuItem
-                          onClick={() => hiddenShapefileInput.current.click()}
-                          sx={{ cursor: "pointer" }}
-                        >
-                          <AiOutlineFileText size="25" />
-                          <span className="ml-1">shapefile.zip </span>
-                        </MenuItem>
-                      </Menu>
-                    </div>
-                  </div>
-                )}
-              </FormControl>
-            )}
-            <FormControl>
-              <TextField
-                id="standard-basic"
-                label="Name of Report *"
-                variant="outlined"
-                value={reportName ? reportName : ""}
-                // onChange={(e) => setReportName(e.target.value)}
-                onChange={(e) => {
-                  const inputValue = e.target.value;
-                  if (inputValue.length <= 36) {
-                    setReportName(inputValue);
-                  }
-                }}
-                error={reportName.length > 35} // Show error if length exceeds 35
-                helperText={
-                  reportName.length > 35 ? "Report name cannot exceed 35 characters." : null
-                } // Only show error message
-              />
-            </FormControl>
-            <ToastContainer />
-            <Typography variant="h6" component="h2">
-             <span className="gandhi-family-bold"> Date</span>
-            </Typography>
-            <Datepicker
-              value={value}
-              value2={value2}
-              setValue={setValue}
-              setValue2={setValue2}
-              showdate={showdate}
-              setShowdate={setShowdate}
-            ></Datepicker>
-            <div
+          <div
+              className={`text-black text-[1.4rem] !font-extrabold   break-keep gandhi-family`}
+            >
+             Explore a Region
+            </div>
+
+          <div
               onClick={() =>
                 uploadedgeojson || newPolygon
                   ? toast.error(
@@ -1170,6 +777,267 @@ console.log('uploadedFileNameuploadedFileName',uploadedFileName);
                 </FormControl>
               </>
             ) : null}
+            <div
+              onClick={handleDrawerToggle}
+              className={`text-white text-center break-keep gandhi-family  ${uploadedgeojson || newPolygon || selectedState
+                ? "bg-[#948c8a] cursor-not-allowed"
+                : "bg-[#9A7269] hover:bg-[#955c4f] cursor-pointer"
+                } transition ease-linear hover: w-2/3 p-2 rounded`}
+            >
+              DRAW POLYGON
+            </div>
+              <div
+                  onClick={() => {
+                    if (selectedState) {
+                      setBoundary(null);
+                      setSelectedState("");
+                      setSelectedCounty("");
+                      setSelectedLocality("");
+                    }
+
+                    if (newPolygon) {
+                      toast.error("Please clear polygon before using this feature");
+                    } else {
+                      handleShowUploadFileComponent(!showUploadFileComponent);
+                    }
+                  }}
+                  className={`text-white text-center gandhi-family ${newPolygon 
+                    ? "bg-[#948c8a] cursor-not-allowed"
+                    : "bg-[#9A7269] hover:bg-[#955c4f] cursor-pointer"
+                  } transition ease-linear hover: w-2/3 p-2 rounded`}
+                  >
+                  UPLOAD FILE
+                </div>
+            {showUploadFileComponent && (
+              <FormControl fullWidth>
+                {uploadedgeojson ? (
+                  <div
+                    onClick={removeFile}
+                    className="cursor-pointer border-2 p-3 rounded border-green-400 flex justify-between text-xs ms-1 mt-2 text-red-600"
+                  >
+                    <div className="my-auto">
+                      {uploadedFileName || "REMOVE FILE"}
+                    </div>
+                    <div classname="my-auto">
+                      <CloseOutlined size={12} />
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    onMouseEnter={(e) =>
+                      selectedState || newPolygon
+                        ? ""
+                        : setAnchorEl(e.currentTarget)
+                    }
+                    className=" text-md  text-gray-500 mt-2 border py-2 border-gray-300  rounded-md hover:border-gray-600 hover:text-gray-800 flex gap-2"
+                  >
+                    <div>
+                      <IconButton
+                        id="basic-button"
+                        disabled={selectedState || newPolygon ? true : false}
+                        aria-controls={
+                          Boolean(anchorEl) ? "basic-menu" : undefined
+                        }
+                        aria-haspopup="true"
+                        aria-expanded={Boolean(anchorEl) ? "true" : undefined}
+                        onClick={(e) =>
+                          selectedState || newPolygon
+                            ? ""
+                            : setAnchorEl(e.currentTarget)
+                        }
+                      >
+                        <AttachFile className="cursor-pointer" />
+                        <div className="text-base">
+                          {uploadedFileName || "Upload file"}
+                        </div>
+                      </IconButton>
+                      <Menu
+                        id="basic-menu"
+                        anchorEl={anchorEl}
+                        open={Boolean(anchorEl)}
+                        onClose={handleMouseLeave}
+                        onClick={handleMouseLeave}
+                        disabled={selectedState || newPolygon ? false : true}
+                        MenuListProps={{
+                          "aria-labelledby": "basic-button",
+                        }}
+                        class="top-96"
+                      >
+                        <MenuItem
+                          onClick={() => handleKmlFileInput.current.click()}
+                          sx={{ cursor: "pointer" }}
+                        >
+                          {" "}
+                          <img
+                            src={kmlFileIcon}
+                            alt="img"
+                            height="20"
+                            width={20}
+                          />{" "}
+                          <span className="ml-1"> .Kml</span>{" "}
+                        </MenuItem>
+                        <MenuItem
+                          onClick={() => hiddenGeojsonInput.current.click()}
+                        >
+                          {" "}
+                          <VscJson size="25" />{" "}
+                          <span className="ml-1"> .geojson</span>{" "}
+                        </MenuItem>
+                        <MenuItem
+                          onClick={() => hiddenShapefileInput.current.click()}
+                          sx={{ cursor: "pointer" }}
+                        >
+                          <AiOutlineFileText size="25" />
+                          <span className="ml-1">shapefile.zip </span>
+                        </MenuItem>
+                      </Menu>
+                    </div>
+                  </div>
+                )}
+              </FormControl>
+            )}
+            {/* <FormControl>
+              <TextField
+                id="standard-basic"
+                label="Name of Report *"
+                variant="outlined"
+                value={reportName ? reportName : ""}
+                // onChange={(e) => setReportName(e.target.value)}
+                onChange={(e) => {
+                  const inputValue = e.target.value;
+                  if (inputValue.length <= 36) {
+                    setReportName(inputValue);
+                  }
+                }}
+                error={reportName.length > 35} // Show error if length exceeds 35
+                helperText={
+                  reportName.length > 35 ? "Report name cannot exceed 35 characters." : null
+                } // Only show error message
+              />
+            </FormControl> */}
+            <ToastContainer />
+            <Typography variant="h6" component="h2">
+             <span className="gandhi-family-bold"> Date</span>
+            </Typography>
+            <Datepicker
+              value={value}
+              value2={value2}
+              setValue={setValue}
+              setValue2={setValue2}
+              showdate={showdate}
+              setShowdate={setShowdate}
+            ></Datepicker>
+            <FormControl>
+              <TextField
+                id="standard-basic"
+                label="Name of Report *"
+                variant="outlined"
+                value={reportName ? reportName : ""}
+                // onChange={(e) => setReportName(e.target.value)}
+                onChange={(e) => {
+                  const inputValue = e.target.value;
+                  if (inputValue.length <= 36) {
+                    setReportName(inputValue);
+                  }
+                }}
+                error={reportName.length > 35} // Show error if length exceeds 35
+                helperText={
+                  reportName.length > 35 ? "Report name cannot exceed 35 characters." : null
+                } // Only show error message
+              />
+            </FormControl>
+            {/* <div
+              onClick={() =>
+                uploadedgeojson || newPolygon
+                  ? toast.error(
+                    "Please clear polygon before using this feature"
+                  )
+                  : handleGeographyClick("Geography Button")
+              }
+              className={`text-white text-center break-keep gandhi-family  ${uploadedgeojson || newPolygon
+                ? "bg-[#948c8a] cursor-not-allowed"
+                : "bg-[#9A7269] hover:bg-[#955c4f] cursor-pointer"
+                } transition ease-linear hover: w-2/3 p-2 rounded`}
+            >
+              CHOOSE GEOGRAPHY
+            </div> */}
+            {/* {showGeographySign ? (
+              <>
+                <FormControl fullWidth>
+                  <InputLabel id="demo-simple-select-label">State</InputLabel>
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    onChange={handleSelectState}
+                    label="State"
+                    name="state"
+                    value={selectedState}
+                  >
+                    {statesList.length > 0
+                      ? sortAlphabetically(statesList).map((item, i) => {
+                        return (
+                          <MenuItem key={i} value={item}>
+                            {item}
+                          </MenuItem>
+                        );
+                      })
+                      : ""}
+                  </Select>
+                </FormControl>
+                <FormControl fullWidth>
+                  <InputLabel id="demo-simple-select-label">
+                    District
+                  </InputLabel>
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    onChange={handleSelectCounty}
+                    label="district"
+                    required
+                    name="district"
+                    disabled={selectedState ? false : true}
+                    value={selectedCounty}
+                  >
+                    {districtList.length > 0
+                      ? sortAlphabetically(districtList, "district").map(
+                        (item, i) => {
+                          return (
+                            <MenuItem key={i} value={item.district}>
+                              {item.district}
+                            </MenuItem>
+                          );
+                        }
+                      )
+                      : ""}
+                  </Select>
+                </FormControl>
+
+                <FormControl fullWidth>
+                  <InputLabel id="demo-simple-select-label">
+                    Locality
+                  </InputLabel>
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    onChange={handleLocalitySelect}
+                    label="Locality"
+                    name="locality"
+                    disabled={selectedCounty ? false : true}
+                    value={selectedLocality}
+                  >
+                    {localitiesList?.length > 0
+                      ? sortAlphabetically(localitiesList).map((item, i) => {
+                        return (
+                          <MenuItem key={i} value={item}>
+                            {item}
+                          </MenuItem>
+                        );
+                      })
+                      : ""}
+                  </Select>
+                </FormControl>
+              </>
+            ) : null} */}
 
             <input
               type="file"
@@ -1204,9 +1072,7 @@ console.log('uploadedFileNameuploadedFileName',uploadedFileName);
                 <span className="gandhi-family-bold">Generate Report</span>
               </Button>
             </Tooltip>
-            <span className="text-xs text-red-400">
-              {windowWidth < 500 ? "*This Website looks good in Desktop" : ""}
-            </span>
+           
           </Stack>
         </div>
         <div className="mt-4 p-4 text-sm text-gray-500 gandhi-family">
@@ -1214,7 +1080,7 @@ console.log('uploadedFileNameuploadedFileName',uploadedFileName);
             {/* <Link to="/heatmap">HeatMap</Link> */}
             <a href="https://www.youtube.com/watch?v=bqPDnbQ9v8Y" target="_blank" onclick="gtag('event', 'click', {'event_category': 'YouTube', 'event_label': 'MYNA User'});">Watch Video</a>
             <Link to="/about">About Myna</Link>
-            <Link to="/instructions">Usage Instructions</Link>
+            <Link to="/instructions">How to Use Myna?</Link>
           </Stack>
         </div>
       </form>
@@ -1227,6 +1093,8 @@ console.log('uploadedFileNameuploadedFileName',uploadedFileName);
       {/* <ThemeProvider theme={themeOne}> */}
       {showreport ? (
         <Report
+          bufferData={bufferData}
+          orgPolyCoords={orgPolyCoords}
           boundary={boundary}
           setBoundary={setBoundary}
           selectedState={selectedState}
@@ -1332,11 +1200,18 @@ console.log('uploadedFileNameuploadedFileName',uploadedFileName);
             }}
           >
             <Reportmap
+              // mapRef={mapRef}
+              bufferData={bufferData}
+              setBufferData={setBufferData}
+              orgPolyCoords={orgPolyCoords}
+              setOrgPolyCoords={setOrgPolyCoords}
               isStateData={isStateData}
               key={uploadedgeojson}
               boundary={boundary}
               setBoundary={setBoundary}
               selectedState={selectedState}
+              selectedCounty={selectedCounty}
+              selectedLocality={selectedLocality}
               newPolygon={newPolygon}
               setNewPolygon={setNewPolygon}
               setGeoJson={setGeoJson}

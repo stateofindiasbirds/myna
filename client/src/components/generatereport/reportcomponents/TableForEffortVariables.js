@@ -13,13 +13,39 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     backgroundColor: "#F3EDE8",
     color: theme.palette.common.black,
-    fontSize: 20,
+    fontSize: 20, // Default for large screens
+    paddingLeft: "40px",
+    [theme.breakpoints.down("lg")]: {
+      fontSize: 18, // Adjust font size for large screens
+      paddingLeft: "30px",
+    },
+    [theme.breakpoints.down("md")]: {
+      fontSize: 16, // Adjust font size for medium screens
+      paddingLeft: "20px",
+    },
+    [theme.breakpoints.down("sm")]: {
+      fontSize: 10, // Adjust font size for small screens
+      paddingLeft: "0px",
+      // width: ".5rem",
+    },
   },
   [`&.${tableCellClasses.body}`]: {
-    fontSize: 18,
-  },
-  "&:first-of-type": {
-    paddingLeft: "60px",
+    fontSize: 18, // Default for large screens
+    paddingLeft: "40px",
+    [theme.breakpoints.down("lg")]: {
+      fontSize: 16,
+      paddingLeft: "30px",
+    },
+    [theme.breakpoints.down("md")]: {
+      fontSize: 14,
+      paddingLeft: "20px",
+    },
+    [theme.breakpoints.down("sm")]: {
+      fontSize: 12,
+      paddingLeft: "5px",
+      // width: ".5rem",
+      paddingLeft: ".5rem"
+    },
   },
 }));
 
@@ -44,18 +70,32 @@ const TableForEffortVariables = ({ effortDetails, heading }) => {
         className="text-center text-3xl font-sans p-4 "
       >
         <span className="d-flex justify-center">
-          <span className="gandhi-family">{heading}</span>
+          <span className="gandhi-family sm:text-xl md:text-3xl lg:text-3xl">{heading}</span>
           <Tooltip
             title={
               "Except for unique lists and number of birding hours where shared lists are excluded, all other values are based on the complete set of observation data."
             }
+            placement="top"
+            arrow
+            enterTouchDelay={0} // show immediately on tap
+            leaveTouchDelay={4000} // stays visible for 4s
+            PopperProps={{
+              modifiers: [
+                {
+                  name: 'preventOverflow',
+                  options: {
+                    boundary: 'viewport',
+                  },
+                },
+              ],
+            }}
           >
             <InformationCircleIcon className="cursor-help ms-1 text-yellow-500 h-7 w-7 my-auto" />
           </Tooltip>
         </span>
       </div>
       <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 700 }} aria-label="customized table">
+        <Table aria-label="responsive-table">
           <TableBody>
             {effortDetails?.numberOfObservations ? (
               <StyledTableRow>

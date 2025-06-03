@@ -27,5 +27,12 @@ Added Heat Map & Accumulated Curve.
 Release 2.1a: Built apis for fetch the data of Heat Map Grid data and Graph data yearly basis.
 Release 2.1b: Frontend update - Added Heat Map UI and Accumulated curve for showing yearly data,Text updated about and instruction Page. Updated Pdf Report Ui and added heat map and accumulated curve to it.
 
+# MYNA v2.2
+Added Optamization for Mobile Phone, Tablets and desktop small screen 
+Release 2.2a: Updated Myna Ui and make it responsive on all devices.
+Release 2.2b: Updated Instructions page UI and added responsiveness
+Release 2.2c: Optimized About page and landing page Ui and make it responsive.
+Release 2.2d: “Download PDF” updated “Download A4 PDF” in all modes (in All device type).
+
 
 

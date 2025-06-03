@@ -76,7 +76,7 @@ function About() {
         className="grid grid-cols-3 text-center text-gray-100 p-3  font-sans bg-[#9A7269] fixed bottom-0 w-100"
       >
         <div className="col-span-2 text-right me-4 gandhi-family">
-          Generated from myna.stateofindiasbirds.in v.2.1 on {formattedDate}
+          Generated from myna.stateofindiasbirds.in v.2.2 on {formattedDate}
         </div>
         <div
           className={` font-medium gandhi-family text-right`}

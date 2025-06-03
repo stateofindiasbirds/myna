@@ -34,6 +34,8 @@ import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import { calculateCentroid, calculateZoom, createTrackMiddlewareForPdfGenerate } from "./helpers/helperFunctions";
 import CustomHeatMap from '../HeatMap';
 import Chart from "./BarChart";
+import * as turf from '@turf/turf';
+
 // import { position } from "html2canvas/dist/types/css/property-descriptors/position";
 function Report(props) {
   const {
@@ -71,7 +73,6 @@ function Report(props) {
   } = props;
 
 
-
   const isTablet = useMediaQuery({ minWidth: 106, maxWidth: 624 });
   const monthNames = [
     "Jan",
@@ -99,9 +100,12 @@ function Report(props) {
   const [isBarChartloaded, setIsBarChartloaded] = useState(false);
   const [showHeatMap, setShowHeatMap] = useState(false);
   const [polygonsCount, setPolygonsCount] = useState(null);
+  const [stateName, setStateName] = useState(false);
   const allYearsCount = useSelector((state) => state?.UserReducer?.getAllYearsCount) || {};
   const completeListOfSpeciesGi = useSelector(state => state?.UserReducer?.completeListOfSpeciesGi);
-  
+  const [mapZoomOut,setMapZoomOut] = useState(false);
+  const [highestNumber, sethighestNumber] = useState(null);
+  const [newBufferdata,setNewBufferdata] = useState(null);
   useEffect(() => {
     if (Object.keys(allYearsCount).length > 0) {
       setIsBarChartloaded(true);
@@ -110,10 +114,12 @@ function Report(props) {
 
   useEffect(()=>{
      if(completeListOfSpeciesGi.length > 0){
+      // console.log("completeListOfSpeciesGi.length",completeListOfSpeciesGi.length)
       setShowHeatMap(true);
      }
   },[completeListOfSpeciesGi])
   
+// console.log("showHeatMap",showHeatMap);
 
   const downloadPdfProgress = {
     "Download Pdf": "w-[0%]",
@@ -169,23 +175,11 @@ function Report(props) {
     setShowreport(null);
   };
 
-  // const convertedData = dataForMap?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }));
-  // const boundaryData = (boundary?.features[0]?.geometry.type == 'Polygon' 
-  //                      && boundary?.features[0]?.geometry.coordinates.length == 1
-  //                      && boundary?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng })));
-  //                     //  || (boundary?.features[0]?.geometry.type == 'MultiPolygon' 
-  //                     //  && boundary?.features[0]?.geometry.coordinates.length == 2
-  //                     //  && boundary?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng })))
-
-  // const newData = boundary?.features[0]?.geometry?.type == 'MultiPolygon' 
-  //                 // && boundary?.features[0]?.geometry?.coordinates.length > 2
-  //                 && boundary?.features[0]?.geometry?.coordinates;
-  // const formattedData = newData && newData?.map(polygon => polygon[0]?.map(([lng, lat]) => ({ lat, lng })));
-
-  // const convertedData = dataForMap?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }));
-  // const boundaryData = boundary?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }));
-
-  const convertedData = dataForMap?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }));
+  // console.log("dataForMap",dataForMap);
+  let convertedData = dataForMap?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }));
+     if(editedData){
+       convertedData =null;
+     }
   const boundaryData = boundary?.features[0]?.geometry.type == 'Polygon'
     && boundary?.features[0]?.geometry.coordinates.length == 1
     && boundary?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }))
@@ -203,15 +197,17 @@ function Report(props) {
     if (getHotspotAreas.length > 0 && polygonData.length === 0) {
       setPolygonData(getHotspotAreas);
     }
-  }, [getHotspotAreas])
+  }, [getHotspotAreas]);
 
-  // const getPolygonCenter = (polygon) => {
-  //   if (polygon && polygon.length > 0) {
-  //     const totalPoints = polygon.length;
-  //     const latSum = polygon.reduce((sum, point) => sum + point.lat, 0);
-  //     const lngSum = polygon.reduce((sum, point) => sum + point.lng, 0); 
-  //     const center = {
-  //       // lat: (latSum-offset)  / totalPoints,
+
+  useEffect(()=>{
+    if(dataForMap?.features[0]?.properties?.STATE_NAME || dataForMap?.features[0]?.properties?.STATE_N){
+         setStateName(true)
+    }
+  },[dataForMap]);
+
+
+  // console.log("stateNamestateNamestateNamestateName",stateName)
 
   //       lat: (latSum ) / totalPoints,
   //       lng: lngSum / totalPoints,
@@ -504,12 +500,6 @@ function Report(props) {
   const [gridPolygonsDataForMap, setGridPolygonsDataForMap] = useState([]);
   const [isRendered, setIsRendered] = useState(false);
 
-  // const getPolygonCenter = (polygon) => {
-  //   const totalPoints = polygon.length;
-  //   const center = polygon.reduce((sum, point) => ({ lat: sum.lat + point.lat, lng: sum.lng + point.lng }), { lat: 0, lng: 0 });
-  //   return { lat: center.lat / totalPoints, lng: center.lng / totalPoints };
-  // };
-
   const generateGrid = (boundingBox) => {
     const grid = [];
     const gridSize = 0.045;
@@ -644,16 +634,21 @@ function Report(props) {
   const [downloadTriggered, setDownloadTriggered] = useState(false);
 
   const handleDownloadClick = () => {
+    setMapZoomOut(true)   
     if (otherScreen.current) {
-      otherScreen.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
+      otherScreen.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
       setTimeout(() => {
         triggerDownload(true);
       }, 1000);
+      setTimeout(() => {
+        setMapZoomOut(false);
+      }, 25000);
     } else {
       triggerDownload(false);
     }
   };
+
+
 
   const triggerDownload = (value) => {
     setDownloadTriggered(value);
@@ -746,6 +741,91 @@ function Report(props) {
 
   const roundToTwoDecimals = (num) => Math.round(num * 100) / 100;
 
+
+
+
+
+//   function isBoundaryOutsideIndia(boundary) {
+    
+//     const indiaData = {
+//       "type": "FeatureCollection",
+//       "features": [
+//         {
+//           "type": "Feature",
+//           "id": "IND",
+//           "properties": { "name": "India" },
+//           "geometry": {
+//             "type": "Polygon",
+//             "coordinates": [
+//               [
+      // {"type":"Feature","id":"IND","properties":{"name":"India"},"geometry":{"type":"Polygon","coordinates":[[[77.837451,35.49401],[78.912269,34.321936],[78.811086,33.506198],[79.208892,32.994395],[79.176129,32.48378],[78.458446,32.618164],[78.738894,31.515906],[79.721367,30.882715],[81.111256,30.183481],[80.476721,29.729865],[80.088425,28.79447],[81.057203,28.416095],[81.999987,27.925479],[83.304249,27.364506],[84.675018,27.234901],[85.251779,26.726198],[86.024393,26.630985],[87.227472,26.397898],[88.060238,26.414615],[88.174804,26.810405],[88.043133,27.445819],[88.120441,27.876542],[88.730326,28.086865],[88.814248,27.299316],[88.835643,27.098966],[89.744528,26.719403],[90.373275,26.875724],[91.217513,26.808648],[92.033484,26.83831],[92.103712,27.452614],[91.696657,27.771742],[92.503119,27.896876],[93.413348,28.640629],[94.56599,29.277438],[95.404802,29.031717],[96.117679,29.452802],[96.586591,28.83098],[96.248833,28.411031],[97.327114,28.261583],[97.402561,27.882536],[97.051989,27.699059],[97.133999,27.083774],[96.419366,27.264589],[95.124768,26.573572],[95.155153,26.001307],[94.603249,25.162495],[94.552658,24.675238],[94.106742,23.850741],[93.325188,24.078556],[93.286327,23.043658],[93.060294,22.703111],[93.166128,22.27846],[92.672721,22.041239],[92.146035,23.627499],[91.869928,23.624346],[91.706475,22.985264],[91.158963,23.503527],[91.46773,24.072639],[91.915093,24.130414],[92.376202,24.976693],[91.799596,25.147432],[90.872211,25.132601],[89.920693,25.26975],[89.832481,25.965082],[89.355094,26.014407],[88.563049,26.446526],[88.209789,25.768066],[88.931554,25.238692],[88.306373,24.866079],[88.084422,24.501657],[88.69994,24.233715],[88.52977,23.631142],[88.876312,22.879146],[89.031961,22.055708],[88.888766,21.690588],[88.208497,21.703172],[86.975704,21.495562],[87.033169,20.743308],[86.499351,20.151638],[85.060266,19.478579],[83.941006,18.30201],[83.189217,17.671221],[82.192792,17.016636],[82.191242,16.556664],[81.692719,16.310219],[80.791999,15.951972],[80.324896,15.899185],[80.025069,15.136415],[80.233274,13.835771],[80.286294,13.006261],[79.862547,12.056215],[79.857999,10.357275],[79.340512,10.308854],[78.885345,9.546136],[79.18972,9.216544],[78.277941,8.933047],[77.941165,8.252959],[77.539898,7.965535],[76.592979,8.899276],[76.130061,10.29963],[75.746467,11.308251],[75.396101,11.781245],[74.864816,12.741936],[74.616717,13.992583],[74.443859,14.617222],[73.534199,15.990652],[73.119909,17.92857],[72.820909,19.208234],[72.824475,20.419503],[72.630533,21.356009],[71.175273,20.757441],[70.470459,20.877331],[69.16413,22.089298],[69.644928,22.450775],[69.349597,22.84318],[68.176645,23.691965],[68.842599,24.359134],[71.04324,24.356524],[70.844699,25.215102],[70.282873,25.722229],[70.168927,26.491872],[69.514393,26.940966],[70.616496,27.989196],[71.777666,27.91318],[72.823752,28.961592],[73.450638,29.976413],[74.42138,30.979815],[74.405929,31.692639],[75.258642,32.271105],[74.451559,32.7649],[74.104294,33.441473],[73.749948,34.317699],[74.240203,34.748887],[75.757061,34.504923],[76.871722,34.653544],[77.837451,35.49401]]]}} 
+//     ]
+//   ]
+// }
+// }
+// ]
+// };
+// console.log("indiaData.features[0].geometry.coordinates",indiaData.features[0].geometry.coordinates)
+  
+//   const india = turf.polygon(indiaData.features[0].geometry.coordinates);
+  
+//   if (!boundary.geometry.coordinates || boundary.geometry.coordinates.length === 0) {
+//     console.error("Invalid boundary: No coordinates found.");
+//     return false;
+//   }
+//   const boundaryCoordinates = boundary;
+//   const boundaryPolygon = turf.polygon([boundaryCoordinates]);
+//   const isInsideIndia = turf.booleanContains(india, boundaryPolygon);
+//   console.log("isInsideIndia",isInsideIndia);
+//   return !isInsideIndia;
+//   }
+  
+
+
+  const indiaBounds = {
+    north: 37.0841,   
+    south: 6.4627,     
+    east: 97.395,      
+    west: 68.17665,    
+  };
+
+  const mapOptions = {
+    restriction: {
+      latLngBounds: indiaBounds, // Set boundary restrictions to India
+      strictBounds: true,   
+    },
+  }
+
+ 
+
+
+  useEffect(() => {
+    if (!props.bufferData) return;
+  
+    let coordinates;
+  
+    // Case 1: FeatureCollection
+    if (props.bufferData.type === 'FeatureCollection') {
+      coordinates = props.bufferData?.features?.[0]?.geometry?.coordinates?.[0];
+    }
+  
+    // Case 2: Single Feature
+    else if (props.bufferData.type === 'Feature') {
+      coordinates = props.bufferData?.geometry?.coordinates?.[0];
+    }
+  
+    // Only continue if coordinates are found
+    if (coordinates) {
+      const latLngArray = coordinates.map(coordPair => ({
+        lng: coordPair[0],
+        lat: coordPair[1],
+      }));
+      setNewBufferdata(latLngArray);
+    }
+  }, [props.bufferData]);
+  
+
+  
   return (
     <Fragment>
       <div style={{ backgroundColor: "#ffffff00" }}>
@@ -764,26 +844,28 @@ function Report(props) {
                     <img
                       src={Logo}
                       alt="logo"
-                      className="mb-0"
-                      style={{ height: "120px", width: "180px", color: "#fff" }}
+                      className="mb-0 h-[95px] w-[130px] sm:h-[120px] sm:w-[180px] sm:min-w-[180px] "
+
+                      // className="mb-0 h-[120px] w-[180px] min-w-[120px] max-w-full object-contain"
+                      style={{  color: "#fff" }}
                     />
                     <div className="mb-4">
                       <h1 className="myna-text">MYNA</h1>
                     </div>
                   </div>
                 </Grid>
-                <Grid item xs={8} className="flex justify-center ">
+                <Grid item xs={8} className="flex xsm:justify-end sm:justify-end  lg:justify-center md:justify-center xlg:justify-center ">
                   <div className={` my-auto`}>
-                    <div className="main-heading">
+                    <div className="main-heading  text-[1.1rem] md:text-2xl lg:text-2xl xlg:text-2xl xsm:text-right sm:text-right sm:pr-[18px] xsm:pr-[18px]">
                       {reportName ? "Birds Of " + reportName : ""}
                     </div>
                     {selectedState !== "" && (
-                      <div className="flex justify-between">
-                        <center className="text-2xl font-sans text-white font-bold">
+                      <div className="flex flex-col xsm:flex-col sm:flex-col md:flex-row lg:flex-row xl:flex-row justify-between sm:pr-[18px] xsm:pr-[18px] ">
+                      <center className=" text-[1.1rem] md:text-2xl lg:text-2xl xlg:text-2xl font-sans text-white font-bold xsm:text-right sm:text-right">
                           {/* State: Himachal Pradesh */}
                           {selectedState !== "" && `State: ${selectedState}`}
                         </center>
-                        <center className="ml-20 text-2xl font-sans text-white font-bold">
+                        <center className=" md:ml-20  text-[1.1rem] md:text-2xl lg:text-2xl xlg:text-2xl font-sans text-white font-bold text-right  xsm:text-right sm:text-right">
                           {selectedCounty !== "" &&
                             `District: ${selectedCounty}`}
                         </center>
@@ -792,16 +874,44 @@ function Report(props) {
                   </div>
                 </Grid>
                 <Grid item xs>
-                  <div className={`flex justify-end py-3 px-8 `}>
+                  <div className={`flex justify-end py-3 px-8 xsm:pr-[18px] `}>
                     <div
                       className={
-                        isTablet ? "hidden" : " d-flex justify-content-end"
+                        "d-flex justify-content-endent-end"
                       }
                     >
+                  {window.innerWidth < 768 &&
+
+                      <div className="flex justify-end">
+                        {startDate !== "" && (
+                          <div className="flex justify-end mt-1 ">
+                            <center className="text-[.9rem] md:text-2xl lg:text-2xl xlg:text-2xl  gandhi-family text-gray-100 pr-[18px]">
+                              {startDate !== "" &&
+                                `Dates : ${dayjs(startDate).format("DD/MM/YYYY") + " "}–${" " + dayjs(endDate).format("DD/MM/YYYY")
+                                }`}
+                            </center>
+                          </div>
+                        )}
+                      </div>
+                   }
                       <div className="me-4">
                         <Tooltip
                           title="Download"
                           className={changeLayoutForReport && "invisible"}
+                          placement="top"
+                          arrow
+                          enterTouchDelay={0} // show immediately on tap
+                          leaveTouchDelay={4000} // stays visible for 4s
+                          PopperProps={{
+                            modifiers: [
+                              {
+                                name: 'preventOverflow',
+                                options: {
+                                  boundary: 'viewport',
+                                },
+                              },
+                            ],
+                          }}
                         >
                           {getCountByScientificName?.total &&
                             <FileDownloadOutlinedIcon
@@ -811,10 +921,25 @@ function Report(props) {
                           }
                         </Tooltip>
                       </div>
+
                       <div>
                         <Tooltip
                           title="Close"
-                          className={changeLayoutForReport && "invisible"}
+                          className={changeLayoutForReport ? "invisible" : undefined}
+                          placement="top"
+                          arrow
+                          enterTouchDelay={0} // show immediately on tap
+                          leaveTouchDelay={4000} // stays visible for 4s
+                          PopperProps={{
+                            modifiers: [
+                              {
+                                name: 'preventOverflow',
+                                options: {
+                                  boundary: 'viewport',
+                                },
+                              },
+                            ],
+                          }}
                         >
                           <CloseIcon
                             onClick={closeHandler}
@@ -828,11 +953,11 @@ function Report(props) {
                 </Grid>
               </Grid>
             </div>
+            {window.innerWidth >=768 &&
             <div className="flex justify-end">
               {startDate !== "" && (
                 <div className="flex justify-end mt-1 ">
-                  <center className="text-xl gandhi-family text-gray-100 ">
-                    {/* State: Himachal Pradesh */}
+                  <center className="text-[1.1rem] md:text-2xl lg:text-2xl xlg:text-2xl  gandhi-family text-gray-100 pr-[18px]">
                     {startDate !== "" &&
                       `Dates : ${dayjs(startDate).format("DD/MM/YYYY") + " "}–${" " + dayjs(endDate).format("DD/MM/YYYY")
                       }`}
@@ -840,6 +965,7 @@ function Report(props) {
                 </div>
               )}
             </div>
+            }
           </Card>
         </div>
         {getCountByScientificName?.total !== undefined && completeListOfSpeciesFetchSuccessFully && isBarChartloaded ? (
@@ -850,7 +976,7 @@ function Report(props) {
               className="mt-10"
             >
               <div className="p-1 lg:px-8 mt-12 text-xs lg:text-base ">
-                <div className="text-center text-6xl gandhi-family-bold mb-14 mt-4">
+                <div className=" text-center xsm:text-2xl sm:text-base md:text-4xl lg:text-4xl gandhi-family-bold lg:mb-14 lg:mt-4 md:mb-14 md:mt-4 mb-2 mt-1">
                   SPECIES DETAILS
                 </div>
                 {getCountByScientificName?.total < 1 && (
@@ -858,7 +984,7 @@ function Report(props) {
                     (NO DATA FOUND FOR SELECTED AREA)
                   </div>
                 )}
-                <div className="grid grid-cols-1 my-3 md:grid-cols-3 px-16">
+                <div className="grid grid-cols-1 my-3 md:grid-cols-2 lg:grid-cols-3 px-16">
                   <WideCardForReport
                     url={{ label: null, url: null }}
                     description="Total number of species reported from this region"
@@ -908,7 +1034,7 @@ function Report(props) {
                     heading={"Endemic"}
                   />
                 </div>
-                <div className=" grid grid-cols-2 lg:grid-cols-3 mt-20 px-24 ">
+                <div className=" lg:grid md:grid md:grid-cols-2 lg:grid-cols-3 sm:mt-0 sm:px-0 md:mt-20 md:px-24 lg:mt-20 lg:px-24 flex flex-col gap-4">
                   <Table2X2
                     changeLayoutForReport={changeLayoutForReport}
                     tableData={
@@ -930,10 +1056,10 @@ function Report(props) {
                     title2={"Species"}
                   />
                 </div>
-                <div className="text-center text-6xl gandhi-family-bold my-20">
+                <div className="text-center xsm:text-2xl sm:text-2xl md:text-4xl lg:text-4xl xlg:text-6xl gandhi-family-bold my-20">
                   IUCN RED LIST
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 my-8 px-24">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:my-8 md:my-8 lg:px-24 md:px-24 px-0 my-0">
                   <CustomStyleCards
                     changeLayoutForReport={changeLayoutForReport}
                     color={"#cc3333"}
@@ -993,7 +1119,7 @@ function Report(props) {
             <div className="p-1 lg:px-8 mt-8 text-xs lg:text-base ">
               <div className={` mt-20 `}>
                 <div className="">
-                  <Card className="mx-40 my-8">
+                <Card className="md:mx-5 lg:mx-40 mb-4">
                     <Table3XN
                       heading="SOIB HIGH CONSERVATION PRIORITY SPECIES"
                       tableData={getSoibConcernStatus}
@@ -1004,7 +1130,7 @@ function Report(props) {
                       includesScientificName={false}
                     />
                   </Card>
-                  <Card className="mx-40 my-8">
+                  <Card className="md:mx-5 lg:mx-40 mb-4">
                     <Table3XN
                       heading="IUCN REDLIST SPECIES"
                       tableData={getDataForIucnRedListTable}
@@ -1017,7 +1143,7 @@ function Report(props) {
                     />
                   </Card>
 
-                  <Card className="mx-40 my-8">
+                  <Card className="md:mx-5 lg:mx-40 mb-4">
                     <Table3XN
                       heading="ENDEMIC SPECIES"
                       tableData={getDataForEndemicSpeciesTable}
@@ -1028,7 +1154,7 @@ function Report(props) {
                       includesScientificName={false}
                     />
                   </Card>
-                  <Card className="mx-40">
+                  <Card className="md:mx-5 lg:mx-40 mb-4">
                     <Table3XN
                       heading="WATERBIRD CONGREGATIONS"
                       tableData={getDataForWaterbirdCongregation}
@@ -1055,13 +1181,25 @@ function Report(props) {
             </div>
             <div ref={seasonalChartDiv} className="p-1 lg:px-8 mt-12 text-xs lg:text-base">
               {getSeasonalChartData && getSeasonalChartData.length > 0 && (
-                <div className="text-center text-6xl gandhi-family-bold my-10 p-4 flex justify-center">
+                <div className="text-center xsm:text-2xl sm:text-2xl md:text-4xl lg:text-4xl xlg:text-6xl gandhi-family-bold my-0 md:my-10 p-4 flex justify-center">
                   SEASONAL CHART
                   {!changeLayoutForReport && (
                     <Tooltip
-                      title={
-                        "Seasonal Chart includes the top ten migratory species and their frequency of reporting in each month of the year"
-                      }
+                    title="Seasonal Chart includes the top ten migratory species and their frequency of reporting in each month of the year"
+                    placement="top"
+                    arrow
+                    enterTouchDelay={0} // show immediately on tap
+                    leaveTouchDelay={4000} // stays visible for 4s
+                    PopperProps={{
+                      modifiers: [
+                        {
+                          name: 'preventOverflow',
+                          options: {
+                            boundary: 'viewport',
+                          },
+                        },
+                      ],
+                    }}
                     >
                       <InformationCircleIcon className="cursor-help ms-1 text-yellow-500 h-7 w-7" />
                     </Tooltip>
@@ -1078,35 +1216,29 @@ function Report(props) {
               )}
             </div>
 
-            <div className="mb-16 py-4" style={{ height: "70vh" }}>
-              <div className="p-2 grid grid-cols-1 md:grid-cols-3  mx-20 mb-16" style={{ height: "70vh" }}>
+            <div className="mb-16 py-4 sm:px-0 lg:px-10 md:px-0" style={{ height: "70vh" }}>
+              <div className="p-2 grid grid-cols-1 md:grid-cols-3  mx-0 md:mx-20 lg:mx-20 mb-16" style={{ height: "70vh" }}>
                 <div className="grid col-span-2" ref={otherScreen} >
                   <Map
                     ref={mapRef}
-                    className="w-auto"
+                    className=""
                     style={{
                       height: "58vh",
-                      width: '58vw',
+                      // width: mapZoomOut ? "58vw" : window.innerWidth < 768 ? "90vw" : "58vw"
+                      width: window.innerWidth < 768 ? "90vw" : "58vw"
+
                     }}
                     google={props.google}
                     mapTypeControl={false}
                     scaleControl={true}
+                    scaleControlOptions={{
+                      position: props.google.maps.ControlPosition.BOTTOM_LEFT
+                    }}
                     streetViewControl={false}
                     panControl={false}
                     rotateControl={false}
-                    // zoom={ newZoom ||
-                    //   editedData ? 9 :
-                    //     convertedData ? 10.5 :
-                    //       boundaryData ? 9 : 10.5
-                    // }
-                    zoom={changeLayoutForReport ? 8.5 : 8.5}
-                    onReady={onMapReady}
-                    // initialCenter={{
-                    //   lat: (gridBounds.latMin + gridBounds.latMax) / 2,
-                    //   lng: (gridBounds.lngMin + gridBounds.lngMax) / 2
-                    // }}
-                    // initialCenter={iCenter}
-                    // initialCenter={(convertedData && getPolygonCenter(convertedData,props.google)) || (editedData && getPolygonCenter(editedData,props.google)) || boundaryData && (changeLayoutForReport ? getPolygonCenter(boundaryData,props.google) : getPolygonCenter(boundaryData,props.google)) || formattedData && (changeLayoutForReport ? getPolygonCenter(formattedData,props.google) : getPolygonCenter(formattedData,props.google)) ||{ lat: 25.21, lng: 79.32 }}
+                    zoom={changeLayoutForReport ? 7.5 : 7.5}
+                    onReady={!mapZoomOut && onMapReady}
                     initialCenter={
                       MemoizedPolygonCenter.convertedData ||
                       MemoizedPolygonCenter.editedData ||
@@ -1114,6 +1246,224 @@ function Report(props) {
                       MemoizedPolygonCenter.formattedData ||
                       { lat: 25.21, lng: 79.32 }  // Default center
                     }
+                    options={mapOptions}
+
+                  >
+                    {props.data && props.data.features && props.data.features.length > 0 && (
+                      <Polygon
+                        paths={[props.data.features[0].geometry.coordinates[0]]}
+                        strokeColor="#0000FF"
+                        strokeOpacity={0.8}
+                        strokeWeight={2.5}
+                        fillOpacity={0}
+
+                      />
+                    )}
+
+                    { !boundaryData && editedData && (
+                      <Polygon
+                        paths={editedData}
+                        strokeColor="#0000FF"
+                        strokeOpacity={0.8}
+                        strokeWeight={2.5}
+                        fillOpacity={0}
+
+                      />
+                    )}
+
+                    {convertedData && (
+                      <Polygon
+                        paths={convertedData}
+                        strokeColor="#0000FF"
+                        strokeOpacity={0.8}
+                        strokeWeight={2.5}
+                        fillOpacity={0}
+                      />
+                    )}
+
+                    {boundaryData && (
+                      <Polygon
+                        paths={boundaryData}
+                        strokeColor="#0000FF"
+                        strokeOpacity={0.8}
+                        strokeWeight={2.5}
+                        fillOpacity={0}
+                      />
+                    )}
+                    {formattedData && (
+                      <Polygon
+                        paths={formattedData}
+                        strokeColor="#0000FF"
+                        strokeOpacity={0.8}
+                        strokeWeight={2.5}
+                        fillOpacity={0}
+
+                      />
+                    )}
+                    {(capturedMarkers?.length > 0 ? capturedMarkers : getHotspotAreas).map((marker) => (
+                      <Marker
+                        key={marker.id}
+                        position={marker.position}
+                        onMouseover={marker.onMouseover}
+                      />
+                    ))}
+
+                    {getHotspotAreas && getHotspotAreas?.map(marker => (
+                      <Marker
+                        key={marker.localityId}
+                        position={{ lat: marker.latitude, lng: marker.longitude }}
+                        onMouseover={() => handleMarkerClick(marker)}
+                        onMouseout={() => setShowInfoWindow(false)}
+                      />
+                    ))}
+
+                    {getHotspotAreas && activeMarker && getHotspotAreas?.map(marker => (
+                      <InfoWindow
+                        key={marker.localityId}
+                        position={{ lat: activeMarker.latitude, lng: marker.longitude }}
+                        visible={showInfoWindow && activeMarker === marker}
+                        zIndex={10000}
+                      >
+                        <div style={{ zIndex: '1000' }}>
+                          <p>{marker.locality}</p>
+                        </div>
+                      </InfoWindow>
+                    ))}
+                  </Map>
+                  {area != null ? (
+                    <span className={`bg-[#F3EDE8] text-gray-800 h-[64vh] p-2 pb-4 gandhi-family rounded-b-xl`}
+                      style={{ display: 'flex', alignItems: 'end', letterSpacing: '0.05em', fontFamily: '"Gandhi Sans Regular"' }}>
+                      {" "}
+                      {"Area: "}{parseFloat(roundToTwoDecimals(area))} square kilometers
+                    </span>
+                  ) : (
+                    ""
+                  )}
+                </div>
+                <div className="ml-2 mt-8 md:mt-0 ">
+                  {" "}
+                  <TableCard tabledata={getHotspotAreas} />
+                </div>
+              </div>
+            </div>
+
+            {showHeatMap && 
+              <div class='pr-0 pl-0 xsm:pr-[10px] sm:pr-[10px] xsm:pl-[10px] sm:pl-[10px]' style={{ display: polygonsCount < 1 || area <= 500 ? "block" : "block" }}>
+              <div ref={heatmapRef} className=' mt-[40rem] sm:mt-[27rem] md:mt-0 lg:mt-0 flex flex-col justify-center items-center relative'>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
+                <h2 className="text-center xsm:text-2xl sm:text-lg md:text-6xl lg:text-6xl gandhi-family-bold my-10 p-4 flex justify-center" style={{ margin: 0, fontSize: "24px" }}>HEATMAP</h2>
+                {/* <button
+                  className="gandhi-family"
+                  style={{
+                    background: "none",
+                    border: "1px solid #DAB830",
+                    borderRadius: "50%",
+                    color: "#DAB830",
+                    width: "24px",
+                    height: "24px",
+                    textAlign: "center",
+                    cursor: "pointer",
+                  }}
+                  title="Intensity of the colour of a grid is proportional to the number of checklists from that grid"
+                >
+                  i
+                </button> */}
+                  <Tooltip
+                    title="Intensity of the colour of a grid is proportional to the number of checklists from that grid"
+                    placement="top"
+                    arrow
+                    enterTouchDelay={0} // show immediately on tap
+                    leaveTouchDelay={4000} // stays visible for 4s
+                    PopperProps={{
+                      modifiers: [
+                        {
+                          name: 'preventOverflow',
+                          options: {
+                            boundary: 'viewport',
+                          },
+                        },
+                      ],
+                    }}
+                    >
+                      <InformationCircleIcon className="cursor-help ms-1 text-yellow-500 h-7 w-7" />
+                  </Tooltip>
+              </div>
+              <CustomHeatMap 
+                sethighestNumber={sethighestNumber} 
+                mapZoomOut={mapZoomOut} 
+                area={area} 
+                className="md:absolute lg:absolute" 
+                onMapReady={onMapReady} 
+                isPolygon={editedData?true:false} 
+                stateName={stateName} 
+                paths={boundaryData  || editedData || convertedData || newBufferdata || formattedData} 
+                setPolygonsCount={setPolygonsCount}
+                bufferData={props.bufferData}
+                orgPolyCoords={props.orgPolyCoords} 
+                mapBoundary={boundaryData  || convertedData || editedData || formattedData}
+                newPolygon={props.newPolygon}
+              />
+              <div>
+                <div className="bottom-0 left-0 w-full flex justify-center items-center bg-white mt-[10px]">
+                  <div className="flex items-center mx-1 md:mx-2 lg:mx-2 xlg:mx-2">
+                    <div className="  w-4 h-4 md:w-8 md:h-8 lg:w-8 lg:h-8 xlg:w-8 xlg:h-8 bg-[#562377] border border-black mr-2"></div>
+                    <span className="text-xs">{'>= 70'}</span>
+                  </div>
+                  <div className="flex items-center mx-1 md:mx-2 lg:mx-2 xlg:mx-2">
+                    <div className="w-4 h-4 md:w-8 md:h-8 lg:w-8 lg:h-8 xlg:w-8 xlg:h-8 bg-[#3949ab] border border-black mr-2"></div>
+                    <span className="text-xs">{'30 - 69'}</span>
+                  </div>
+                  <div className="flex items-center mx-1 md:mx-2 lg:mx-2 xlg:mx-2">
+                    <div className="w-4 h-4 md:w-8 md:h-8 lg:w-8 lg:h-8 xlg:w-8 xlg:h-8 bg-[#5c6bc0] border border-black mr-2"></div>
+                    <span className="text-xs">{'10 - 29'}</span>
+                  </div>
+                  <div className="flex items-center mx-1 md:mx-2 lg:mx-2 xlg:mx-2">
+                    <div className="w-4 h-4 md:w-8 md:h-8 lg:w-8 lg:h-8 xlg:w-8 xlg:h-8 bg-[#7986cb] border border-black mr-2"></div>
+                    <span className="text-xs">{'3 - 9'}</span>
+                  </div>
+                  <div className="flex items-center mx-1 md:mx-2 lg:mx-2 xlg:mx-2">
+                    <div className="w-4 h-4 md:w-8 md:h-8 lg:w-8 lg:h-8 xlg:w-8 xlg:h-8 bg-[#c5cae9] border border-black mr-2"></div>
+                    <span className="text-xs">{'1 - 2'}</span>
+                  </div>
+                  <div className="flex items-center mx-1 md:mx-2 lg:mx-2 xlg:mx-2">
+                    <div className="w-4 h-4 md:w-8 md:h-8 lg:w-8 lg:h-8 xlg:w-8 xlg:h-8 bg-[#FFFFFF] border border-black mr-2"></div>
+                    <span className="text-xs">{'0'}</span>
+                  </div>
+                </div>
+              </div>
+            <div className="text-center text-3xl  gandhi-family text-[20px]  mt-[5px]">
+             PERCENTAGE OF COMPLETE LISTS (Total={highestNumber})
+            </div>
+            </div>
+            </div>
+            }
+
+
+            <div ref={chartRef}  style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', transform: 'translateY(48px)', marginTop: !showHeatMap && getSeasonalChartData.length > 0 ? '28rem' : '6 rem', marginBottom:'6rem' }}>
+              <Chart mapZoomOut={mapZoomOut}/>
+            </div>
+
+
+
+            {/* <div className=" grid grid-cols-3 px-20 ">
+              <div className="col-span-2">
+                <Card className="h-[70vh] w-[88vw] mt-32">
+                  <Map
+                    ref={mapRef}
+                    className=" w-full"
+                    style={{
+                      height: "58vh",
+                      width: window.innerWidth < 768 ? "100vw" : "58vw",
+                    }}
+                    google={props.google}
+                    mapTypeControl={false}
+                    scaleControl={false}
+                    streetViewControl={false}
+                    panControl={false}
+                    rotateControl={false}
+
+                    zoom={changeLayoutForReport ? 8.2 : 9}
+                    initialCenter={(convertedData && getPolygonCenter(convertedData, props.google)) || (editedData && getPolygonCenter(editedData, props.google)) || boundaryData && (changeLayoutForReport ? getPolygonCenter(boundaryData, props.google) : getPolygonCenter(boundaryData, props.google)) || formattedData && (changeLayoutForReport ? getPolygonCenter(formattedData, props.google) : getPolygonCenter(formattedData, props.google)) || { lat: 25.21, lng: 79.32 }}
                   >
                     {props.data && props.data.features && props.data.features.length > 0 && (
                       <Polygon
@@ -1210,138 +1560,48 @@ function Report(props) {
               </div>
             </div>
 
-            {showHeatMap && 
-              <div style={{ display: polygonsCount < 1 || area <= 500 ? "none" : "block" }}>
-              <div ref={heatmapRef} className='flex flex-col justify-center items-center relative'>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", margin: '2rem' }}>
-                <h2 className="gandhi-family-bold" style={{ margin: 0, fontSize: "24px" }}>HEATMAP</h2>
-                <button
-                  className="gandhi-family"
-                  style={{
-                    background: "none",
-                    border: "1px solid #DAB830",
-                    borderRadius: "50%",
-                    color: "#DAB830",
-                    width: "24px",
-                    height: "24px",
-                    textAlign: "center",
-                    cursor: "pointer",
-                  }}
-                  title="Intensity of the colour of a grid is proportional to the number of checklists from that grid"
-                >
-                  i
-                </button>
-              </div>
-              <CustomHeatMap onMapReady={onMapReady} paths={editedData || convertedData || boundaryData || formattedData} setPolygonsCount={setPolygonsCount} />
-              <div>
-                <div className="bottom-0 left-0 w-full flex justify-center items-center bg-white mt-[10px]">
-                  <div className="flex items-center mx-2">
-                    <div className="w-8 h-8 bg-[#562377] border border-black mr-2"></div>
-                    <span className="text-sm">{'>= 70'}</span>
-                  </div>
-                  <div className="flex items-center mx-2">
-                    <div className="w-8 h-8 bg-[#3949ab] border border-black mr-2"></div>
-                    <span className="text-sm">{'30 - 69'}</span>
-                  </div>
-                  <div className="flex items-center mx-2">
-                    <div className="w-8 h-8 bg-[#5c6bc0] border border-black mr-2"></div>
-                    <span className="text-sm">{'10 - 29'}</span>
-                  </div>
-                  <div className="flex items-center mx-2">
-                    <div className="w-8 h-8 bg-[#7986cb] border border-black mr-2"></div>
-                    <span className="text-sm">{'3 - 9'}</span>
-                  </div>
-                  <div className="flex items-center mx-2">
-                    <div className="w-8 h-8 bg-[#c5cae9] border border-black mr-2"></div>
-                    <span className="text-sm">{'1 - 2'}</span>
-                  </div>
-                  <div className="flex items-center mx-2">
-                    <div className="w-8 h-8 bg-[#FFFFFF] border border-black mr-2"></div>
-                    <span className="text-sm">{'0'}</span>
-                  </div>
+            {/* <div style={{height:'80vh'}}> */}
+            {/* <div
+              ref={heatmapRef}
+              className="mt-[27rem] md:mt-0 lg:mt-0 flex justify-center items-center relative"
+            >
+              <CustomHeatMap
+                className="md:absolute lg:absolute"
+                paths={editedData || convertedData || formattedData || boundaryData || []}
+                setPolygonsCount={setPolygonsCount} 
+              />
+
+              <div className="absolute bottom-0 left-0 w-full flex justify-center items-center bg-white  py-2 translate-y-[48px]">
+                <div className="flex items-center mx-2">
+                  <div className="w-8 h-8 bg-[#562377] border border-black mr-2"></div>
+                  <span className="text-sm">{'>= 70'}</span>
+                </div>
+                <div className="flex items-center mx-2">
+                  <div className="w-8 h-8 bg-[#3949ab] border border-black mr-2"></div>
+                  <span className="text-sm">{'30 - 69'}</span>
+                </div>
+                <div className="flex items-center mx-2">
+                  <div className="w-8 h-8 bg-[#5c6bc0] border border-black mr-2"></div>
+                  <span className="text-sm">{'10 - 29'}</span>
+                </div>
+                <div className="flex items-center mx-2">
+                  <div className="w-8 h-8 bg-[#7986cb] border border-black mr-2"></div>
+                  <span className="text-sm">{'2 - 9'}</span>
+                </div>
+                <div className="flex items-center mx-2">
+                  <div className="w-8 h-8 bg-[#c5cae9] border border-black mr-2"></div>
+                  <span className="text-sm">{'< 2'}</span>
                 </div>
               </div>
-            <div className="text-center text-3xl  gandhi-family text-[20px]  mt-[5px]">
-              NUMBER OF COMPLETE LISTS
             </div>
-            </div>
-            </div>
-            }
 
-
-            <div ref={chartRef} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', transform: 'translateY(48px)', margin: '6rem 0rem' }}>
+            <div ref={chartRef} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', transform: 'translateY(48px)', marginTop: '6rem', marginBottom: '6rem' }}>
               <Chart />
-            </div>
-
-
-
-            {/* <div className=" grid grid-cols-3 px-20 ">
-              <div className="col-span-2">
-                <Card className="h-[70vh] w-[88vw] mt-32">
-                  <Map
-                    className="w-auto"
-                    style={{ height: "70vh", width: '65vw' }}
-                    google={props.google}
-                    zoom={(editedData ? 9 : 9.5)}
-                    initialCenter={(convertedData && getPolygonCenter(convertedData)) || (editedData && getPolygonCenter(editedData)) || boundaryData && getPolygonCenter(boundaryData) || { lat: 25.21, lng: 79.32 }}
-                  >
-                    {props.data && props.data.features && props.data.features.length > 0 && (
-                      <Polygon
-                        paths={[props.data.features[0].geometry.coordinates[0]]}
-                        strokeColor="#0000FF"
-                        strokeOpacity={0.8}
-                        strokeWeight={2.5}
-                        fillOpacity={0}
-                      />
-                    )}
-
-                    {convertedData && (
-                      <Polygon
-                        paths={convertedData}
-                        strokeColor="#0000FF"
-                        strokeOpacity={0.8}
-                        strokeWeight={2.5}
-                        fillOpacity={0}
-                      />
-                    )}
-                    {editedData && (
-                      <Polygon
-                        paths={editedData}
-                        strokeColor="#0000FF"
-                        strokeOpacity={0.8}
-                        strokeWeight={2.5}
-                        fillOpacity={0}
-                      />
-                    )}
-                    {boundaryData && (
-                      <Polygon
-                        paths={boundaryData}
-                        strokeColor="#0000FF"
-                        strokeOpacity={0.8}
-                        strokeWeight={2.5}
-                        fillOpacity={0}
-                      />
-                    )}
-
-                    {gridPolygonsDataForMap.map((gridPolygon, index) => (
-                      <Polygon
-                        key={`gridPolygonDataForMap_${index}`}
-                        paths={gridPolygon}
-                        strokeColor="#FF0000"
-                        strokeOpacity={0.8}
-                        strokeWeight={1}
-                        fillOpacity={0}
-
-                      />
-                    ))}
-                  </Map>
-                </Card>
-              </div>
             </div> */}
 
 
-            <div className="p-1 lg:px-8 mt-8 text-xs lg:text-base ">
-              <Card className="mx-20 mt-8">
+            <div className="p-1 lg:px-8 mt-8 text-xs lg:text-base mb-4">
+              <Card className="md:mx-5 lg:mx-40">
                 <div>
                   <CompleteListOfSpecies
                     completeListOfSpecies={completeListOfSpecies}
@@ -1349,8 +1609,8 @@ function Report(props) {
                 </div>
               </Card>
             </div>
-            <div className="p-1 lg:px-8 mt-8 text-xs lg:text-base ">
-              <Card className="mx-96">
+            <div className="p-1 lg:px-8 mt-8 text-xs lg:text-base lg:max-w-4xl mx-auto mb-4">
+              <Card className="">
                 <div>
                   <TableForEffortVariables
                     heading={"DATA CONTRIBUTIONS"}
@@ -1376,7 +1636,7 @@ function Report(props) {
               // handleZoomChange();
               setChangeLayoutForReport(true);
             }}
-            className=" text-right mt-4  px-4 py-2 bg-white-50 outline-none border border-indigo-100 rounded text-indigo-500 font-medium hover:bg-[#DAB830] hover:text-white transition-colors duration-200"
+            className=" min-w-[145px] text-right mt-4  px-4 py-2 bg-white-50 outline-none border border-indigo-100 rounded text-indigo-500 font-medium hover:bg-[#DAB830] hover:text-white transition-colors duration-200"
           >
             {pdfDownloadStatus}
           </button>
@@ -1389,15 +1649,15 @@ function Report(props) {
 
       <div
         ref={footer}
-        className={`grid grid-cols-3 text-center text-gray-100 p-3  font-sans bg-[#9A7269] ${changeLayoutForReport && "pb-5"
+        className={`lmd:grid  grid-cols-3  text-center text-gray-100 p-3 break-normal font-sans bg-[#9A7269] ${changeLayoutForReport && "pb-5"
           }`}
       >
-        <div className="col-span-2 text-right me-4 gandhi-family">
-          Generated from myna.stateofindiasbirds.in v.2.1 on {formattedDate}
+        <div className="col-span-2 md:text-right lg:text-right xlg:text-right lmd:me-4 gandhi-family">
+          Generated from myna.stateofindiasbirds.in v.2.2 on {formattedDate}
         </div>
         <div
           className={`${changeLayoutForReport && "invisible"
-            } font-medium gandhi-family text-right`}
+            } font-medium gandhi-family text-center md:text-right lg:right xlg:right break-normal`}
         >
           Developed by{" "}
           <a
@@ -1437,6 +1697,3 @@ export default connect(mapStateToProps, {
 })(GoogleApiWrapper({
   apiKey: process.env.REACT_APP_API_KEY
 })(Report));
-
-
-

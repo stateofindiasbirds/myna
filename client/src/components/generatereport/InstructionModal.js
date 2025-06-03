@@ -71,16 +71,9 @@ export default function InstructionModal({ open, setOpen, isMobile }) {
                         className="text-base font-semibold leading-6 text-gray-900"
                       ></Dialog.Title>
                       <div className="mt-2">
-                        {isMobile ? (
-                          <p className="text-sm text-gray-500">
-                            For best experience please open this page on a
-                            desktop
-                          </p>
-                        ) : (
                           <p className="text-sm text-gray-500">
                             It is recommended to read instructions before usage.
                           </p>
-                        )}
                       </div>
                     </div>
                   </div>

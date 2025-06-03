@@ -102,3 +102,59 @@ export const calculateZoom = (points) => {
 
   return requiredZoom;
 };
+
+
+
+
+ export const getPolygonCenter = (polygon, google) => {
+  // debugger;
+  if (polygon && polygon.length > 0 && google) {
+    const bounds = new google.maps.LatLngBounds();
+
+    const flattenPolygon = (polygon) => {
+      const result = [];
+
+      const flatten = (parts) => {
+        parts.forEach((part) => {
+          if (Array.isArray(part[0])) {
+            flatten(part); 
+          } else {
+            result.push(part); 
+          }
+        });
+      };
+
+      flatten(polygon);
+      return result;
+    };
+ 
+    const flattenedPolygon = flattenPolygon(polygon);
+
+    flattenedPolygon.forEach((point) => {
+      if (isFinite(point.lat) && isFinite(point.lng)) {
+        bounds.extend(new google.maps.LatLng(point.lat, point.lng));
+      }
+    });
+
+    const center = bounds.getCenter();
+
+    const centerLat = center.lat();
+    const centerLng = center.lng();
+
+    if (isNaN(centerLat) || isNaN(centerLng)) {
+      const totalPoints = flattenedPolygon.length;
+      const latSum = flattenedPolygon.reduce((sum, point) => sum + point.lat, 0);
+      const lngSum = flattenedPolygon.reduce((sum, point) => sum + point.lng, 0);
+      const manualCenter = {
+        lat: latSum / totalPoints,
+        lng: lngSum / totalPoints,
+      };
+      console.log('manualCenter',manualCenter);
+      return manualCenter;
+    }
+    console.log( {lat: centerLat, lng: centerLng});
+    return { lat: centerLat, lng: centerLng };
+  }
+
+  return { lat: 25.21, lng: 79.32 }; 
+};
