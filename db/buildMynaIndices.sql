@@ -1,69 +1,106 @@
 -- ============================================
 -- Index creation for materialized view "merges"
--- Using CONCURRENTLY for non-blocking operation
+-- Using for non-blocking operation
 -- ============================================
 
 -- Spatial & general indexes
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_lat_lng 
+CREATE INDEX IF NOT EXISTS idx_lat_lng 
     ON merges (latitude, longitude);
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_spatial_location 
+CREATE INDEX IF NOT EXISTS idx_spatial_location 
     ON merges USING gist (st_setsrid(st_makepoint(longitude, latitude), 4326));
 
+CREATE INDEX IF NOT EXISTS idx_merges_geom
+    ON merges USING gist (geom);
+
 -- Common lookup indexes
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_county 
+CREATE INDEX IF NOT EXISTS idx_county 
     ON merges (county);
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_state 
+CREATE INDEX IF NOT EXISTS idx_state 
     ON merges (state);
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_locality 
+CREATE INDEX IF NOT EXISTS idx_locality 
     ON merges (locality);
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_localityid 
+CREATE INDEX IF NOT EXISTS idx_localityid 
     ON merges ("localityId");
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_observationdate 
+CREATE INDEX IF NOT EXISTS idx_observationdate 
     ON merges ("observationDate");
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_samplingeventidentifier 
+CREATE INDEX IF NOT EXISTS idx_samplingeventidentifier 
     ON merges ("samplingEventIdentifier");
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_groupidentifier 
+CREATE INDEX IF NOT EXISTS idx_groupidentifier 
     ON merges ("groupIdentifier");
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_category 
+CREATE INDEX IF NOT EXISTS idx_category 
     ON merges (category);
 
 -- Taxon-specific indexes
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_ebirdscientificname 
+CREATE INDEX IF NOT EXISTS idx_ebirdscientificname 
     ON merges ("eBirdScientificName");
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_indiachecklist_common_name 
+CREATE INDEX IF NOT EXISTS idx_indiachecklist_common_name 
     ON merges ("indiaChecklistCommonName");
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_indiachecklist_scientific_name 
+CREATE INDEX IF NOT EXISTS idx_indiachecklist_scientific_name 
     ON merges ("indiaChecklistScientificName");
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_soibconcernstatus 
+CREATE INDEX IF NOT EXISTS idx_soibconcernstatus 
     ON merges ("soibConcernStatus");
 
 -- Conservation fields
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_iucncategory 
+CREATE INDEX IF NOT EXISTS idx_iucncategory 
     ON merges ("iucnCategory");
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_wpaschedule 
+CREATE INDEX IF NOT EXISTS idx_wpaschedule 
     ON merges ("wpaSchedule");
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_citesappendix 
+CREATE INDEX IF NOT EXISTS idx_citesappendix 
     ON merges ("citesAppendix");
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_cmsappendix 
+CREATE INDEX IF NOT EXISTS idx_cmsappendix 
     ON merges ("cmsAppendix");
 
 -- Migratory, unique value, etc.
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_migratory_status 
+CREATE INDEX IF NOT EXISTS idx_migratory_status 
     ON merges ("migratoryStatusWithinIndia");
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_unique_value 
+CREATE INDEX IF NOT EXISTS idx_unique_value 
     ON merges ("uniqueValue");
+
+CREATE INDEX IF NOT EXISTS idx_merges_state_county_date
+    ON merges (state, county, "observationDate");
+
+CREATE INDEX IF NOT EXISTS idx_merges_state_county_iucn
+    ON merges (state, county, "iucnCategory");
+
+CREATE INDEX IF NOT EXISTS idx_merges_state_county_soib
+    ON merges (state, county, "soibConcernStatus");
+
+CREATE INDEX IF NOT EXISTS idx_merges_state_county_endemic
+    ON merges (state, county, "endemicRegion");
+
+CREATE INDEX IF NOT EXISTS idx_merges_state_county_migratory
+    ON merges (state, county, "migratoryStatusWithinIndia");
+
+CREATE INDEX IF NOT EXISTS idx_merges_state_county_locality
+    ON merges (state, county, "localityId");
+
+CREATE INDEX IF NOT EXISTS idx_merges_state_county_group
+    ON merges (state, county, "groupIdentifier", "allSpeciesReported");
+
+CREATE INDEX IF NOT EXISTS idx_merges_state_county_onepercent
+    ON merges (state, county, "onePercentEstimates");
+
+CREATE INDEX IF NOT EXISTS idx_merges_state_county_species
+    ON merges (state, county, "observationDate")
+    WHERE category IN ('species', 'issf', 'domestic');
+
+CREATE INDEX IF NOT EXISTS idx_merges_state_county_localityid
+    ON merges (state, county, "localityId");
+
+CREATE INDEX IF NOT EXISTS idx_merges_localityid_date
+    ON merges ("localityId", "observationDate");

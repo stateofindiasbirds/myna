@@ -35,7 +35,8 @@ SELECT
     l."LOCALITY.TYPE" AS "localityType",
     l."LATITUDE" AS "latitude",
     l."LONGITUDE" AS "longitude",
-    TO_CHAR(ls."OBSERVATION.DATE", 'DD-MM-YYYY') AS "observationDate",
+    st_setsrid(st_makepoint(l."LONGITUDE", l."LATITUDE"), 4326) AS geom, --Optimization possible, client can use geom
+    TO_CHAR(ls."OBSERVATION.DATE", 'DD-MM-YYYY') AS "observationDate", --Optimization possible if client changes to native date
     ls."SAMPLING.EVENT.IDENTIFIER" AS "samplingEventIdentifier",
     ls."DURATION.MINUTES"::varchar AS "durationMinutes",
     ls."NUMBER.OBSERVERS"::varchar AS "numberObservers",
@@ -44,13 +45,20 @@ SELECT
         WHEN NULLIF(ls."GROUP.IDENTIFIER", '') IS NOT NULL 
         THEN ls."GROUP.IDENTIFIER"
         ELSE ls."SAMPLING.EVENT.IDENTIFIER"
-    END AS "groupIdentifier",
+    END AS "groupIdentifier", --Optimization possible in client. They can directly use groupIdentifier
     ls."OBSERVER.ID" AS "observerId",
     t."COMMON.NAME" AS "eBirdEnglishName",
     t."SCIENTIFIC.NAME" AS "eBirdScientificName",
     s."SoIB 2023 Priority Status" AS "soibConcernStatus",
-    (CASE WHEN s."Endemic to India" THEN 'TRUE' ELSE 'FALSE' END)::text AS "indiaEndemic",
-    s."Endemicity" AS "endemicRegion",
+    CASE 
+        WHEN s."Endemic to India" = TRUE THEN 'Yes'
+        WHEN s."Endemic to India" = FALSE THEN 'No'
+        ELSE NULL
+    END AS "indiaEndemic",
+    CASE 
+        WHEN s."Endemicity" ILIKE 'Non-endemic%' THEN 'None'
+        ELSE s."Endemicity"
+    END AS "endemicRegion",
     s."Migratory Status within India" AS "migratoryStatusWithinIndia",
     s."English Name" AS "indiaChecklistCommonName",
     s."Scientific Name" AS "indiaChecklistScientificName",
