@@ -183,7 +183,7 @@ function Instructions() {
                   This data is based entirely on eBird data that was downloaded
                   from{" "}
                   <a href="https://www.ebird.org/india" target="_blank">www.ebird.org/india</a>,
-                  and includes public observations up till 31 May 2024. Data on
+                  and includes public observations up till 30 November 2025. Data on
                   sensitive species (
                   <a href="https://ebird.org/india/news/ebird-sensitive-species" target="_blank">
                     https://ebird.org/india/news/ebird-sensitive-species
