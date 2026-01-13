@@ -122,7 +122,7 @@ function Main(props) {
   const [localitiesList, setLocalitiesList] = useState([]);
   const [editedData, setEditedData] = useState(null);
   const [value, setValue] = useState("1900-01-01");
-  const [value2, setValue2] = useState(dayjs('2024-05-31'));
+  const [value2, setValue2] = useState(dayjs('2025-11-30'));
   const [showdate, setShowdate] = useState(true);
   const [area, setArea] = useState(null)
   const [boundary, setBoundary] = useState(null);

@@ -41,7 +41,7 @@ function About() {
           {" "}
           www.ebird.org/india  
         </a>
-        {" "}  ,and includes public observations uploaded until 31 May 2024. MYNA can
+        {" "}  ,and includes public observations uploaded until 30 November 2025. MYNA can
         be typically used to explore the birds found in small regions like a
         district, taluk, panchayat, protected area, an eBird locality, or even a
         custom boundary defined by the user. It provides broad summaries of the

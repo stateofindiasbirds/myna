@@ -125,11 +125,11 @@ function MyControls({_onCreate, _onDeleted, data, newPolygon, setArea, uploadedg
       const indiaPolygon = turf.feature(indiaBoundary.features[0].geometry, {});
 
       const isInside = turf.booleanWithin(drawnPolygon, indiaPolygon);
-  
+    // Commented by Praveen J on 04 01 2026 to fix the boundary polygon issue. Alphanzo to fix it in prod and github 
       if (!isInside) {
-          map.removeLayer(e.layer);
-          toast.error("Polygon must be inside India!");
-          return;
+      //    map.removeLayer(e.layer);
+      //    toast.error("Polygon must be inside India!");
+      //    return;
       }
       _onCreate(e);
   };
