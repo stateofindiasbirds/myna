@@ -183,7 +183,7 @@ function Instructions() {
                   This data is based entirely on eBird data that was downloaded
                   from{" "}
                   <a href="https://www.ebird.org/india" target="_blank">www.ebird.org/india</a>,
-                  and includes public observations up till 31 May 2024. Data on
+                  and includes public observations up till 28 February 2026. Data on
                   sensitive species (
                   <a href="https://ebird.org/india/news/ebird-sensitive-species" target="_blank">
                     https://ebird.org/india/news/ebird-sensitive-species
@@ -251,7 +251,7 @@ function Instructions() {
                 <p className="mt-3">
                   <span className="font-medium">High Priority</span>: Number of bird species that are listed
                   as High Conservation Priority in the <a href="https://www.stateofindiasbirds.in/" target="_blank">State of India's Birds
-                    2024.</a>
+                    2026.</a>
                 </p>
 
                 <p className="mt-3">

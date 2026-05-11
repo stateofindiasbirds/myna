@@ -84,7 +84,6 @@ import { GeomanControls } from 'react-leaflet-geoman-v2';
 import { getAreaOfPolygon } from 'geolib';
 import { toast } from 'react-toastify';
 import * as turf from "@turf/turf";
-import indiaBoundary from "./files/india-composite.json";
 import L from "leaflet";
 
 function MyControls({_onCreate, _onDeleted, data, newPolygon, setArea, uploadedgeojson, bufferData}) {
@@ -119,18 +118,6 @@ function MyControls({_onCreate, _onDeleted, data, newPolygon, setArea, uploadedg
         return
       }
   
-    //   // Validate inside India
-      const drawnPolygon = turf.polygon([coordinatesForFile[0]]);
-    //   const indiaPolygon = turf.feature(indiaBoundary.features[0].geometry);
-      const indiaPolygon = turf.feature(indiaBoundary.features[0].geometry, {});
-
-      const isInside = turf.booleanWithin(drawnPolygon, indiaPolygon);
-  
-      if (!isInside) {
-          map.removeLayer(e.layer);
-          toast.error("Polygon must be inside India!");
-          return;
-      }
       _onCreate(e);
   };
   
