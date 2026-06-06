@@ -12,8 +12,7 @@ import Paper from "@mui/material/Paper";
 import { TableHead } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-// import suryaFont from "../../../fwdsoibfonts/ChaparralPro-Bold.otf";
-
+import suryaFont from "../../../fwdsoibfonts/ChaparralPro-Bold.otf";
 
 function TableCard(props) {
   const { tabledata } = props;
@@ -25,7 +24,7 @@ function TableCard(props) {
   }));
   const themeOne = createTheme({
     typography: {
-      fontFamily: ["sans", "sans-serif"].join(","),
+      fontFamily: [suryaFont, "sans"],
     },
   });
   const StyledTableRow = styled(TableRow)(({ theme }) => ({
@@ -44,7 +43,7 @@ function TableCard(props) {
         <Table style={{ minWidth: 200 }} aria-label="custom pagination table">
           <TableHead>
             <TableRow
-              style={{ backgroundColor: "#9a7269", fontFamily: "sans, sans-serif" }}
+              style={{ backgroundColor: "#9a7269", fontFamily: suryaFont }}
             >
               <TableCell
                 style={{

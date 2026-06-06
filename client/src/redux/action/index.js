@@ -341,7 +341,7 @@ export const GET_HOTSPOT_AREAS = (data, isFormData, value, value2) => {
 };
 
 export const GET_COMPLETE_LIST_OF_SPECIES = (data, isFormData, value, value2) => {
-  console.log('dataGET_complete_list_of_species',data)
+  // console.log('dataGET_complete_list_of_species',data)
   console.log('values',value, value2);
   return async (dispatch) => {
     try {

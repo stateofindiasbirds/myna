@@ -122,7 +122,7 @@ function Main(props) {
   const [localitiesList, setLocalitiesList] = useState([]);
   const [editedData, setEditedData] = useState(null);
   const [value, setValue] = useState("1900-01-01");
-  const [value2, setValue2] = useState(dayjs('2026-02-28'));
+  const [value2, setValue2] = useState(dayjs('2026-03-31'));
   const [showdate, setShowdate] = useState(true);
   const [area, setArea] = useState(null)
   const [boundary, setBoundary] = useState(null);
@@ -134,6 +134,7 @@ function Main(props) {
   const { setStartPolygonDrawing } = useDrawing();
   const [bufferData, setBufferData] = useState(null);
   const [orgPolyCoords, setOrgPolyCoords] = useState(null);
+  const [bufferArea, setBufferArea] = useState(0);
   
   const handleMouseLeave = () => {
     setAnchorEl(null);
@@ -927,6 +928,7 @@ function Main(props) {
               showdate={showdate}
               setShowdate={setShowdate}
             ></Datepicker>
+            
             <FormControl>
               <TextField
                 id="standard-basic"
@@ -1093,6 +1095,8 @@ function Main(props) {
       {/* <ThemeProvider theme={themeOne}> */}
       {showreport ? (
         <Report
+          bufferArea={bufferArea}
+          setBufferArea={setBufferArea}
           bufferData={bufferData}
           orgPolyCoords={orgPolyCoords}
           boundary={boundary}
@@ -1201,6 +1205,8 @@ function Main(props) {
           >
             <Reportmap
               // mapRef={mapRef}
+              bufferArea={bufferArea}
+              setBufferArea={setBufferArea}
               bufferData={bufferData}
               setBufferData={setBufferData}
               orgPolyCoords={orgPolyCoords}

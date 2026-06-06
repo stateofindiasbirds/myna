@@ -1,5 +1,5 @@
 import React, { Fragment, useEffect, useState, useRef, useCallback, useMemo } from "react";
-import { Map, Marker, GoogleApiWrapper, Polygon, InfoWindow } from 'google-maps-react';
+import { Map, Marker, GoogleApiWrapper, Polygon, InfoWindow, Polyline } from 'google-maps-react';
 import Table2X2 from "./reportcomponents/Table2X2";
 import Table3XN from "./reportcomponents/Table3XN";
 import ProgressChart from "./reportcomponents/ProgressChart";
@@ -70,6 +70,7 @@ function Report(props) {
     area,
     completeListOfSpeciesFetchSuccessFully,
     mediumForReport,
+    setBufferArea
   } = props;
 
 
@@ -103,23 +104,22 @@ function Report(props) {
   const [stateName, setStateName] = useState(false);
   const allYearsCount = useSelector((state) => state?.UserReducer?.getAllYearsCount) || {};
   const completeListOfSpeciesGi = useSelector(state => state?.UserReducer?.completeListOfSpeciesGi);
-  const [mapZoomOut,setMapZoomOut] = useState(false);
+  const [mapZoomOut, setMapZoomOut] = useState(false);
   const [highestNumber, sethighestNumber] = useState(null);
-  const [newBufferdata,setNewBufferdata] = useState(null);
+  const [newBufferdata, setNewBufferdata] = useState(null);
   useEffect(() => {
     if (Object.keys(allYearsCount).length > 0) {
       setIsBarChartloaded(true);
     }
   }, [allYearsCount]);
 
-  useEffect(()=>{
-     if(completeListOfSpeciesGi.length > 0){
+  useEffect(() => {
+    if (completeListOfSpeciesGi.length > 0) {
       // console.log("completeListOfSpeciesGi.length",completeListOfSpeciesGi.length)
       setShowHeatMap(true);
-     }
-  },[completeListOfSpeciesGi])
-  
-// console.log("showHeatMap",showHeatMap);
+    }
+  }, [completeListOfSpeciesGi])
+
 
   const downloadPdfProgress = {
     "Download Pdf": "w-[0%]",
@@ -147,9 +147,56 @@ function Report(props) {
   const chartRef = useRef();
   const heatmapRef = useRef();
 
+  // const closeHandler = () => {
+  //   if (!selectedState && editedData) {
+  //     // Use the geometryType we identified earlier
+  //     const feature = dataForMap?.features?.[0] || dataForMap;
+  //     const geometryType = feature?.geometry?.type;
+  //     console.log(">>>>>>>>>>>>>>>>>>>>geometryType", geometryType)
+  //     const isLine = geometryType === "LineString";
+
+  //     const latlngs = isLine
+  //       ? editedData.map((point) => [point.lng, point.lat]) // Flat for Line
+  //       : [editedData.map((point) => [point.lng, point.lat])]; // Nested for Polygon
+
+  //     const featureCollection = {
+  //       type: "FeatureCollection",
+  //       features: [
+  //         {
+  //           type: "Feature",
+  //           properties: {},
+  //           geometry: {
+  //             type: isLine ? "LineString" : "Polygon",
+  //             coordinates: latlngs,
+  //           },
+  //         },
+  //       ],
+  //     };
+  //     setUploadedgeojson(featureCollection);
+  //   }
+  //   setIsZoomRequired(true);
+  //   RESET_ALL_DATA();
+  //   setSelectedCounty("");
+  //   setSelectedLocality("");
+  //   setSelectedState("");
+  //   setEditedData(null);
+  //   setBoundary(null);
+  //   setShowreport(null);
+  //   setBufferArea(0);
+  // };
+
   const closeHandler = () => {
     if (!selectedState && editedData) {
-      const latlngs = [editedData.map((point) => [point.lng, point.lat])];
+      // 1. Identify geometry type seamlessly from context
+      const feature = dataForMap?.features?.[0] || dataForMap;
+      const geometryType = feature?.geometry?.type || (isLine ? "LineString" : "Polygon");
+      const isLineShape = geometryType === "LineString" || geometryType === "polyline";
+
+      // 2. Structuring coordinates according to geometry constraints
+      const latlngs = isLineShape
+        ? editedData.map((point) => [point.lng, point.lat]) // Flat structural mapping for LineStrings
+        : [editedData.map((point) => [point.lng, point.lat])]; // Double nested mapping array for standard Polygons
+
       const featureCollection = {
         type: "FeatureCollection",
         features: [
@@ -157,29 +204,84 @@ function Report(props) {
             type: "Feature",
             properties: {},
             geometry: {
-              type: "Polygon",
-              coordinates: [...latlngs],
+              type: geometryType,
+              coordinates: latlngs,
             },
           },
         ],
       };
       setUploadedgeojson(featureCollection);
     }
+
+    // 3. COMPLETE CLEANUP: Wipe UI elements, buffers, and layers cleanly
     setIsZoomRequired(true);
     RESET_ALL_DATA();
     setSelectedCounty("");
     setSelectedLocality("");
     setSelectedState("");
-    setEditedData(null);
-    setBoundary(null);
+    // setEditedData(null);
+    // setBoundary(null);
     setShowreport(null);
+    // setBufferArea(0);         // Reset buffer metric tracker
+    // setNewBufferdata(null);    // CLEAR old calculated buffer polygon geometries
+    // setPolygonData([]);       // Flush existing hotspot grid layers
+    setGridPolygonsDataForMap([]); // Clear rendering layers
   };
 
+  // const closeHandler = () => {
+  //   if (!selectedState && editedData) {
+  //     const latlngs = [editedData.map((point) => [point.lng, point.lat])];
+  //     const featureCollection = {
+  //       type: "FeatureCollection",
+  //       features: [
+  //         {
+  //           type: "Feature",
+  //           properties: {},
+  //           geometry: {
+  //             type: "Polygon",
+  //             coordinates: [...latlngs],
+  //           },
+  //         },
+  //       ],
+  //     };
+  //     setUploadedgeojson(featureCollection);
+  //   }
+  //   setIsZoomRequired(true);
+  //   RESET_ALL_DATA();
+  //   setSelectedCounty("");
+  //   setSelectedLocality("");
+  //   setSelectedState("");
+  //   setEditedData(null);
+  //   setBoundary(null);
+  //   setShowreport(null);
+  // };
+
   // console.log("dataForMap",dataForMap);
-  let convertedData = dataForMap?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }));
-     if(editedData){
-       convertedData =null;
-     }
+  // let convertedData = dataForMap?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }));
+  const feature = dataForMap?.features?.[0] || dataForMap;
+  const geometry = feature?.geometry;
+
+
+
+  const type = geometry?.type;
+
+  let convertedData = [];
+
+  if (type === "Polygon") {
+    // Polygons have an extra level of nesting: [[ [lng, lat], [lng, lat] ]]
+    convertedData = geometry.coordinates[0]?.map(([lng, lat]) => ({ lat, lng })) || [];
+  } else if (type === "LineString") {
+    // LineStrings are: [ [lng, lat], [lng, lat] ]
+    convertedData = geometry.coordinates?.map(([lng, lat]) => ({ lat, lng })) || [];
+  } else if (type === "MultiPolygon") {
+    // MultiPolygons are: [[ [[lng, lat]] ]]
+    convertedData = geometry.coordinates[0][0]?.map(([lng, lat]) => ({ lat, lng })) || [];
+  }
+  if (editedData) {
+    convertedData = null;
+  }
+
+
   const boundaryData = boundary?.features[0]?.geometry.type == 'Polygon'
     && boundary?.features[0]?.geometry.coordinates.length == 1
     && boundary?.features[0]?.geometry?.coordinates[0]?.map(([lng, lat]) => ({ lat, lng }))
@@ -200,100 +302,16 @@ function Report(props) {
   }, [getHotspotAreas]);
 
 
-  useEffect(()=>{
-    if(dataForMap?.features[0]?.properties?.STATE_NAME || dataForMap?.features[0]?.properties?.STATE_N){
-         setStateName(true)
+  useEffect(() => {
+    // Safe navigation using ?. prevents the crash if features[0] is missing
+    const stateName = dataForMap?.features?.[0]?.properties?.STATE_NAME;
+    const stateN = dataForMap?.features?.[0]?.properties?.STATE_N;
+
+    if (stateName || stateN) {
+      setStateName(true);
     }
-  },[dataForMap]);
+  }, [dataForMap]);
 
-
-  // console.log("stateNamestateNamestateNamestateName",stateName)
-
-  //       lat: (latSum ) / totalPoints,
-  //       lng: lngSum / totalPoints,
-  //     };
-  //     return center;
-  //   }
-  // }
-  // const getPolygonCenter = (polygon, google) => {
-  //   console.log('polygon',polygon)
-  //   try {
-  //     if (polygon && polygon.length > 0 && google) {
-  //       console.log('polygon',polygon)
-  //       const bounds = new google.maps.LatLngBounds();
-
-  //       try {
-  //         // Extend the bounds to include each point in the polygon
-  //         if (Array.isArray(polygon[0][0])) {
-  //           polygon.forEach((polygonPart) => {
-  //             polygonPart.forEach((point) => {
-  //               try {
-  //                 if (isFinite(point.lat) && isFinite(point.lng)) {
-  //                   bounds.extend(new google.maps.LatLng(point.lat, point.lng));
-  //                 } else {
-  //                   console.warn("Invalid coordinates detected:", point);
-  //                 }
-  //               } catch (error) {
-  //                 console.error("Error extending bounds with point:", point, error);
-  //               }
-  //             });
-  //           });
-  //         } else {
-  //           polygon.forEach((point) => {
-  //             try {
-  //               if (isFinite(point.lat) && isFinite(point.lng)) {
-  //                 bounds.extend(new google.maps.LatLng(point.lat, point.lng));
-  //               } else {
-  //                 console.warn("Invalid coordinates detected:", point);
-  //               }
-  //             } catch (error) {
-  //               console.error("Error extending bounds with point:", point, error);
-  //             }
-  //           });
-  //         }
-  //       } catch (error) {
-  //         console.error("Error processing polygon parts:", error);
-  //       }
-
-  //       try {
-  //         console.log(bounds);
-  //         const center = bounds.getCenter();
-  //         console.log("center", center);
-
-  //         const centerLat = center.lat();
-  //         const centerLng = center.lng();
-
-  //         // If the center returns NaN, use the manual fallback logic
-  //         if (isNaN(centerLat) || isNaN(centerLng)) {
-  //           console.warn("Bounds returned NaN for center, using manual calculation.");
-
-  //           const totalPoints = polygon.length;
-  //           const latSum = polygon.reduce((sum, point) => sum + point.lat, 0);
-  //           const lngSum = polygon.reduce((sum, point) => sum + point.lng, 0);
-  //           const manualCenter = {
-  //             lat: latSum / totalPoints,
-  //             lng: lngSum / totalPoints,
-  //           };
-  //           console.log('manualCenter',manualCenter);
-  //           return manualCenter;
-  //         }
-
-  //         // Return the bounds center if valid
-  //         console.log({ lat: centerLat, lng: centerLng });
-  //         return { lat: centerLat, lng: centerLng };
-  //       } catch (error) {
-  //         console.error("Error getting center of bounds:", error);
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error("Error in getPolygonCenter function:", error);
-  //   }
-
-  //   // Fallback in case polygon is empty
-  //   console.log("Fallback - polygon is empty or not provided");
-  //   return { lat: 25.21, lng: 79.32 };
-  // };
-  //  console.log("???????????/",props.google.maps.LatLngBounds()) 
   const getPolygonCenter = (polygon, google) => {
     if (polygon && polygon.length > 0 && google) {
       const bounds = new google.maps.LatLngBounds();
@@ -340,58 +358,6 @@ function Report(props) {
   };
 
 
-
-  // const memoizedData = useMemo(() => {
-  //   return [convertedData, boundaryData, formattedData].find((d) => d && d !== false);
-  // }, [convertedData, boundaryData, formattedData]);
-
-  // useEffect(() => {
-  //   try {
-  //     if (memoizedData && memoizedData.length > 0) {
-  //       console.log('memoizedData',memoizedData);
-  //       // Flatten the nested multipolygon array
-  //       const flattenCoordinates = (coordinates) => {
-  //         return coordinates.flatMap((coord) => {
-  //           if (Array.isArray(coord)) {
-  //             return flattenCoordinates(coord);
-  //           }
-  //           return coord;
-  //         });
-  //       };
-
-  //       const flattenedData = flattenCoordinates(memoizedData);
-
-  //       const latitudes = flattenedData.map((p) => p.lat);
-  //       const longitudes = flattenedData.map((p) => p.lng);
-
-  //       const latMin = Math.min(...latitudes);
-  //       const latMax = Math.max(...latitudes);
-  //       const lngMin = Math.min(...longitudes);
-  //       const lngMax = Math.max(...longitudes);
-
-  //       setGridBounds((prevBounds) => {
-  //         const newBounds = { latMin, latMax, lngMin, lngMax };
-  //         if (
-  //           prevBounds.latMin !== newBounds.latMin ||
-  //           prevBounds.latMax !== newBounds.latMax ||
-  //           prevBounds.lngMin !== newBounds.lngMin ||
-  //           prevBounds.lngMax !== newBounds.lngMax
-  //         ) {
-  //           return newBounds;
-  //         }
-  //         return prevBounds;
-  //       });
-  //     }
-  //   } catch (e) {
-  //     console.log('error', e);
-  //   }
-  // }, [memoizedData]);
-
-
-
-  // Calculate the center of the polygon
-  // const polygonCenter = getPolygonCenter(polygonData, props.google);
-
   const mapRef = useRef(null);
 
   // This function will calculate and return the bounds for the boundary data
@@ -420,6 +386,7 @@ function Report(props) {
     let delayTimeout;
 
     if (changeLayoutForReport) {
+      window.dispatchEvent(new Event('resize'));
       delayTimeout = setTimeout(() => {
         createTrackMiddlewareForPdfGenerate(mediumForReport)
 
@@ -634,7 +601,7 @@ function Report(props) {
   const [downloadTriggered, setDownloadTriggered] = useState(false);
 
   const handleDownloadClick = () => {
-    setMapZoomOut(true)   
+    setMapZoomOut(true)
     if (otherScreen.current) {
       otherScreen.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
       setTimeout(() => {
@@ -664,40 +631,6 @@ function Report(props) {
 
 
   const timeoutRef = useRef(null);
-
-  // const handleMouseOver = (marker) => {
-  //   // clearTimeout(timeoutRef.current);
-  //   // timeoutRef.current = setTimeout(() => {
-  //     // Only update state if a different marker is hovered
-  //     // if (!activeMarker || activeMarker.localityId !== marker.localityId) {
-  //       // setActiveMarker(marker);
-  //       // setShowInfoWindow(true);
-  //     // }
-  //   // }, 100); 
-  //   console.log('data', marker)
-  // }
-  // const handleMouseOver = (marker) => {
-  //   // debugger;
-  //   // clearTimeout(timeoutRef.current);
-
-  //   // Debounce the state update to prevent flickering on rapid hover
-  //   // timeoutRef.current = setTimeout(() => {
-  //     // Update the state only if the hovered marker is different
-  //     // if (!activeMarker || activeMarker.localityId !== marker.localityId) {
-  //       setActiveMarker(marker);
-  //       setShowInfoWindow(true);
-  //     // }
-  //   // }, 100); // You can adjust the delay
-  // };
-
-  // // Memoized mouseout handler
-  // const handleMouseOut = () => {
-  //   // clearTimeout(timeoutRef.current);
-  //   // timeoutRef.current = setTimeout(() => {
-  //     // setActiveMarker(null);
-  //     // setShowInfoWindow(false);
-  //   // }, 100); // Debouncing mouseout as well
-  // }
 
 
 
@@ -744,76 +677,38 @@ function Report(props) {
 
 
 
-
-//   function isBoundaryOutsideIndia(boundary) {
-    
-//     const indiaData = {
-//       "type": "FeatureCollection",
-//       "features": [
-//         {
-//           "type": "Feature",
-//           "id": "IND",
-//           "properties": { "name": "India" },
-//           "geometry": {
-//             "type": "Polygon",
-//             "coordinates": [
-//               [
-      // {"type":"Feature","id":"IND","properties":{"name":"India"},"geometry":{"type":"Polygon","coordinates":[[[77.837451,35.49401],[78.912269,34.321936],[78.811086,33.506198],[79.208892,32.994395],[79.176129,32.48378],[78.458446,32.618164],[78.738894,31.515906],[79.721367,30.882715],[81.111256,30.183481],[80.476721,29.729865],[80.088425,28.79447],[81.057203,28.416095],[81.999987,27.925479],[83.304249,27.364506],[84.675018,27.234901],[85.251779,26.726198],[86.024393,26.630985],[87.227472,26.397898],[88.060238,26.414615],[88.174804,26.810405],[88.043133,27.445819],[88.120441,27.876542],[88.730326,28.086865],[88.814248,27.299316],[88.835643,27.098966],[89.744528,26.719403],[90.373275,26.875724],[91.217513,26.808648],[92.033484,26.83831],[92.103712,27.452614],[91.696657,27.771742],[92.503119,27.896876],[93.413348,28.640629],[94.56599,29.277438],[95.404802,29.031717],[96.117679,29.452802],[96.586591,28.83098],[96.248833,28.411031],[97.327114,28.261583],[97.402561,27.882536],[97.051989,27.699059],[97.133999,27.083774],[96.419366,27.264589],[95.124768,26.573572],[95.155153,26.001307],[94.603249,25.162495],[94.552658,24.675238],[94.106742,23.850741],[93.325188,24.078556],[93.286327,23.043658],[93.060294,22.703111],[93.166128,22.27846],[92.672721,22.041239],[92.146035,23.627499],[91.869928,23.624346],[91.706475,22.985264],[91.158963,23.503527],[91.46773,24.072639],[91.915093,24.130414],[92.376202,24.976693],[91.799596,25.147432],[90.872211,25.132601],[89.920693,25.26975],[89.832481,25.965082],[89.355094,26.014407],[88.563049,26.446526],[88.209789,25.768066],[88.931554,25.238692],[88.306373,24.866079],[88.084422,24.501657],[88.69994,24.233715],[88.52977,23.631142],[88.876312,22.879146],[89.031961,22.055708],[88.888766,21.690588],[88.208497,21.703172],[86.975704,21.495562],[87.033169,20.743308],[86.499351,20.151638],[85.060266,19.478579],[83.941006,18.30201],[83.189217,17.671221],[82.192792,17.016636],[82.191242,16.556664],[81.692719,16.310219],[80.791999,15.951972],[80.324896,15.899185],[80.025069,15.136415],[80.233274,13.835771],[80.286294,13.006261],[79.862547,12.056215],[79.857999,10.357275],[79.340512,10.308854],[78.885345,9.546136],[79.18972,9.216544],[78.277941,8.933047],[77.941165,8.252959],[77.539898,7.965535],[76.592979,8.899276],[76.130061,10.29963],[75.746467,11.308251],[75.396101,11.781245],[74.864816,12.741936],[74.616717,13.992583],[74.443859,14.617222],[73.534199,15.990652],[73.119909,17.92857],[72.820909,19.208234],[72.824475,20.419503],[72.630533,21.356009],[71.175273,20.757441],[70.470459,20.877331],[69.16413,22.089298],[69.644928,22.450775],[69.349597,22.84318],[68.176645,23.691965],[68.842599,24.359134],[71.04324,24.356524],[70.844699,25.215102],[70.282873,25.722229],[70.168927,26.491872],[69.514393,26.940966],[70.616496,27.989196],[71.777666,27.91318],[72.823752,28.961592],[73.450638,29.976413],[74.42138,30.979815],[74.405929,31.692639],[75.258642,32.271105],[74.451559,32.7649],[74.104294,33.441473],[73.749948,34.317699],[74.240203,34.748887],[75.757061,34.504923],[76.871722,34.653544],[77.837451,35.49401]]]}} 
-//     ]
-//   ]
-// }
-// }
-// ]
-// };
-// console.log("indiaData.features[0].geometry.coordinates",indiaData.features[0].geometry.coordinates)
-  
-//   const india = turf.polygon(indiaData.features[0].geometry.coordinates);
-  
-//   if (!boundary.geometry.coordinates || boundary.geometry.coordinates.length === 0) {
-//     console.error("Invalid boundary: No coordinates found.");
-//     return false;
-//   }
-//   const boundaryCoordinates = boundary;
-//   const boundaryPolygon = turf.polygon([boundaryCoordinates]);
-//   const isInsideIndia = turf.booleanContains(india, boundaryPolygon);
-//   console.log("isInsideIndia",isInsideIndia);
-//   return !isInsideIndia;
-//   }
-  
-
-
   const indiaBounds = {
-    north: 37.0841,   
-    south: 6.4627,     
-    east: 97.395,      
-    west: 68.17665,    
+    north: 37.0841,
+    south: 6.4627,
+    east: 97.395,
+    west: 68.17665,
   };
 
   const mapOptions = {
     restriction: {
       latLngBounds: indiaBounds, // Set boundary restrictions to India
-      strictBounds: true,   
+      strictBounds: true,
     },
   }
 
- 
+
 
 
   useEffect(() => {
     if (!props.bufferData) return;
-  
+
     let coordinates;
-  
+
     // Case 1: FeatureCollection
     if (props.bufferData.type === 'FeatureCollection') {
       coordinates = props.bufferData?.features?.[0]?.geometry?.coordinates?.[0];
     }
-  
+
     // Case 2: Single Feature
     else if (props.bufferData.type === 'Feature') {
       coordinates = props.bufferData?.geometry?.coordinates?.[0];
     }
-  
+
     // Only continue if coordinates are found
     if (coordinates) {
       const latLngArray = coordinates.map(coordPair => ({
@@ -823,9 +718,30 @@ function Report(props) {
       setNewBufferdata(latLngArray);
     }
   }, [props.bufferData]);
-  
 
-  
+  const isLine = useMemo(() => {
+    // Check newPolygon shape type OR GeoJSON type
+    const type = props?.newPolygon?.shape || dataForMap?.features?.[0]?.geometry?.type || dataForMap?.geometry?.type;
+    return type === "LineString" || type === "polyline" || type === "Line";
+  }, [props?.newPolygon, dataForMap]);
+
+
+
+  // const activePath = useMemo(() => {
+  // const path = convertedData || editedData || boundaryData || formattedData || newBufferdata;
+  //   if (!path || path.length === 0) return null;
+
+  //   // CRITICAL: Polyline needs a flat array [{lat, lng}, ...]. 
+  //   // If the data is nested [[{lat, lng}, ...]], we grab the first index.
+  //   if (isLine) {
+  //     return Array.isArray(path[0]) ? path.flat(2) : path;
+  //   }
+  //   return Array.isArray(path[0]) ? path : [path];
+
+  // }, [convertedData, editedData, boundaryData, formattedData, newBufferdata, isLine]);
+
+
+
   return (
     <Fragment>
       <div style={{ backgroundColor: "#ffffff00" }}>
@@ -847,7 +763,7 @@ function Report(props) {
                       className="mb-0 h-[95px] w-[130px] sm:h-[120px] sm:w-[180px] sm:min-w-[180px] "
 
                       // className="mb-0 h-[120px] w-[180px] min-w-[120px] max-w-full object-contain"
-                      style={{  color: "#fff" }}
+                      style={{ color: "#fff" }}
                     />
                     <div className="mb-4">
                       <h1 className="myna-text">MYNA</h1>
@@ -861,7 +777,7 @@ function Report(props) {
                     </div>
                     {selectedState !== "" && (
                       <div className="flex flex-col xsm:flex-col sm:flex-col md:flex-row lg:flex-row xl:flex-row justify-between sm:pr-[18px] xsm:pr-[18px] ">
-                      <center className=" text-[1.1rem] md:text-2xl lg:text-2xl xlg:text-2xl font-sans text-white font-bold xsm:text-right sm:text-right">
+                        <center className=" text-[1.1rem] md:text-2xl lg:text-2xl xlg:text-2xl font-sans text-white font-bold xsm:text-right sm:text-right">
                           {/* State: Himachal Pradesh */}
                           {selectedState !== "" && `State: ${selectedState}`}
                         </center>
@@ -880,20 +796,20 @@ function Report(props) {
                         "d-flex justify-content-endent-end"
                       }
                     >
-                  {window.innerWidth < 768 &&
+                      {window.innerWidth < 768 &&
 
-                      <div className="flex justify-end">
-                        {startDate !== "" && (
-                          <div className="flex justify-end mt-1 ">
-                            <center className="text-[.9rem] md:text-2xl lg:text-2xl xlg:text-2xl  gandhi-family text-gray-100 pr-[18px]">
-                              {startDate !== "" &&
-                                `Dates : ${dayjs(startDate).format("DD/MM/YYYY") + " "}–${" " + dayjs(endDate).format("DD/MM/YYYY")
-                                }`}
-                            </center>
-                          </div>
-                        )}
-                      </div>
-                   }
+                        <div className="flex justify-end">
+                          {startDate !== "" && (
+                            <div className="flex justify-end mt-1 ">
+                              <center className="text-[.9rem] md:text-2xl lg:text-2xl xlg:text-2xl  gandhi-family text-gray-100 pr-[18px]">
+                                {startDate !== "" &&
+                                  `Dates : ${dayjs(startDate).format("DD/MM/YYYY") + " "}–${" " + dayjs(endDate).format("DD/MM/YYYY")
+                                  }`}
+                              </center>
+                            </div>
+                          )}
+                        </div>
+                      }
                       <div className="me-4">
                         <Tooltip
                           title="Download"
@@ -953,18 +869,18 @@ function Report(props) {
                 </Grid>
               </Grid>
             </div>
-            {window.innerWidth >=768 &&
-            <div className="flex justify-end">
-              {startDate !== "" && (
-                <div className="flex justify-end mt-1 ">
-                  <center className="text-[1.1rem] md:text-2xl lg:text-2xl xlg:text-2xl  gandhi-family text-gray-100 pr-[18px]">
-                    {startDate !== "" &&
-                      `Dates : ${dayjs(startDate).format("DD/MM/YYYY") + " "}–${" " + dayjs(endDate).format("DD/MM/YYYY")
-                      }`}
-                  </center>
-                </div>
-              )}
-            </div>
+            {window.innerWidth >= 768 &&
+              <div className="flex justify-end">
+                {startDate !== "" && (
+                  <div className="flex justify-end mt-1 ">
+                    <center className="text-[1.1rem] md:text-2xl lg:text-2xl xlg:text-2xl  gandhi-family text-gray-100 pr-[18px]">
+                      {startDate !== "" &&
+                        `Dates : ${dayjs(startDate).format("DD/MM/YYYY") + " "}–${" " + dayjs(endDate).format("DD/MM/YYYY")
+                        }`}
+                    </center>
+                  </div>
+                )}
+              </div>
             }
           </Card>
         </div>
@@ -1119,7 +1035,7 @@ function Report(props) {
             <div className="p-1 lg:px-8 mt-8 text-xs lg:text-base ">
               <div className={` mt-20 `}>
                 <div className="">
-                <Card className="md:mx-5 lg:mx-40 mb-4">
+                  <Card className="md:mx-5 lg:mx-40 mb-4">
                     <Table3XN
                       heading="SOIB HIGH CONSERVATION PRIORITY SPECIES"
                       tableData={getSoibConcernStatus}
@@ -1185,21 +1101,21 @@ function Report(props) {
                   SEASONAL CHART
                   {!changeLayoutForReport && (
                     <Tooltip
-                    title="Seasonal Chart includes the top ten migratory species and their frequency of reporting in each month of the year"
-                    placement="top"
-                    arrow
-                    enterTouchDelay={0} // show immediately on tap
-                    leaveTouchDelay={4000} // stays visible for 4s
-                    PopperProps={{
-                      modifiers: [
-                        {
-                          name: 'preventOverflow',
-                          options: {
-                            boundary: 'viewport',
+                      title="Seasonal Chart includes the top ten migratory species and their frequency of reporting in each month of the year"
+                      placement="top"
+                      arrow
+                      enterTouchDelay={0} // show immediately on tap
+                      leaveTouchDelay={4000} // stays visible for 4s
+                      PopperProps={{
+                        modifiers: [
+                          {
+                            name: 'preventOverflow',
+                            options: {
+                              boundary: 'viewport',
+                            },
                           },
-                        },
-                      ],
-                    }}
+                        ],
+                      }}
                     >
                       <InformationCircleIcon className="cursor-help ms-1 text-yellow-500 h-7 w-7" />
                     </Tooltip>
@@ -1219,14 +1135,12 @@ function Report(props) {
             <div className="mb-16 py-4 sm:px-0 lg:px-10 md:px-0" style={{ height: "70vh" }}>
               <div className="p-2 grid grid-cols-1 md:grid-cols-3  mx-0 md:mx-20 lg:mx-20 mb-16" style={{ height: "70vh" }}>
                 <div className="grid col-span-2" ref={otherScreen} >
+
                   <Map
                     ref={mapRef}
-                    className=""
                     style={{
-                      height: "58vh",
-                      // width: mapZoomOut ? "58vw" : window.innerWidth < 768 ? "90vw" : "58vw"
+                      height: changeLayoutForReport ? "70vh" : "58vh",
                       width: window.innerWidth < 768 ? "90vw" : "58vw"
-
                     }}
                     google={props.google}
                     mapTypeControl={false}
@@ -1237,104 +1151,107 @@ function Report(props) {
                     streetViewControl={false}
                     panControl={false}
                     rotateControl={false}
-                    zoom={changeLayoutForReport ? 7.5 : 7.5}
+                    zoom={changeLayoutForReport ? 7 : 7}
                     onReady={!mapZoomOut && onMapReady}
                     initialCenter={
-                      MemoizedPolygonCenter.convertedData ||
+                      MemoizedPolygonCenter.newBufferdata ||
                       MemoizedPolygonCenter.editedData ||
                       MemoizedPolygonCenter.boundaryData ||
                       MemoizedPolygonCenter.formattedData ||
-                      { lat: 25.21, lng: 79.32 }  // Default center
+                      { lat: 25.21, lng: 79.32 }
                     }
                     options={mapOptions}
-
                   >
-                    {props.data && props.data.features && props.data.features.length > 0 && (
-                      <Polygon
-                        paths={[props.data.features[0].geometry.coordinates[0]]}
-                        strokeColor="#0000FF"
-                        strokeOpacity={0.8}
-                        strokeWeight={2.5}
-                        fillOpacity={0}
+                    {/* 1. RENDER THE BUFFERED AREA (Always a Polygon because a buffer is an area) */}
 
+
+                    {/* 2. RENDER THE MAIN SHAPE (Line or Polygon) */}
+                    {(boundaryData || convertedData || editedData || formattedData) && (
+                      isLine ? (
+                        <Polyline
+                          path={boundaryData || convertedData || editedData || formattedData}
+                          strokeColor="#0000FF"
+                          strokeOpacity={1.0}
+                          strokeWeight={1.5}
+                          zIndex={150}
+                        />
+                      ) : (
+                        <Polygon
+                          paths={boundaryData || convertedData || editedData || formattedData}
+                          strokeColor="#0000FF"
+                          strokeOpacity={1.0}
+                          strokeWeight={1.5}
+                          fillOpacity={0}
+                          zIndex={150}
+                        />
+                      )
+                    )}
+
+                    {(newBufferdata) && (
+
+                      <Polygon
+                        key="buffered-area-display"
+                        paths={newBufferdata}
+                        strokeColor="#4F9BC0"
+                        strokeOpacity={0.8}
+                        strokeWeight={2}
+                        fillColor="#4F9BC0"
+                        fillOpacity={0.3}
+                        zIndex={151}
                       />
                     )}
 
-                    { !boundaryData && editedData && (
+                    {/* 3. MULTIPOLYGON SUPPORT (If applicable) */}
+                    {/* {formattedData && formattedData.length > 0 && formattedData.map((polygonPath, index) => (
                       <Polygon
-                        paths={editedData}
+                        key={`multi-polygon-${index}-original`}
+                        paths={polygonPath}
                         strokeColor="#0000FF"
-                        strokeOpacity={0.8}
+                        strokeOpacity={1.0}
                         strokeWeight={2.5}
                         fillOpacity={0}
-
+                        zIndex={2}
                       />
-                    )}
+                    ))} */}
 
-                    {convertedData && (
-                      <Polygon
-                        paths={convertedData}
-                        strokeColor="#0000FF"
-                        strokeOpacity={0.8}
-                        strokeWeight={2.5}
-                        fillOpacity={0}
-                      />
-                    )}
-
-                    {boundaryData && (
-                      <Polygon
-                        paths={boundaryData}
-                        strokeColor="#0000FF"
-                        strokeOpacity={0.8}
-                        strokeWeight={2.5}
-                        fillOpacity={0}
-                      />
-                    )}
-                    {formattedData && (
-                      <Polygon
-                        paths={formattedData}
-                        strokeColor="#0000FF"
-                        strokeOpacity={0.8}
-                        strokeWeight={2.5}
-                        fillOpacity={0}
-
-                      />
-                    )}
+                    {/* 4. MARKERS AND INFOWINDOWS */}
                     {(capturedMarkers?.length > 0 ? capturedMarkers : getHotspotAreas).map((marker) => (
                       <Marker
-                        key={marker.id}
-                        position={marker.position}
-                        onMouseover={marker.onMouseover}
+                        key={marker.id || marker.localityId}
+                        position={marker.position || { lat: marker.latitude, lng: marker.longitude }}
+                        onMouseover={marker.onMouseover || (() => handleMarkerClick(marker))}
                       />
                     ))}
 
-                    {getHotspotAreas && getHotspotAreas?.map(marker => (
-                      <Marker
-                        key={marker.localityId}
-                        position={{ lat: marker.latitude, lng: marker.longitude }}
-                        onMouseover={() => handleMarkerClick(marker)}
-                        onMouseout={() => setShowInfoWindow(false)}
-                      />
-                    ))}
-
-                    {getHotspotAreas && activeMarker && getHotspotAreas?.map(marker => (
+                    {getHotspotAreas && activeMarker && (
                       <InfoWindow
-                        key={marker.localityId}
-                        position={{ lat: activeMarker.latitude, lng: marker.longitude }}
-                        visible={showInfoWindow && activeMarker === marker}
-                        zIndex={10000}
+                        position={{ lat: activeMarker.latitude, lng: activeMarker.longitude }}
+                        visible={showInfoWindow}
+                        onClose={() => setShowInfoWindow(false)}
                       >
-                        <div style={{ zIndex: '1000' }}>
-                          <p>{marker.locality}</p>
+                        <div>
+                          <p>{activeMarker.locality}</p>
                         </div>
                       </InfoWindow>
-                    ))}
+                    )}
                   </Map>
+
                   {area != null ? (
-                    <span className={`bg-[#F3EDE8] text-gray-800 h-[64vh] p-2 pb-4 gandhi-family rounded-b-xl`}
-                      style={{ display: 'flex', alignItems: 'end', letterSpacing: '0.05em', fontFamily: '"Gandhi Sans Regular"' }}>
+                    <span className={changeLayoutForReport ? `bg-[#F3EDE8] text-gray-800 h-[78vh] p-2 pb-4 gandhi-family rounded-b-xl` : `bg-[#F3EDE8] text-gray-800 h-[66vh] p-2 pb-4 gandhi-family rounded-b-xl`}
+                      style={{ 
+                        display: 'flex', 
+                        alignItems: 'end', 
+                        letterSpacing: '0.05em', 
+                        fontFamily: '"Gandhi Sans Regular"' 
+                        }}
+                        >
                       {" "}
                       {"Area: "}{parseFloat(roundToTwoDecimals(area))} square kilometers
+                      {props.bufferArea > 0 && (
+                        <span style={{ marginLeft: '10px' }}>
+                          {" | Buffer Distance: "}{props.bufferArea} KM
+                        </span>
+                      )}
                     </span>
                   ) : (
                     ""
@@ -1347,258 +1264,87 @@ function Report(props) {
               </div>
             </div>
 
-            {showHeatMap && 
+            {showHeatMap &&
               <div class='pr-0 pl-0 xsm:pr-[10px] sm:pr-[10px] xsm:pl-[10px] sm:pl-[10px]' style={{ display: polygonsCount < 1 || area <= 500 ? "block" : "block" }}>
-              <div ref={heatmapRef} className=' mt-[40rem] sm:mt-[27rem] md:mt-0 lg:mt-0 flex flex-col justify-center items-center relative'>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
-                <h2 className="text-center xsm:text-2xl sm:text-lg md:text-6xl lg:text-6xl gandhi-family-bold my-10 p-4 flex justify-center" style={{ margin: 0, fontSize: "24px" }}>HEATMAP</h2>
-                {/* <button
-                  className="gandhi-family"
-                  style={{
-                    background: "none",
-                    border: "1px solid #DAB830",
-                    borderRadius: "50%",
-                    color: "#DAB830",
-                    width: "24px",
-                    height: "24px",
-                    textAlign: "center",
-                    cursor: "pointer",
-                  }}
-                  title="Intensity of the colour of a grid is proportional to the number of checklists from that grid"
-                >
-                  i
-                </button> */}
-                  <Tooltip
-                    title="Intensity of the colour of a grid is proportional to the number of checklists from that grid"
-                    placement="top"
-                    arrow
-                    enterTouchDelay={0} // show immediately on tap
-                    leaveTouchDelay={4000} // stays visible for 4s
-                    PopperProps={{
-                      modifiers: [
-                        {
-                          name: 'preventOverflow',
-                          options: {
-                            boundary: 'viewport',
+                <div ref={heatmapRef} className=' mt-[40rem] sm:mt-[27rem] md:mt-0 lg:mt-0 flex flex-col justify-center items-center relative'>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
+                    <h2 className="text-center xsm:text-2xl sm:text-lg md:text-6xl lg:text-6xl gandhi-family-bold my-10 p-4 flex justify-center" style={{ margin: 0, fontSize: "24px" }}>HEATMAP</h2>
+                    <Tooltip
+                      title="Intensity of the colour of a grid is proportional to the number of complete checklists from that grid"
+                      placement="top"
+                      arrow
+                      enterTouchDelay={0} // show immediately on tap
+                      leaveTouchDelay={4000} // stays visible for 4s
+                      PopperProps={{
+                        modifiers: [
+                          {
+                            name: 'preventOverflow',
+                            options: {
+                              boundary: 'viewport',
+                            },
                           },
-                        },
-                      ],
-                    }}
+                        ],
+                      }}
                     >
                       <InformationCircleIcon className="cursor-help ms-1 text-yellow-500 h-7 w-7" />
-                  </Tooltip>
-              </div>
-              <CustomHeatMap 
-                sethighestNumber={sethighestNumber} 
-                mapZoomOut={mapZoomOut} 
-                area={area} 
-                className="md:absolute lg:absolute" 
-                onMapReady={onMapReady} 
-                isPolygon={editedData?true:false} 
-                stateName={stateName} 
-                paths={boundaryData  || editedData || convertedData || newBufferdata || formattedData} 
-                setPolygonsCount={setPolygonsCount}
-                bufferData={props.bufferData}
-                orgPolyCoords={props.orgPolyCoords} 
-                mapBoundary={boundaryData  || convertedData || editedData || formattedData}
-                newPolygon={props.newPolygon}
-              />
-              <div>
-                <div className="bottom-0 left-0 w-full flex justify-center items-center bg-white mt-[10px]">
-                  <div className="flex items-center mx-1 md:mx-2 lg:mx-2 xlg:mx-2">
-                    <div className="  w-4 h-4 md:w-8 md:h-8 lg:w-8 lg:h-8 xlg:w-8 xlg:h-8 bg-[#562377] border border-black mr-2"></div>
-                    <span className="text-xs">{'>= 70'}</span>
+                    </Tooltip>
                   </div>
-                  <div className="flex items-center mx-1 md:mx-2 lg:mx-2 xlg:mx-2">
-                    <div className="w-4 h-4 md:w-8 md:h-8 lg:w-8 lg:h-8 xlg:w-8 xlg:h-8 bg-[#3949ab] border border-black mr-2"></div>
-                    <span className="text-xs">{'30 - 69'}</span>
+                  <CustomHeatMap
+                    sethighestNumber={sethighestNumber}
+                    mapZoomOut={mapZoomOut}
+                    isLine={isLine}
+                    area={area}
+                    className="md:absolute lg:absolute"
+                    onMapReady={onMapReady}
+                    isPolygon={editedData ? true : false}
+                    stateName={stateName}
+                    paths={boundaryData || editedData || convertedData || newBufferdata || formattedData}
+                    setPolygonsCount={setPolygonsCount}
+                    bufferData={props.bufferData}
+                    orgPolyCoords={props.orgPolyCoords}
+                    mapBoundary={boundaryData || convertedData || editedData || formattedData}
+                    newPolygon={props.newPolygon}
+                    bufferArea={props.bufferArea}
+                  />
+                  <div>
+                    <div className="bottom-0 left-0 w-full flex justify-center items-center bg-white mt-[10px]">
+                      <div className="flex items-center mx-1 md:mx-2 lg:mx-2 xlg:mx-2">
+                        <div className="  w-4 h-4 md:w-8 md:h-8 lg:w-8 lg:h-8 xlg:w-8 xlg:h-8 bg-[#562377] border border-black mr-2"></div>
+                        <span className="text-xs">{'>= 70'}</span>
+                      </div>
+                      <div className="flex items-center mx-1 md:mx-2 lg:mx-2 xlg:mx-2">
+                        <div className="w-4 h-4 md:w-8 md:h-8 lg:w-8 lg:h-8 xlg:w-8 xlg:h-8 bg-[#3949ab] border border-black mr-2"></div>
+                        <span className="text-xs">{'30 - 69'}</span>
+                      </div>
+                      <div className="flex items-center mx-1 md:mx-2 lg:mx-2 xlg:mx-2">
+                        <div className="w-4 h-4 md:w-8 md:h-8 lg:w-8 lg:h-8 xlg:w-8 xlg:h-8 bg-[#5c6bc0] border border-black mr-2"></div>
+                        <span className="text-xs">{'10 - 29'}</span>
+                      </div>
+                      <div className="flex items-center mx-1 md:mx-2 lg:mx-2 xlg:mx-2">
+                        <div className="w-4 h-4 md:w-8 md:h-8 lg:w-8 lg:h-8 xlg:w-8 xlg:h-8 bg-[#7986cb] border border-black mr-2"></div>
+                        <span className="text-xs">{'3 - 9'}</span>
+                      </div>
+                      <div className="flex items-center mx-1 md:mx-2 lg:mx-2 xlg:mx-2">
+                        <div className="w-4 h-4 md:w-8 md:h-8 lg:w-8 lg:h-8 xlg:w-8 xlg:h-8 bg-[#c5cae9] border border-black mr-2"></div>
+                        <span className="text-xs">{'1 - 2'}</span>
+                      </div>
+                      <div className="flex items-center mx-1 md:mx-2 lg:mx-2 xlg:mx-2">
+                        <div className="w-4 h-4 md:w-8 md:h-8 lg:w-8 lg:h-8 xlg:w-8 xlg:h-8 bg-[#FFFFFF] border border-black mr-2"></div>
+                        <span className="text-xs">{'0'}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center mx-1 md:mx-2 lg:mx-2 xlg:mx-2">
-                    <div className="w-4 h-4 md:w-8 md:h-8 lg:w-8 lg:h-8 xlg:w-8 xlg:h-8 bg-[#5c6bc0] border border-black mr-2"></div>
-                    <span className="text-xs">{'10 - 29'}</span>
-                  </div>
-                  <div className="flex items-center mx-1 md:mx-2 lg:mx-2 xlg:mx-2">
-                    <div className="w-4 h-4 md:w-8 md:h-8 lg:w-8 lg:h-8 xlg:w-8 xlg:h-8 bg-[#7986cb] border border-black mr-2"></div>
-                    <span className="text-xs">{'3 - 9'}</span>
-                  </div>
-                  <div className="flex items-center mx-1 md:mx-2 lg:mx-2 xlg:mx-2">
-                    <div className="w-4 h-4 md:w-8 md:h-8 lg:w-8 lg:h-8 xlg:w-8 xlg:h-8 bg-[#c5cae9] border border-black mr-2"></div>
-                    <span className="text-xs">{'1 - 2'}</span>
-                  </div>
-                  <div className="flex items-center mx-1 md:mx-2 lg:mx-2 xlg:mx-2">
-                    <div className="w-4 h-4 md:w-8 md:h-8 lg:w-8 lg:h-8 xlg:w-8 xlg:h-8 bg-[#FFFFFF] border border-black mr-2"></div>
-                    <span className="text-xs">{'0'}</span>
+                  <div className="text-center text-3xl  gandhi-family text-[20px]  mt-[5px]">
+                    PERCENTAGE OF COMPLETE LISTS (Total={highestNumber})
                   </div>
                 </div>
               </div>
-            <div className="text-center text-3xl  gandhi-family text-[20px]  mt-[5px]">
-             PERCENTAGE OF COMPLETE LISTS (Total={highestNumber})
-            </div>
-            </div>
-            </div>
             }
 
 
-            <div ref={chartRef}  style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', transform: 'translateY(48px)', marginTop: !showHeatMap && getSeasonalChartData.length > 0 ? '28rem' : '6 rem', marginBottom:'6rem' }}>
-              <Chart mapZoomOut={mapZoomOut}/>
+            <div ref={chartRef} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', transform: 'translateY(48px)', marginTop: !showHeatMap && getSeasonalChartData.length > 0 ? '28rem' : '6 rem', marginBottom: '6rem' }}>
+              <Chart mapZoomOut={mapZoomOut} />
             </div>
-
-
-
-            {/* <div className=" grid grid-cols-3 px-20 ">
-              <div className="col-span-2">
-                <Card className="h-[70vh] w-[88vw] mt-32">
-                  <Map
-                    ref={mapRef}
-                    className=" w-full"
-                    style={{
-                      height: "58vh",
-                      width: window.innerWidth < 768 ? "100vw" : "58vw",
-                    }}
-                    google={props.google}
-                    mapTypeControl={false}
-                    scaleControl={false}
-                    streetViewControl={false}
-                    panControl={false}
-                    rotateControl={false}
-
-                    zoom={changeLayoutForReport ? 8.2 : 9}
-                    initialCenter={(convertedData && getPolygonCenter(convertedData, props.google)) || (editedData && getPolygonCenter(editedData, props.google)) || boundaryData && (changeLayoutForReport ? getPolygonCenter(boundaryData, props.google) : getPolygonCenter(boundaryData, props.google)) || formattedData && (changeLayoutForReport ? getPolygonCenter(formattedData, props.google) : getPolygonCenter(formattedData, props.google)) || { lat: 25.21, lng: 79.32 }}
-                  >
-                    {props.data && props.data.features && props.data.features.length > 0 && (
-                      <Polygon
-                        paths={[props.data.features[0].geometry.coordinates[0]]}
-                        strokeColor="#0000FF"
-                        strokeOpacity={0.8}
-                        strokeWeight={2.5}
-                        fillOpacity={0}
-                      />
-                    )}
-
-                    {editedData && (
-                      <Polygon
-                        paths={editedData}
-                        strokeColor="#0000FF"
-                        strokeOpacity={0.8}
-                        strokeWeight={2.5}
-                        fillOpacity={0}
-                      />
-                    )}
-
-                    {convertedData && (
-                      <Polygon
-                        paths={convertedData}
-                        strokeColor="#0000FF"
-                        strokeOpacity={0.8}
-                        strokeWeight={2.5}
-                        fillOpacity={0}
-                      />
-                    )}
-
-                    {boundaryData && (
-                      <Polygon
-                        paths={boundaryData}
-                        strokeColor="#0000FF"
-                        strokeOpacity={0.8}
-                        strokeWeight={2.5}
-                        fillOpacity={0}
-                      />
-                    )}
-                    {formattedData && (
-                      <Polygon
-                        paths={formattedData}
-                        strokeColor="#0000FF"
-                        strokeOpacity={0.8}
-                        strokeWeight={2.5}
-                        fillOpacity={0}
-                      />
-                    )}
-                    {(capturedMarkers?.length > 0 ? capturedMarkers : getHotspotAreas).map((marker) => (
-                      <Marker
-                        key={marker.id}
-                        position={marker.position}
-                        onMouseover={marker.onMouseover}
-                      />
-                    ))}
-
-                    {getHotspotAreas && getHotspotAreas?.map(marker => (
-                      <Marker
-                        key={marker.localityId}
-                        position={{ lat: marker.latitude, lng: marker.longitude }}
-                        onMouseover={() => handleMarkerClick(marker)}
-                        onMouseout={() => setShowInfoWindow(false)}
-                      />
-                    ))}
-
-                    {getHotspotAreas && activeMarker && getHotspotAreas?.map(marker => (
-                      <InfoWindow
-                        key={marker.localityId}
-                        position={{ lat: activeMarker.latitude, lng: marker.longitude }}
-                        visible={showInfoWindow && activeMarker === marker}
-                        zIndex={10000}
-                      >
-                        <div style={{ zIndex: '1000' }}>
-                          <p>{marker.locality}</p>
-                        </div>
-                      </InfoWindow>
-                    ))}
-                  </Map>
-                  {area != null ? (
-                    <span className={`bg-[#F3EDE8] text-gray-800 h-[64vh] p-2 pb-4 gandhi-family rounded-b-xl`}
-                      style={{ display: 'flex', alignItems: 'end', letterSpacing: '0.05em', fontFamily: '"Gandhi Sans Regular"' }}>
-                      {" "}
-                      {"Area: "}{parseFloat(roundToTwoDecimals(area))} square kilometers
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </div>
-                <div className="ml-2 ">
-                  {" "}
-                  <TableCard tabledata={getHotspotAreas} />
-                </div>
-              </div>
-            </div>
-
-            {/* <div style={{height:'80vh'}}> */}
-            {/* <div
-              ref={heatmapRef}
-              className="mt-[27rem] md:mt-0 lg:mt-0 flex justify-center items-center relative"
-            >
-              <CustomHeatMap
-                className="md:absolute lg:absolute"
-                paths={editedData || convertedData || formattedData || boundaryData || []}
-                setPolygonsCount={setPolygonsCount} 
-              />
-
-              <div className="absolute bottom-0 left-0 w-full flex justify-center items-center bg-white  py-2 translate-y-[48px]">
-                <div className="flex items-center mx-2">
-                  <div className="w-8 h-8 bg-[#562377] border border-black mr-2"></div>
-                  <span className="text-sm">{'>= 70'}</span>
-                </div>
-                <div className="flex items-center mx-2">
-                  <div className="w-8 h-8 bg-[#3949ab] border border-black mr-2"></div>
-                  <span className="text-sm">{'30 - 69'}</span>
-                </div>
-                <div className="flex items-center mx-2">
-                  <div className="w-8 h-8 bg-[#5c6bc0] border border-black mr-2"></div>
-                  <span className="text-sm">{'10 - 29'}</span>
-                </div>
-                <div className="flex items-center mx-2">
-                  <div className="w-8 h-8 bg-[#7986cb] border border-black mr-2"></div>
-                  <span className="text-sm">{'2 - 9'}</span>
-                </div>
-                <div className="flex items-center mx-2">
-                  <div className="w-8 h-8 bg-[#c5cae9] border border-black mr-2"></div>
-                  <span className="text-sm">{'< 2'}</span>
-                </div>
-              </div>
-            </div>
-
-            <div ref={chartRef} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', transform: 'translateY(48px)', marginTop: '6rem', marginBottom: '6rem' }}>
-              <Chart />
-            </div> */}
-
 
             <div className="p-1 lg:px-8 mt-8 text-xs lg:text-base mb-4">
               <Card className="md:mx-5 lg:mx-40">
@@ -1649,11 +1395,11 @@ function Report(props) {
 
       <div
         ref={footer}
-        className={`lmd:grid  grid-cols-3  text-center text-gray-100 p-3 break-normal font-sans bg-[#9A7269] ${changeLayoutForReport && "pb-5"
+        className={`lmd:grid  grid-cols-3  text-gray-100 p-3 break-normal font-sans bg-[#9A7269] ${changeLayoutForReport && "pb-5"
           }`}
       >
-        <div className="col-span-2 md:text-right lg:text-right xlg:text-right lmd:me-4 gandhi-family">
-          Generated from myna.stateofindiasbirds.in v.2.2 on {formattedDate}
+        <div className="col-span-2 text-center md:text-right lg:text-right xlg:text-right lmd:me-4 gandhi-family">
+          Generated from myna.stateofindiasbirds.in v.2.3 on {formattedDate}
         </div>
         <div
           className={`${changeLayoutForReport && "invisible"

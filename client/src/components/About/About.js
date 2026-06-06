@@ -41,7 +41,7 @@ function About() {
           {" "}
           www.ebird.org/india  
         </a>
-        {" "}  ,and includes public observations uploaded until 28 February 2026. MYNA can
+        {" "}  ,and includes public observations uploaded until 31 March 2026. MYNA can
         be typically used to explore the birds found in small regions like a
         district, taluk, panchayat, protected area, an eBird locality, or even a
         custom boundary defined by the user. It provides broad summaries of the
@@ -73,10 +73,10 @@ function About() {
         {" "}MYNA is hosted in Amazon Web Services (AWS) and Microsoft Azure cloud platforms and we are thankful for their respective free credits programs for supporting MYNA.
       </div>
       <div
-        className="grid grid-cols-3 text-center text-gray-100 p-3  font-sans bg-[#9A7269] fixed bottom-0 w-100"
+        className="grid grid-cols-3 text-center text-gray-100 p-3  font-sans bg-[#9A7269]  bottom-0 w-100"
       >
         <div className="col-span-2 text-right me-4 gandhi-family">
-          Generated from myna.stateofindiasbirds.in v.2.2 on {formattedDate}
+          Generated from myna.stateofindiasbirds.in v.2.3 on {formattedDate}
         </div>
         <div
           className={` font-medium gandhi-family text-right`}

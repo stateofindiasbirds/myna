@@ -183,7 +183,7 @@ function Instructions() {
                   This data is based entirely on eBird data that was downloaded
                   from{" "}
                   <a href="https://www.ebird.org/india" target="_blank">www.ebird.org/india</a>,
-                  and includes public observations up till 28 February 2026. Data on
+                  and includes public observations up till 31 March 2026. Data on
                   sensitive species (
                   <a href="https://ebird.org/india/news/ebird-sensitive-species" target="_blank">
                     https://ebird.org/india/news/ebird-sensitive-species
@@ -345,7 +345,7 @@ function Instructions() {
         className="grid grid-cols-3 text-center text-gray-100 p-3  font-sans bg-[#9A7269] fixed bottom-0 w-100"
       >
         <div className="col-span-2 text-right me-4 gandhi-family">
-          Generated from myna.stateofindiasbirds.in v.2.2 on {formattedDate}
+          Generated from myna.stateofindiasbirds.in v.2.3 on {formattedDate}
         </div>
         <div
           className={` font-medium gandhi-family text-right`}
