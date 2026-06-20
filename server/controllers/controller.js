@@ -1053,73 +1053,86 @@ const UserController = {
     }
   },
 
-  async graph(req, res) {
-    const { state, county, locality } = req.query;
-    const start = '1900-01-01';
-    const end = req.query.end || '2024-05-31';
-    const startYear = new Date(start);
-    const endYear = new Date(end);
-  
-    let years = Array.from(
-      { length: endYear.getFullYear() - startYear.getFullYear() + 1 },  
-      (_, i) => startYear.getFullYear() + i
-    );
-  
-    const results = {};
-  
-    try { 
-      for (let i = 0; i < years.length; i++) {
-        const currentYear = years[i];
-  
-        const upToCurrentYear = years.slice(0, i + 1);
-  
-        const yearConditions = upToCurrentYear.map(year => `%${year}%`);
-  
-        const data = await Kinnaur.findAll({
-          attributes: [
-            [Sequelize.fn('DISTINCT', Sequelize.col('eBirdScientificName')), 'eBirdScientificName']
-          ],
-          where: {
-            state,
-            county,
-            ...(locality ? { locality } : {}),
-            category: ["species", "issf", "domestic"],
-            eBirdScientificName: { 
-              [Sequelize.Op.not]: null,
-            },
-            [Sequelize.Op.or]: yearConditions.map(year => ({
-              observationDate: {
-                [Sequelize.Op.like]: year, 
-              },
-            })),
-          },
-          raw: true,
-        });
-  
-    
-        const count = data.length;
-        if (count === 0) {
-  
-          years = years.filter(year => year !== currentYear);
-          i--; 
-        } else if (count > 0) {
-          const added =  Object.values(results).includes(count);
-          if(added){
-            years = years.filter(year => year !== currentYear);
-          i--; 
-          } else if(!added){
-            results[currentYear] = count; 
+ async graph(req, res) {
+  const { state, county, locality } = req.query;
+  const defaultStart = req.query.start || '01-01-1900';  
+  const defaultEnd = req.query.end || '31-05-2024'; 
 
-          }
+  // Accept and normalize both MM-DD-YYYY and DD-MM-YYYY formats
+  const parseDate = (dateStr) => {
+    const m = moment(dateStr, ['MM-DD-YYYY', 'DD-MM-YYYY'], true);
+    return m.isValid() ? m : null;
+  };
+
+  const start = parseDate(defaultStart);
+  const end = parseDate(defaultEnd);
+
+  if (!start || !end) {
+    return res.status(400).send("Invalid date format. Use DD-MM-YYYY.");
+  }
+
+  const startYear = start.year();
+  const endYear = end.year();
+
+  try {
+    const allData = await Kinnaur.findAll({
+      attributes: ['eBirdScientificName', 'observationDate'],
+      where: {
+        state,
+        county,
+        ...(locality ? { locality } : {}),
+        category: ["species", "issf", "domestic"],
+        eBirdScientificName: { [Op.not]: null },
+      },
+      raw: true,
+    });
+
+    const firstSeenMap = new Map();
+
+    for (const { eBirdScientificName, observationDate } of allData) {
+      const parsed = moment(observationDate, 'DD-MM-YYYY', true); // DB expects this
+      if (!parsed.isValid()) continue;
+
+      const year = parsed.year();
+      if (year >= 1900) {
+        const currentFirstSeen = firstSeenMap.get(eBirdScientificName);
+        if (currentFirstSeen === undefined || year < currentFirstSeen) {
+          firstSeenMap.set(eBirdScientificName, year);
         }
       }
-  
-      res.json(results);
-    } catch (error) {
-      console.error("Error fetching species count by year:", error);
-      res.status(500).send("Error fetching data.");
     }
-  },
+
+    const result = {};
+
+    for (const year of firstSeenMap.values()) {
+      result[year] = (result[year] || 0) + 1;
+    }
+
+    const sortedYears = Object.keys(result).map(Number).sort((a, b) => a - b);
+
+    const cumulativeResult = {};
+    let cumulativeCount = 0;
+
+    for (const year of sortedYears) {
+      cumulativeCount += result[year];
+      cumulativeResult[year] = cumulativeCount;
+    }
+
+    const filteredResult = Object.fromEntries(
+      Object.entries(cumulativeResult).filter(
+        ([year]) => {
+          const numYear = Number(year);
+          return numYear >= startYear && numYear <= endYear;  
+        }
+      )
+    );
+
+    res.json(filteredResult);
+  } catch (error) {
+    console.error("Error fetching first-time-seen species count by year:", error);
+    res.status(500).send("Internal Server Error");
+  }
+},
 
   // async graph(req, res) {
   //   const { state, county, locality } = req.query;
