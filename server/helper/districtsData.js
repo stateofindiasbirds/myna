@@ -2,7 +2,10 @@ const fs = require('fs');
 const path = require('path');
 
 const getDistrictLocationData = (locationName) => {
-    const districtsFilePath = path.join(__dirname, '..', 'files', 'districtdata.json');
+    const districtsFilePath = path.join(__dirname, '..', 'files', 'district_new.json');
+        // const districtsFilePath = path.join(__dirname, '..', 'files', 'outputHimachalCordinates.json');
+
+    
     const districtData = JSON.parse(fs.readFileSync(districtsFilePath, 'utf-8'));
 
     if (!locationName) {

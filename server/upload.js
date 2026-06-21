@@ -1,4 +1,5 @@
 const AWS = require("aws-sdk");
+const { v4: uuidv4 } = require("uuid");
 require("dotenv").config();
 
 AWS.config.update({
@@ -15,7 +16,11 @@ function uploadToS3(req, res, next) {
   }
 
   const bucketName = process.env.bucketName;
-  const fileName = req.file.originalname;
+  
+  
+  const uniqueSuffix = `${uuidv4()}-${Date.now()}`;
+  const fileName = `${uniqueSuffix}-${req.file.originalname}`;
+  
   const fileBuffer = req.file.buffer;
 
   const params = {
@@ -32,7 +37,6 @@ function uploadToS3(req, res, next) {
 
     console.log("File uploaded successfully to S3:", data.Location);
 
-    // Attach the S3 upload result to the request object for use in subsequent middleware or routes
     req.s3UploadResult = data;
 
     next();

@@ -10,6 +10,8 @@ const { toKml } = require("tokml");
 const path = require("path");
 const { getCipherInfo } = require("crypto");
 const { constrainedMemory } = require("process");
+const moment = require('moment');
+
 
 function readFileAsync(filePath, encoding) {
   return new Promise((resolve, reject) => {
@@ -370,9 +372,6 @@ const UserController = {
           where: {
             category: ["species", "issf", "domestic"],
             [Sequelize.Op.and]: arr1,
-            // eBirdScientificName: {
-            //   [Op.not]: null,
-            // },
           },
         }),
 
@@ -480,7 +479,120 @@ const UserController = {
 
   },
 
-    async graph(req, res) {
+  // async graph(req, res) {
+  //   const filePath = req.file.buffer;
+  //   const start = '1900-01-01';
+  //   const end = req.query.end || '2024-05-31';
+  //   const startYear = new Date(start);
+  //   const endYear = new Date(end);
+  //   const fileData = filePath.toString("utf-8");
+  //   // Parse the GeoJSON data
+  //   const geojson = JSON.parse(fileData);
+
+  //   const polygonCoords = geojson.features[0].geometry.coordinates[0];
+  //   const firstPoint = polygonCoords[0];
+  //   const lastPoint = polygonCoords[polygonCoords.length - 1];
+  //   if (firstPoint[0] !== lastPoint[0] || firstPoint[1] !== lastPoint[1]) {
+  //     polygonCoords.push(firstPoint); // Add the first point to close the loop
+  //   }
+  //   const polygonText = `POLYGON((${polygonCoords
+  //     .map((point) => point.join(" "))
+  //     .join(", ")}))`;
+   
+  //   const arr1 = [
+  //     Sequelize.where(
+  //       Sequelize.fn(
+  //         "ST_Within",
+  //         Sequelize.fn(
+  //           "ST_SetSRID",
+  //           Sequelize.fn(
+  //             "ST_MakePoint",
+  //             Sequelize.col("longitude"),
+  //             Sequelize.col("latitude")
+  //           ),
+  //           4326
+  //         ),
+  //         Sequelize.fn("ST_GeomFromText", polygonText, 4326)
+  //       ),
+  //       true
+  //     ),
+  //   ];
+  //   if (start && end) {
+  //     arr1.push(
+  //       Sequelize.where(
+  //         Sequelize.fn(
+  //           "TO_DATE",
+  //           Sequelize.col("observationDate"),
+  //           "DD-MM-YYYY"
+  //         ),
+  //         {
+  //           [Op.between]: [start, end], // Filter by date range
+  //         }
+  //       )
+  //     );
+  //   }
+  //   let years = Array.from(
+  //     { length: endYear.getFullYear() - startYear.getFullYear() + 1 },
+  //     (_, i) => startYear.getFullYear() + i
+  //   );
+  
+  //   const results = {};
+  
+  //   try { 
+  //     for (let i = 0; i < years.length; i++) {
+  //       const currentYear = years[i];
+  
+  //       const upToCurrentYear = years.slice(0, i + 1);
+  
+  //       const yearConditions = upToCurrentYear.map(year => `%${year}%`);
+  
+  //       const data = await Kinnaur.findAll({
+  //         attributes: [
+  //           [Sequelize.fn('DISTINCT', Sequelize.col('eBirdScientificName')), 'eBirdScientificName']
+  //         ],
+  //         where: {
+  //           [Op.and]: arr1,
+  //           category: ["species", "issf", "domestic"],
+  //           eBirdScientificName: { 
+  //             [Sequelize.Op.not]: null,
+  //           },
+  //           [Sequelize.Op.or]: yearConditions.map(year => ({
+  //             observationDate: {
+  //               [Sequelize.Op.like]: year, 
+  //             },
+  //           })),
+  //         },
+  //         raw: true,
+  //       });
+  
+    
+  //       const count = data.length;
+  //       if (count === 0) {
+  
+  //         years = years.filter(year => year !== currentYear);
+  //         i--; 
+  //       } else if (count > 0) {
+  //         const added =  Object.values(results).includes(count);
+  //         if(added){
+  //           years = years.filter(year => year !== currentYear);
+  //         i--; 
+  //         } else if(!added){
+  //           results[currentYear] = count; 
+
+  //         }
+  //       }
+  //     }
+  
+  //     res.json(results);
+  //   } catch (error) {
+  //     console.error("Error fetching species count by year:", error);
+  //     res.status(500).send("Error fetching data.");
+  //   }
+  // },
+
+ 
+
+  async graph(req, res) {
     const fileData = req.file.buffer.toString("utf-8");
     const geojson = JSON.parse(fileData);
   
@@ -577,6 +689,8 @@ const UserController = {
       res.status(500).send("Error fetching data.");
     }
   },
+  
+  
   async soibConcernStatus(req, res) {
     const filePath = req.file.buffer;
     try {
@@ -1135,10 +1249,8 @@ const UserController = {
   async endemincSpecies(req, res) {
     try {
       const filePath = req.file.buffer;
-      // Read the contents of the file
       const fileData = filePath.toString("utf-8");
       const data = JSON.parse(fileData);
-      // console.log('datadata',data);
       const polygonCoords = data.features[0].geometry.coordinates[0];
       const firstPoint = polygonCoords[0];
       const lastPoint = polygonCoords[polygonCoords.length - 1];
@@ -1983,31 +2095,7 @@ const UserController = {
         );
       }
      
-      // const occurrences = await Kinnaur.findAll({
-      //   attributes: [
-      //     "locality",
-      //     "localityId",
-      //     "latitude",
-      //     "longitude",
-      //     [
-      //       Sequelize.fn(
-      //         "COUNT",
-      //         Sequelize.fn("DISTINCT", Sequelize.col("eBirdScientificName"))
-      //       ),
-      //       "count",
-      //     ],
-      //   ],
-      //   where: {
-      //     localityType: "H",
-      //     category: ["species", "issf", "domestic"],
-      //     [Sequelize.Op.and]: arr1,
-      //   },
-      //   group: ["locality", "localityId", "latitude", "longitude"],
-      //   order: [[Sequelize.literal("count"), "DESC"]],
-      //   limit: 5,
-      //   raw: true,
-      // });
-      // res.send(occurrences);
+     
       const occurrences = await Kinnaur.findAll({
         attributes: [
             "localityId",
@@ -2189,149 +2277,31 @@ const UserController = {
       }
       const list = await Kinnaur.findAll({
         attributes: [
-          [
-            Sequelize.fn(
-              "DISTINCT",
-              Sequelize.col("indiaChecklistScientificName")
-            ),
-            "indiaChecklistScientificName",
-          ],
-          "migratoryStatusWithinIndia",
-          "indiaChecklistCommonName",
-          "uniqueValue",
-          "endemicRegion",
-          "soibConcernStatus",
-          "wpaSchedule",
-          "iucnCategory",
-          "groupIdentifier"
+                   [Sequelize.fn('DISTINCT', Sequelize.col('groupIdentifier')), 'groupIdentifier'],
+                   'latitude',
+                   'longitude',
+                   'samplingEventIdentifier' 
         ],
         where: {
-          indiaChecklistScientificName: {
-            [Op.not]: null,
-          },
           [Sequelize.Op.and]: arr1,
+          allSpeciesReported: "1",
         },
-        raw: true,
+        order: [['latitude', 'ASC']] 
       });
-      list.sort((a, b) => a.uniqueValue - b.uniqueValue);
-      res.send(list);
+      const updatedList = list.map(item => {
+        const data = item.dataValues; 
+        if (!data.groupIdentifier || data.groupIdentifier === 'NA' || data.groupIdentifier === 'NA' || data.groupIdentifier === '' || data.groupIdentifier === null) { // Check if groupIdentifier is empty or 'NA'
+          data.groupIdentifier = data.samplingEventIdentifier; 
+        }
+        return data; 
+      });
+    
+      res.send(updatedList); 
     } catch (err) {
       res.send({ error: err });
     }
   },
-  // async waterBirdCongregations(req, res) {
-  //   try {
-  //     const filePath = req.file.buffer;
-  //     const fileData = filePath.toString("utf-8");
-  //     const data = JSON.parse(fileData);
-  //     const polygonCoords = data.features[0].geometry.coordinates[0];
-  //     const firstPoint = polygonCoords[0];
-  //     const lastPoint = polygonCoords[polygonCoords.length - 1];
-  //     if (firstPoint[0] !== lastPoint[0] || firstPoint[1] !== lastPoint[1]) {
-  //       polygonCoords.push(firstPoint);
-  //     }
-  //     const polygonText = `POLYGON((${polygonCoords
-  //       .map((point) => point.join(" "))
-  //       .join(", ")}))`;
-  //     const start = req.query.start || false;
-  //     const end = req.query.end || false;
-  //     const arr1 = [
-  //       Sequelize.where(
-  //         Sequelize.fn(
-  //           "ST_Within",
-  //           Sequelize.fn(
-  //             "ST_SetSRID",
-  //             Sequelize.fn(
-  //               "ST_MakePoint",
-  //               Sequelize.col("longitude"),
-  //               Sequelize.col("latitude")
-  //             ),
-  //             4326
-  //           ),
-  //           Sequelize.fn("ST_GeomFromText", polygonText, 4326)
-  //         ),
-  //         true
-  //       ),
-  //     ];
-  //     if (start && end) {
-  //       arr1.push(
-  //         Sequelize.where(
-  //           Sequelize.fn(
-  //             "TO_DATE",
-  //             Sequelize.col("observationDate"),
-  //             "DD-MM-YYYY"
-  //           ),
-  //           {
-  //             [Op.between]: [start, end], // Filter by date range
-  //           }
-  //         )
-  //       );
-  //     }
-  //     const highestObservations = await Kinnaur.findAll({
-  //       attributes: [
-  //         "indiaChecklistScientificName",
-  //         "onePercentEstimates",
-  //         "indiaChecklistCommonName",
-  //         [
-  //           Sequelize.literal('MAX("observationCount"::numeric)'), // Cast to numeric
-  //           "observationCount",
-  //         ],
-  //         "uniqueValue",
-  //         "samplingEventIdentifier",
-  //         "observationDate",
-  //       ],
-  //       where: {
-  //         onePercentEstimates: {
-  //           [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }],
-  //         },
-  //         observationCount: {
-  //           [Op.ne]: "X",
-  //         },
-  //         [Sequelize.Op.and]: arr1,
-  //       },
-  //       group: [
-  //         "indiaChecklistScientificName",
-  //         "onePercentEstimates",
-  //         "indiaChecklistCommonName",
-  //         "uniqueValue",
-  //         "samplingEventIdentifier",
-  //         "observationDate",
-  //       ],
-  //       order: [[Sequelize.col("uniqueValue"), "ASC"]],
-  //       raw: true,
-  //     });
-  //     const filteredData = highestObservations.map((item) => {
-  //       const observationCount = parseInt(item.observationCount, 10); // Convert to integer
-  //       const onePercentEstimates = parseInt(item.onePercentEstimates, 10); // Convert to integer
-  //       if (observationCount > onePercentEstimates) {
-  //         const onePercentBiographicPopulation = Math.round(
-  //           observationCount / onePercentEstimates
-  //         );
-  //         return {
-  //           indiaChecklistCommonName: item.indiaChecklistCommonName,
-  //           indiaChecklistScientificName: item.indiaChecklistScientificName,
-  //           highestCongregation: item.observationCount,
-  //           maxObservationCount: onePercentBiographicPopulation,
-  //           onePercentBiographicPopulation: item.onePercentEstimates,
-  //           uniqueValue: item.uniqueValue,
-  //           samplingEventIdentifier:item.samplingEventIdentifier,
-  //           observationDate:item.observationDate,
-  //         };
-  //       }
-  //     });
-  //     // onePercentEstimates;
-  //     const filteredDataWithoutNull = filteredData.filter((item) => 
-  //       if (item != null) {
-  //         return item;
-  //       }
-  //     });
-
-  //     res.send({ data: filteredDataWithoutNull, success: true });
-  //   } catch (error) {
-  //     console.error("Error:", error);
-  //     res.status(500).send("An error occurred while processing the data");
-  //   }
-  // },
+  
   async waterBirdCongregations(req, res) {
     try {
       const filePath = req.file.buffer;
@@ -2513,7 +2483,6 @@ const UserController = {
         attributes: ["eBirdEnglishName"],
         where: {
           [Sequelize.Op.and]: arr1,
-          // category: ["species", "domestic", "issf"],
         },
         raw: true,
       });
@@ -2530,7 +2499,6 @@ const UserController = {
         ],
         where: {
           [Sequelize.Op.and]: arr1,
-          // category: ["species", "domestic", "issf"],
         },
         raw: true,
       });
@@ -2555,7 +2523,6 @@ const UserController = {
                   ],
         where: {
           [Sequelize.Op.and]: arr1,
-          // category: ["species", "domestic", "issf"],
         },
         raw: true,
       });
@@ -2571,7 +2538,6 @@ const UserController = {
         ],
         where: {
           [Sequelize.Op.and]: arr1,
-          // category: ["species", "domestic", "issf"],
         },
         raw: true,
       });
@@ -2590,7 +2556,6 @@ const UserController = {
         ],
         where: {
           [Sequelize.Op.and]: arr1,
-          // category: ["species", "domestic", "issf"],
         },
         raw: true,
       });

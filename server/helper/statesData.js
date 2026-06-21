@@ -4,6 +4,8 @@ const path = require('path');
 // Function to read the states.json and fetch data for a particular location
 const getLocationData = (locationName) => {
     const statesFilePath = path.join(__dirname, '..', 'files', 'states.json');
+        // const statesFilePath = path.join(__dirname, '..', 'files', 'outputHimachalCordinates.json');
+
     const statesData = JSON.parse(fs.readFileSync(statesFilePath, 'utf-8'));
 
     if (!locationName) {

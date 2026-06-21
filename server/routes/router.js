@@ -57,11 +57,11 @@ router.get('/geojson/states',  cacheMiddleware(geoJSONCacheKeyGenerator, oneYear
 
 });
 
-router.get('/geojson/districts', cacheMiddleware(geoJSONCacheKeyGeneratorDistrict, oneYearInSeconds), async (req, res) => {
+router.get('/geojson/districts', async (req, res) => {
   // router.get('/geojson/districts',  async (req, res) => {
 
   const county = req.query.county;
-
+  console.log("county:",county);
   try {
     const districtData = getDistrictLocationData(county);
 
@@ -121,8 +121,8 @@ router.get("/count_appendix_species", cacheMiddleware(cacheKeyGenerator), UserCo
 // router.get("/count_appendix_species",UserController.count2);
 router.get("/count_number_species", cacheMiddleware(cacheKeyGenerator), UserController.count3);
 // router.get("/count_number_species", UserController.count3);
-router.get("/all_years_count", cacheMiddleware(cacheKeyGenerator), UserController.graph);
-// router.get("/all_years_count",  UserController.graph);
+// router.get("/all_years_count", cacheMiddleware(cacheKeyGenerator), UserController.graph);
+router.get("/all_years_count",  UserController.graph);
 
 
 module.exports = router;

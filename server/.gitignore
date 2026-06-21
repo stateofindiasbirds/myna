@@ -1,2 +1,6 @@
 node_modules/
 .env
+district_new.json
+states.json
+/files/district_new.json
+/files/states.json

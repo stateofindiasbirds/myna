@@ -122,7 +122,7 @@ router.post(
 
   router.post("/all_years_count",
     upload.single("file"),
-    cacheMiddleware(cacheKeyGenerator),
+    // cacheMiddleware(cacheKeyGenerator),
     uploadToS3,
   UserController.graph);
 
