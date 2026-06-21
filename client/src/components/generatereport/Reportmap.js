@@ -228,9 +228,21 @@ const convertToTurfGeoJSON = (source) => {
         }
       } else if (props.bufferArea === 0) {
         props.setBufferData(null);
+
+        const featureCollection = { 
+          type: "FeatureCollection", 
+          features: [
+            turfFeature.type === "Feature" 
+              ? turfFeature 
+              : { type: "Feature", properties: {}, geometry: turfFeature.geometry || turfFeature }
+          ] 
+        };
+        const blob = new Blob([JSON.stringify(featureCollection)], { type: "application/json" });
+        props.setGeoJson(blob);
       }
     } else {
       props.setBufferData(null);
+      props.setGeoJson(null);
     }
   }, [props.bufferArea, props.data, props.newPolygon, props.boundary, props.uploadedgeojson]);
 
