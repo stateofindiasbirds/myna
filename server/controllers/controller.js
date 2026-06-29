@@ -601,459 +601,106 @@ const UserController = {
       console.log(err);
     }
   },
+async count3(req, res) {
+  const categories = ["Vulnerable", "Critically Endangered", "Near Threatened", "Endangered"];
+  const { state, county, locality, start, end } = req.query;
 
-  async count3(req, res) {
-    const categories = [
-      "Vulnerable",
-      "Critically Endangered",
-      "Near Threatened",
-      "Endangered",
+  // 1. Build the base filter object (arr1 logic)
+  let whereConditions = {
+    category: ["species", "issf", "domestic"],
+    eBirdScientificName: { [Op.not]: null }
+  };
+
+  // Add Geography
+  if (state) whereConditions.state = state;
+  if (county) whereConditions.county = county;
+  if (locality) whereConditions.locality = locality;
+
+  // Add Date Range (The "TO_DATE" logic that was missing/failing)
+  if (start && end) {
+    whereConditions[Op.and] = [
+      Sequelize.where(
+        Sequelize.fn("TO_DATE", Sequelize.col("observationDate"), "DD-MM-YYYY"),
+        { [Op.between]: [start, end] }
+      )
     ];
-    const { state, county, locality } = req.query;
+  }
 
-    const start = req.query.start || false;
-    const end = req.query.end || false;
-    if (start && end && state && county && locality) {
-      var obj1 = {
-        state: state,
-        county: county,
-        locality: locality,
-        [Op.and]: [
-          Sequelize.where(
-            Sequelize.fn(
-              "TO_DATE",
-              Sequelize.col("observationDate"),
-              "DD-MM-YYYY"
-            ),
-            {
-              [Op.between]: [start, end], 
-            }
-          ),
-        ],
-      };
-   
-    }else if (start && end && state && county) {
-      var obj1 = {
-        state: state,
-        county: county,
-        observationCount: {
-          [Op.not]: null,
-        },
-        [Op.and]: [
-          Sequelize.where(
-            Sequelize.fn(
-              "TO_DATE",
-              Sequelize.col("observationDate"),
-              "DD-MM-YYYY"
-            ),
-            {
-              [Op.between]: [start, end], // Filter by date range
-            }
-          ),
-        ],
-      };
-    } else if (start && end && state) {
-      var obj1 = {
-        state: state,
-        [Op.and]: [
-          Sequelize.where(
-            Sequelize.fn(
-              "TO_DATE",
-              Sequelize.col("observationDate"),
-              "DD-MM-YYYY"
-            ),
-            {
-              [Op.between]: [start, end], // Filter by date range
-            }
-          ),
-        ],
-      };
-    } else if (state && county && locality) {
-      var obj1 = {
-        state: state,
-        county: county,
-        locality: locality,
-      };
-    } else if (state && county) {
-      var obj1 = {
-        state: state,
-        county: county,
-      };
-    } else if (state) {
-      var obj1 = {
-        state: state,
-      };
-    }
+  try {
+    // 2. Execute everything in parallel (like your KML controller)
+    const [total, migrate, soib, scheduleI, indiaEndemic, iucnCounts] = await Promise.all([
+      // Total
+      Kinnaur.count({ distinct: true, col: "eBirdScientificName", where: whereConditions }),
 
-    try {
-      if (state && county && locality) {
-        const counts = {};
-        const obj = {};
+      // Migratory
+      Kinnaur.count({
+        distinct: true,
+        col: "eBirdScientificName",
+        where: {
+          ...whereConditions,
+          migratoryStatusWithinIndia: { [Op.notRegexp]: "(Resident|Uncertain)" }
+        }
+      }),
 
-        const count = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            category: ["species", "issf", "domestic"],
-            ...obj1,
-          },
-        });
+      // SOIB High
+      Kinnaur.count({
+        distinct: true,
+        col: "eBirdScientificName",
+        where: { ...whereConditions, soibConcernStatus: "High" }
+      }),
 
-        const migrate = await Kinnaur.findAll({
-          attributes: [
-            [
-              Sequelize.fn("DISTINCT", Sequelize.col("eBirdScientificName")),
-              "eBirdScientificName",
-            ],
-            "migratoryStatusWithinIndia",
-          ],
-          where: {
-            ...obj1,
-            category: ["species", "issf", "domestic"],
-            eBirdScientificName: {
-              [Op.not]: null,
-            },
-            migratoryStatusWithinIndia: {
-              [Op.notRegexp]: '(Resident|Uncertain)',
-            },
-          },
-          raw: true,
-        });
-        const migrateCount = migrate.filter((ele) => {
-          const pattern = /^(?!.*(Resident|Uncertain)).*$/;
-          return pattern.test(ele.migratoryStatusWithinIndia);
-        });
+      // Schedule I
+      Kinnaur.count({
+        distinct: true,
+        col: "eBirdScientificName",
+        where: { ...whereConditions, wpaSchedule: "Schedule-I" }
+      }),
 
-        const soib = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            soibConcernStatus: "High",
-            ...obj1,
-            category: ["species", "issf", "domestic"],
-            eBirdScientificName: {
-              [Op.not]: null,
-            },
-          },
-        });
+      // India Endemic
+      Kinnaur.count({
+        distinct: true,
+        col: "eBirdScientificName",
+        where: { ...whereConditions, indiaEndemic: "Yes", observationCount: { [Op.not]: null } }
+      }),
 
-        const scheduleI = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            wpaSchedule: "Schedule-I",
-            ...obj1,
-            category: ["species", "issf", "domestic"],
-            eBirdScientificName: {
-              [Op.not]: null,
-            },
-          },
-        });
-
-        const indiaEndemic = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            indiaEndemic: "Yes",
-            ...obj1,
-            category: ["species", "issf", "domestic"],
-            eBirdScientificName: {
-              [Op.not]: null,
-            },
-            observationCount: {
-              [Op.not]: null,
-            },
-          },
-         
-        });
-
-        for (const category of categories) {
-          const count = await Kinnaur.count({
+      // IUCN Categories
+      Promise.all(
+        categories.map((cat) =>
+          Kinnaur.count({
             distinct: true,
             col: "eBirdScientificName",
             where: {
-              iucnCategory: category,
-              ...obj1,
+              ...whereConditions,
+              iucnCategory: cat,
+              // Keep your regex logic for eBirdScientificName validation
               eBirdScientificName: Sequelize.where(
-                Sequelize.fn(
-                  "regexp_replace",
-                  Sequelize.col("eBirdScientificName"),
-                  "\\d+",
-                  "",
-                  "g"
-                ),
+                Sequelize.fn("regexp_replace", Sequelize.col("eBirdScientificName"), "\\d+", "", "g"),
                 "=",
                 Sequelize.col("eBirdScientificName")
               ),
-            },
-          });
-          counts[category] = count;
-        }
+            }
+          })
+        )
+      )
+    ]);
 
-        obj["total"] = count;
-        obj["migrate"] = migrateCount.length;
+    // 3. Construct response
+    const response = {
+      total,
+      migrate,
+      iucnRedList: iucnCounts[0] + iucnCounts[1] + iucnCounts[3], // Vulnerable + Critically + Endangered
+      soibHighPriority: soib,
+      scheduleI,
+      indiaEndemic
+    };
 
-        obj["iucnRedList"] =
-          counts["Vulnerable"] +
-          counts["Critically Endangered"] +
-          counts["Endangered"];
-        obj["soibHighPriority"] = soib;
-        obj["scheduleI"] = scheduleI;
-        obj["indiaEndemic"] = indiaEndemic;
-        res.json(obj);
-      } else if (state && county) {
-       
-        const counts = {};
-        const obj = {};
-      
-        // Total distinct eBirdScientificName count with specific category and non-null
-        const count = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            // added
-            category: ["species", "issf", "domestic"],
-            eBirdScientificName: {
-              [Op.not]: null,
-            },
-            state: state,
-            county: county,
-          },
-        });
-      
-        // Migrate count using case-insensitive regex for 'Resident' and 'Uncertain'
-        const migrateCount = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-             category: ["species", "issf", "domestic"],
-             eBirdScientificName: {
-               [Op.not]: null,
-             },
-            migratoryStatusWithinIndia: {
-              [Op.notRegexp]: '(Resident|Uncertain)',
-            },
-            state: state,
-            county: county,
-          },
-        });
-      
-        // SOIB High Priority count
-        const soib = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            soibConcernStatus: "High",
-            state: state,
-            county: county,
-            category: ["species", "issf", "domestic"],
-            eBirdScientificName: {
-              [Op.not]: null,
-            },
-           
-          },
-        });
-      
-        // Schedule I count
-        const scheduleI = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-             category: ["species", "issf", "domestic"],
-             eBirdScientificName: {
-               [Op.not]: null,
-             },
-            wpaSchedule: "Schedule-I",
-            state: state,
-            county: county,
-          },
-        });
-      
-        // India Endemic count
-        const indiaEndemic = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-             category: ["species", "issf", "domestic"],
-             eBirdScientificName: {
-               [Op.not]: null,
-             },
-             observationCount: {
-               [Op.not]: null,
-             },
-            indiaEndemic: "Yes",
-            state: state,
-            county: county,
-          },
-        });
-      
-        // IUCN Red List categories
-        for (const category of categories) {
-          const count = await Kinnaur.count({
-            distinct: true,
-            col: "eBirdScientificName",
-            where: {
-            category: ["species"],
-            eBirdScientificName: {
-              [Op.not]: null,
-            },
-              iucnCategory: category,
-              state: state,
-              county: county,
-              eBirdScientificName: Sequelize.where(
-                Sequelize.fn(
-                  "regexp_replace",
-                  Sequelize.col("eBirdScientificName"),
-                  "\\d+",
-                  "",
-                  "g"
-                ),
-                "=",
-                Sequelize.col("eBirdScientificName")
-              ),
-            },
-          });
-          counts[category] = count;
-        }
-      
-      
-        obj["total"] = count;
-        obj["migrate"] = migrateCount;
-        obj["iucnRedList"] =
-          counts["Vulnerable"] +
-          counts["Critically Endangered"] +
-          counts["Endangered"];
-          // counts["Near Threatened"];
-        obj["soibHighPriority"] = soib;
-        obj["scheduleI"] = scheduleI;
-        obj["indiaEndemic"] = indiaEndemic;
-      
-        res.json(obj);
-      } else if (state) {
-        const obj = {};
-        const counts = {};
-        const count = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            category: ["species", "issf", "domestic"],
-            ...obj1,
-            eBirdScientificName: {
-              [Op.not]: null,
-            },
-          },
-        });
+    res.json(response);
 
-        const migrate = await Kinnaur.findAll({
-          attributes: [
-            [
-              Sequelize.fn("DISTINCT", Sequelize.col("eBirdScientificName")),
-              "eBirdScientificName",
-            ],
-            "migratoryStatusWithinIndia",
-          ],
-          where: {
-            [Op.and]: [
-              {
-                migratoryStatusWithinIndia: {
-                  [Op.notLike]: "%Resident%", // Exclude rows not containing "Resident"
-                },
-              },
-              {
-                migratoryStatusWithinIndia: {
-                  [Op.notLike]: "%Uncertain%", // Exclude rows not matching "Uncertain"
-                },
-              },
-            ],
-            ...obj1,
-            category: ["species", "issf", "domestic"],
-            eBirdScientificName: {
-              [Op.not]: null,
-            },
-          },
-          raw: true,
-        });
-
-        const soib = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            soibConcernStatus: "High",
-            ...obj1,
-            category: ["species", "issf", "domestic"],
-            eBirdScientificName: {
-              [Op.not]: null,
-            },
-          },
-        });
-        const scheduleI = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            wpaSchedule: "Schedule-I",
-            ...obj1,
-            category: ["species", "issf", "domestic"],
-            eBirdScientificName: {
-              [Op.not]: null,
-            },
-          },
-        });
-
-        const indiaEndemic = await Kinnaur.count({
-          distinct: true,
-          col: "eBirdScientificName",
-          where: {
-            indiaEndemic: "Yes",
-            ...obj1,
-            category: ["species", "issf", "domestic"],
-            eBirdScientificName: {
-              [Op.not]: null,
-            },
-            observationCount: {
-              [Op.not]: null,
-            },
-          },
-        });
-
-        for (const category of categories) {
-          const count = await Kinnaur.count({
-            distinct: true,
-            col: "eBirdScientificName",
-            where: {
-              iucnCategory: category,
-              ...obj1,
-              eBirdScientificName: Sequelize.where(
-                Sequelize.fn(
-                  "regexp_replace",
-                  Sequelize.col("eBirdScientificName"),
-                  "\\d+",
-                  "",
-                  "g"
-                ),
-                "=",
-                Sequelize.col("eBirdScientificName")
-              ),
-            },
-          });
-          counts[category] = count;
-        }
-        obj["total"] = count;
-        obj["migrate"] = migrate.length;
-
-        obj["iucnRedList"] =
-          counts["Vulnerable"] +
-          counts["Critically Endangered"] +
-          counts["Endangered"];
-        obj["soibHighPriority"] = soib;
-        obj["scheduleI"] = scheduleI;
-        obj["indiaEndemic"] = indiaEndemic;
-        res.json(obj);
-      }
-    } catch (err) {
-      console.log(err);
-      res.status(500).send({ error: err });
-    }
-  },
+  } catch (err) {
+    console.error("Error in count3:", err);
+    res.status(500).send({ error: err.message });
+  }
+},
   //working
   // async graph(req, res) {
   //   const { state, county, locality } = req.query;
